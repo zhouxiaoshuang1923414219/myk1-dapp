@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>MYK 合约测试面板</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: linear-gradient(145deg, #0d0f1a 0%, #1a1a2e 100%);
+            color: #eaeaea; min-height: 100vh; padding: 20px 16px;
+            display: flex; justify-content: center;
+        }
+        .container { max-width: 600px; width: 100%; }
+        h1 { text-align: center; color: #f0a500; margin-bottom: 20px; font-size: 24px; }
+        .card {
+            background: rgba(22, 33, 62, 0.8); border-radius: 16px; padding: 16px;
+            margin-bottom: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .card h2 { font-size: 16px; color: #4ecca3; margin-bottom: 10px; }
+        input {
+            width: 100%; padding: 10px; border: 1px solid #2a2f52; border-radius: 10px;
+            background: #0f1422; color: #fff; font-size: 14px; margin-bottom: 8px;
+        }
+        button {
+            width: 100%; padding: 12px; background: #e94560; color: #fff;
+            border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+            margin-bottom: 6px;
+        }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .result {
+            background: #0b0e1a; padding: 10px; border-radius: 8px; margin-top: 8px;
+            font-size: 13px; font-family: monospace; border: 1px solid #2a2f52;
+            white-space: pre-wrap; max-height: 400px; overflow-y: auto;
+        }
+        .green { color: #4ecca3; } .red { color: #e94560; } .yellow { color: #f0a500; }
+        .row { display: flex; gap: 8px; }
+        .row button { flex: 1; }
+        .tag {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; margin-right: 4px;
+        }
+        .tag-ok { background: #4ecca3; color: #000; }
+        .tag-err { background: #e94560; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔧 MYK 合约测试面板</h1>
+
+    <div class="card">
+        <h2>📋 当前合约地址</h2>
+        <div class="result" id="addrInfo">加载中...</div>
+    </div>
+
+    <div class="card">
+        <h2>🔗 关联核对</h2>
+        <button onclick="checkAllLinks()">一键核对全部关联</button>
+        <div class="result" id="linkResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>👤 用户状态</h2>
+        <input id="userAddr" type="text" placeholder="钱包地址（留空查自己）">
+        <div class="row">
+            <button onclick="checkUserStatus()">查身份</button>
+            <button onclick="checkMYKBalance()">查MYK</button>
+        </div>
+        <div class="result" id="userResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>🎁 上级奖励查询</h2>
+        <p style="font-size:12px;color:#888;margin-bottom:8px;">查询6层上级社区的奖励到账情况</p>
+        <div class="row">
+            <button onclick="checkUpRewards('MYK')">查MYK奖励</button>
+            <button onclick="checkUpRewards('USDT')">查USDT奖励</button>
+        </div>
+        <div class="result" id="rewardResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>🔒 锁仓状态</h2>
+        <input id="lockAddr" type="text" placeholder="钱包地址">
+        <div class="row">
+            <button onclick="checkLockInfo()">锁仓详情</button>
+            <button onclick="checkLockRank()">排名</button>
+        </div>
+        <div class="result" id="lockResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 全局数据</h2>
+        <div class="row">
+            <button onclick="checkGlobalStats()">RewardPool统计</button>
+            <button onclick="checkLockerStats()">Locker统计</button>
+        </div>
+        <button onclick="checkFundStats()">FundManager统计</button>
+        <div class="result" id="globalResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>💰 价格</h2>
+        <button onclick="checkPrice()">查当前价格</button>
+        <div class="result" id="priceResult"></div>
+    </div>
+</div>
+
+<script>
+    // ==================== 合约地址 ====================
+    const MYK = '0x4f08eb649A9BbC047cfAe4C9dcE050BBdfE857d1';
+    const REWARD_POOL = '0xF09558B770e8863C069462BB57EDa05fE6900Ca8';
+    const LOCKER = '0xa69c5F9952C2a917C744dCBbde47b394f6E7D765';
+    const FUND = '0x2fcc50C9615b8732f206871a597071bb2f11d6a5';
+    const USDT = '0x55d398326f99059fF775485246999027B3197955';
+
+    let web3, userAddress;
+
+    window.addEventListener('load', async () => {
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            const accs = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accs.length > 0) { userAddress = accs[0]; document.getElementById('userAddr').value = userAddress; }
+        }
+        document.getElementById('addrInfo').innerHTML =
+            `MYK: <span class="green">${MYK}</span>\nRewardPool: <span class="green">${REWARD_POOL}</span>\nLocker: <span class="green">${LOCKER}</span>\nFundManager: <span class="green">${FUND}</span>`;
+    });
+
+    function R(elId) { return document.getElementById(elId); }
+
+    // ==================== 上级奖励查询 ====================
+    async function checkUpRewards(tokenType) {
+        const addr = R('userAddr').value || userAddress;
+        if (!addr) { alert('请输入地址或连接钱包'); return; }
+        const r = R('rewardResult'); r.style.display = 'block'; r.innerHTML = '⏳ 查询6层上级社区...';
+
+        try {
+            const commABI = [{ "inputs": [{ "internalType": "address", "name": "user", "type": "address" }], "name": "getAllCommunities", "outputs": [{ "internalType": "address", "name": "", "type": "address" },{ "internalType": "address", "name": "", "type": "address" },{ "internalType": "address", "name": "", "type": "address" },{ "internalType": "address", "name": "", "type": "address" },{ "internalType": "address", "name": "", "type": "address" },{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }];
+            const rpComm = new web3.eth.Contract(commABI, REWARD_POOL);
+            const communities = await rpComm.methods.getAllCommunities(addr).call();
+
+            const userABI = [{ "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "users", "outputs": [{ "internalType": "address", "name": "referrer", "type": "address" },{ "internalType": "uint96", "name": "invited", "type": "uint96" },{ "internalType": "uint96", "name": "todayBuy", "type": "uint96" },{ "internalType": "uint96", "name": "todayReward", "type": "uint96" },{ "internalType": "uint40", "name": "activatedAt", "type": "uint40" },{ "internalType": "uint40", "name": "lastRewardDay", "type": "uint40" },{ "internalType": "uint40", "name": "lastClaim", "type": "uint40" },{ "internalType": "uint8", "name": "role", "type": "uint8" },{ "internalType": "bool", "name": "isActive", "type": "bool" }], "stateMutability": "view", "type": "function" }];
+            const rpUser = new web3.eth.Contract(userABI, REWARD_POOL);
+
+            const balABI = [{ "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" }];
+            const tokenAddr = tokenType === 'MYK' ? MYK : USDT;
+            const tokenContract = new web3.eth.Contract(balABI, tokenAddr);
+
+            const names = ['第一社区(C1)','第二社区(C2)','第三社区(C3)','第四社区(C4)','第五社区(C5)','第六社区(C6)'];
+            const roleNames = ['无','PRIMARY','MIDDLE','COMMUNITY'];
+            let lines = [`查询地址: <span class="yellow">${addr.slice(0,6)}...${addr.slice(-4)}</span>`, `代币类型: <span class="yellow">${tokenType}</span>`, ''];
+
+            if (communities[0] === '0x0000000000000000000000000000000000000000') {
+                lines.push('<span class="red">该用户没有上级社区</span>');
+            } else {
+                for (let i = 0; i < 6; i++) {
+                    const up = communities[i];
+                    if (up === '0x0000000000000000000000000000000000000000') {
+                        lines.push(`<span class="yellow">${names[i]}: 不存在</span>`);
+                    } else {
+                        try {
+                            const userInfo = await rpUser.methods.users(up).call();
+                            const role = parseInt(userInfo.role);
+                            const active = userInfo.isActive;
+                            const status = active ? '<span class="green">已激活</span>' : '<span class="red">未激活</span>';
+                            const bal = await tokenContract.methods.balanceOf(up).call();
+                            const balance = parseFloat(web3.utils.fromWei(bal, 'ether')).toFixed(4) + ' ' + tokenType;
+                            lines.push(`${names[i]}: <span class="yellow">${up.slice(0,6)}...${up.slice(-4)}</span> | ${roleNames[role]} | ${status} | 余额: ${balance}`);
+                        } catch (e2) {
+                            lines.push(`${names[i]}: <span class="yellow">${up.slice(0,6)}...${up.slice(-4)}</span> | <span class="red">查询失败</span>`);
+                        }
+                    }
+                }
+            }
+            lines.push('');
+            lines.push('<span class="yellow">💡 提示：奖励自动发放到上级钱包，查看余额即可确认是否到账</span>');
+            r.innerHTML = lines.join('\n');
+        } catch (e) {
+            r.innerHTML = '<span class="red">❌ 查询失败: ' + (e.message||'').slice(0, 200) + '</span>';
+        }
+    }
+
+    // ==================== 关联核对 ====================
+    async function checkAllLinks() {
+        if (!web3) { alert('请安装MetaMask/TP钱包'); return; }
+        const r = R('linkResult'); r.style.display = 'block'; r.innerHTML = '⏳ 核对中...';
+        let lines = [];
+
+        try {
+            const mykABI = [
+                { "inputs": [], "name": "rewardPool", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "communityLocker", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            ];
+            const rpABI = [
+                { "inputs": [], "name": "mykToken", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "pair", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "communityLocker", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "fundManager", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            ];
+            const lockABI = [
+                { "inputs": [], "name": "mykToken", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "rewardPool", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "dividendSource", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "usdt", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "pair", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            ];
+            const fundABI = [
+                { "inputs": [], "name": "myk", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "communityLocker", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "pair", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "rewardPool", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+            ];
+
+            function ok(n, a, e) { return a.toLowerCase() === e.toLowerCase() ? `<span class="tag tag-ok">✅</span> ${n}: ${a.slice(0,6)}...` : `<span class="tag tag-err">❌</span> ${n}: ${a.slice(0,6)}... 预期 ${e.slice(0,6)}...`; }
+
+            const m = new web3.eth.Contract(mykABI, MYK);
+            const rp = new web3.eth.Contract(rpABI, REWARD_POOL);
+            const lk = new web3.eth.Contract(lockABI, LOCKER);
+            const fm = new web3.eth.Contract(fundABI, FUND);
+
+            const m_rp = await m.methods.rewardPool().call();
+            const m_cl = await m.methods.communityLocker().call();
+            const rp_m = await rp.methods.mykToken().call();
+            const rp_p = await rp.methods.pair().call();
+            const rp_cl = await rp.methods.communityLocker().call();
+            const rp_fm = await rp.methods.fundManager().call();
+            const lk_m = await lk.methods.mykToken().call();
+            const lk_rp = await lk.methods.rewardPool().call();
+            const lk_ds = await lk.methods.dividendSource().call();
+            const lk_u = await lk.methods.usdt().call();
+            const lk_p = await lk.methods.pair().call();
+            const fm_m = await fm.methods.myk().call();
+            const fm_cl = await fm.methods.communityLocker().call();
+            const fm_p = await fm.methods.pair().call();
+            const fm_rp = await fm.methods.rewardPool().call();
+
+            lines.push('=== MYK ===');
+            lines.push(ok('rewardPool', m_rp, REWARD_POOL));
+            lines.push(ok('communityLocker', m_cl, LOCKER));
+            lines.push('=== RewardPool ===');
+            lines.push(ok('mykToken', rp_m, MYK));
+            lines.push('pair: ' + (rp_p === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : rp_p.slice(0,6)+'...'));
+            lines.push(ok('communityLocker', rp_cl, LOCKER));
+            lines.push('fundManager: ' + (rp_fm === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : rp_fm.slice(0,6)+'...'));
+            lines.push('=== CommunityLocker ===');
+            lines.push(ok('mykToken', lk_m, MYK));
+            lines.push(ok('rewardPool', lk_rp, REWARD_POOL));
+            lines.push('dividendSource: ' + (lk_ds === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : lk_ds.slice(0,6)+'...'));
+            lines.push('usdt: ' + (lk_u.toLowerCase() === USDT.toLowerCase() ? `<span class="tag tag-ok">✅</span> ${lk_u.slice(0,6)}...` : `<span class="red">错误</span>`));
+            lines.push('pair: ' + (lk_p === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : lk_p.slice(0,6)+'...'));
+            lines.push('=== FundManager ===');
+            lines.push(ok('myk', fm_m, MYK));
+            lines.push(ok('communityLocker', fm_cl, LOCKER));
+            lines.push('pair: ' + (fm_p === '0x0000000000000000000000000000000000000000' ? '<span class="red">未设置</span>' : fm_p.slice(0,6)+'...'));
+            lines.push(ok('rewardPool', fm_rp, REWARD_POOL));
+        } catch (e) {
+            lines.push('<span class="red">❌ 出错: ' + (e.message||'').slice(0, 200) + '</span>');
+        }
+        r.innerHTML = lines.join('\n');
+    }
+
+    // ==================== 用户状态 ====================
+    async function checkUserStatus() {
+        const addr = R('userAddr').value || userAddress;
+        if (!addr) { alert('请输入地址或连接钱包'); return; }
+        const r = R('userResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [{ "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "users", "outputs": [{ "internalType": "address", "name": "referrer", "type": "address" },{ "internalType": "uint96", "name": "invited", "type": "uint96" },{ "internalType": "uint96", "name": "todayBuy", "type": "uint96" },{ "internalType": "uint96", "name": "todayReward", "type": "uint96" },{ "internalType": "uint40", "name": "activatedAt", "type": "uint40" },{ "internalType": "uint40", "name": "lastRewardDay", "type": "uint40" },{ "internalType": "uint40", "name": "lastClaim", "type": "uint40" },{ "internalType": "uint8", "name": "role", "type": "uint8" },{ "internalType": "bool", "name": "isActive", "type": "bool" }], "stateMutability": "view", "type": "function" }];
+            const u = await new web3.eth.Contract(abi, REWARD_POOL).methods.users(addr).call();
+            const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
+            r.innerHTML = [
+                `身份: <span class="yellow">${roles[u.role]}</span>`,
+                `激活: ${u.isActive?'<span class="green">✅</span>':'<span class="red">❌</span>'}`,
+                `推荐人: ${u.referrer==='0x0000000000000000000000000000000000000000'?'无':u.referrer.slice(0,6)+'...'}`,
+                `邀请: ${u.invited}人`,
+                `激活时间: ${u.activatedAt>0?new Date(Number(u.activatedAt)*1000).toLocaleString():'未激活'}`,
+                `日买入: ${web3.utils.fromWei(u.todayBuy+'','ether')} USDT`,
+            ].join('\n');
+        } catch (e) { r.innerHTML = '<span class="red">失败: ' + (e.message||'').slice(0,100) + '</span>'; }
+    }
+
+    async function checkMYKBalance() {
+        const addr = R('userAddr').value || userAddress;
+        if (!addr) { alert('请输入地址或连接钱包'); return; }
+        const r = R('userResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [{ "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" }];
+            const bal = await new web3.eth.Contract(abi, MYK).methods.balanceOf(addr).call();
+            r.innerHTML = `💰 MYK余额: <span class="green">${parseFloat(web3.utils.fromWei(bal,'ether')).toFixed(4)}</span> MYK`;
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+
+    // ==================== 锁仓 ====================
+    async function checkLockInfo() {
+        const addr = R('lockAddr').value || userAddress;
+        if (!addr) { alert('请输入地址'); return; }
+        const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [{ "inputs": [{ "internalType": "address", "name": "_u", "type": "address" }], "name": "getLockInfo", "outputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" },{ "internalType": "uint256", "name": "usdtValue", "type": "uint256" },{ "internalType": "uint256", "name": "unlockTime", "type": "uint256" },{ "internalType": "bool", "name": "isLocked", "type": "bool" },{ "internalType": "uint256", "name": "lockedAt", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+            const info = await new web3.eth.Contract(abi, LOCKER).methods.getLockInfo(addr).call();
+            r.innerHTML = [
+                `锁仓量: <span class="yellow">${web3.utils.fromWei(info.amount,'ether')}</span> MYK`,
+                `USDT价值: <span class="yellow">${web3.utils.fromWei(info.usdtValue,'ether')}</span> USDT`,
+                `解锁时间: ${Number(info.unlockTime)>0?new Date(Number(info.unlockTime)*1000).toLocaleString():'未锁仓'}`,
+                `已锁仓: ${info.isLocked?'<span class="green">✅</span>':'<span class="red">❌</span>'}`,
+                `锁仓时间: ${Number(info.lockedAt)>0?new Date(Number(info.lockedAt)*1000).toLocaleString():'-'}`,
+            ].join('\n');
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+
+    async function checkLockRank() {
+        const addr = R('lockAddr').value || userAddress;
+        if (!addr) { alert('请输入地址'); return; }
+        const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [{ "inputs": [{ "internalType": "address", "name": "user", "type": "address" }], "name": "getUserRank", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+            const rank = await new web3.eth.Contract(abi, LOCKER).methods.getUserRank(addr).call();
+            r.innerHTML = `🏅 排名: <span class="yellow">#${rank}</span>`;
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+
+    // ==================== 全局数据 ====================
+    async function checkGlobalStats() {
+        const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [
+                { "inputs": [], "name": "totalActiveUsers", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getTotalCommunities", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getContractBalance", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+            ];
+            const rp = new web3.eth.Contract(abi, REWARD_POOL);
+            const users = await rp.methods.totalActiveUsers().call();
+            const comm = await rp.methods.getTotalCommunities().call();
+            const bal = await rp.methods.getContractBalance().call();
+            const price = await rp.methods.getCurrentPrice().call();
+            r.innerHTML = [
+                `👥 活跃用户: <span class="yellow">${users}</span>`,
+                `🏘️ 社区总数: <span class="yellow">${comm}</span>`,
+                `💰 MYK余额: <span class="yellow">${parseFloat(web3.utils.fromWei(bal,'ether')).toFixed(2)}</span> MYK`,
+                `💵 当前价格: <span class="yellow">${parseFloat(web3.utils.fromWei(price,'ether')).toFixed(6)}</span> USDT/MYK`,
+            ].join('\n');
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+
+    async function checkLockerStats() {
+        const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [
+                { "inputs": [], "name": "totalLockedValue", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "totalCommunities", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "getLockersCount", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "activeLockerCount", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+            ];
+            const lk = new web3.eth.Contract(abi, LOCKER);
+            const tlv = await lk.methods.totalLockedValue().call();
+            const tc = await lk.methods.totalCommunities().call();
+            const lc = await lk.methods.getLockersCount().call();
+            const alc = await lk.methods.activeLockerCount().call();
+            r.innerHTML = [
+                `🔒 总锁仓价值: <span class="yellow">${web3.utils.fromWei(tlv,'ether')}</span> USDT`,
+                `🏘️ 社区总数: <span class="yellow">${tc}</span>`,
+                `👤 锁仓人数: <span class="yellow">${lc}</span>`,
+                `📊 活跃排名数: <span class="yellow">${alc}</span>`,
+            ].join('\n');
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+
+    async function checkFundStats() {
+        const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [{ "inputs": [], "name": "getContractInfo", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" },{ "internalType": "uint256", "name": "", "type": "uint256" },{ "internalType": "uint256", "name": "", "type": "uint256" },{ "internalType": "uint256", "name": "", "type": "uint256" },{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+            const info = await new web3.eth.Contract(abi, FUND).methods.getContractInfo().call();
+            r.innerHTML = [
+                `💵 USDT余额: <span class="yellow">${web3.utils.fromWei(info[0],'ether')}</span>`,
+                `💰 MYK余额: <span class="yellow">${web3.utils.fromWei(info[1],'ether')}</span>`,
+                `📈 活跃LP: <span class="yellow">${web3.utils.fromWei(info[2],'ether')}</span>`,
+                `🛒 采购池: <span class="yellow">${web3.utils.fromWei(info[3],'ether')}</span> USDT`,
+                `📋 LP订单: <span class="yellow">${info[4]}</span>`,
+            ].join('\n');
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+
+    async function checkPrice() {
+        const r = R('priceResult'); r.style.display = 'block'; r.innerHTML = '⏳';
+        try {
+            const abi = [
+                { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+                { "inputs": [], "name": "isPriceFresh", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" },
+            ];
+            const rp = new web3.eth.Contract(abi, REWARD_POOL);
+            const price = await rp.methods.getCurrentPrice().call();
+            const fresh = await rp.methods.isPriceFresh().call();
+            r.innerHTML = [
+                `💵 价格: <span class="yellow">${parseFloat(web3.utils.fromWei(price,'ether')).toFixed(8)}</span> USDT/MYK`,
+                `🕐 有效: ${fresh?'<span class="green">✅</span>':'<span class="red">❌ 过期</span>'}`,
+            ].join('\n');
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
+    }
+</script>
+</body>
+</html>
