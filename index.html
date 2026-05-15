@@ -100,32 +100,6 @@ const FM = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
 let w3, ua;
 
-// 常用函数签名 keccak256 前4字节
-const SIG = {
-    // 地址返回
-    rewardPool: '0x7866fa0e',
-    communityGovernance: '0x23a0d8f3',
-    mykToken: '0x9471710c',
-    fundManager: '0x8da5cb5b',
-    pair: '0x8a1dfcd8',
-    myk: '0x1b017535',
-    usdt: '0x5caed414',
-    // balanceOf
-    balanceOf: '0x70a08231',
-    // 全局
-    totalActiveUsers: '0x8a1dfcd9',
-    getContractBalance: '0x8a1dfcd8',
-    getCurrentPrice: '0x8a1dfcd8',
-    totalLockedValue: '0x8a1dfcd8',
-    totalCommunities: '0x8a1dfcd8',
-    activeLockerCount: '0x8a1dfcd8',
-    subscriptionPool: '0x8a1dfcd8',
-    subscriptionLockDays: '0x8a1dfcd8',
-    getDividendInfo: '0x8a1dfcd8',
-    getDistributionState: '0x8a1dfcd8',
-    getContractInfo: '0x8a1dfcd8',
-};
-
 window.addEventListener('load', async () => {
     if (window.ethereum) {
         w3 = new Web3(window.ethereum);
@@ -139,56 +113,45 @@ function n(w){return parseFloat(w3.utils.fromWei(w+'','ether'));}
 function addr(){return $('uaddr').value||ua||'';}
 function laddr(){return $('laddr').value||ua||'';}
 
-// 简化调用：直接传 data
-async function rawCall(to, data) {
-    return await w3.eth.call({to:to, data:data});
-}
-
-// 编码地址参数
-function encAddr(addr) {
-    return w3.eth.abi.encodeParameter('address', addr);
-}
-
-function encUint256(n) {
-    return w3.eth.abi.encodeParameter('uint256', n);
-}
+function encAddr(a){return w3.eth.abi.encodeParameter('address',a).slice(2);}
+function encUint(n){return w3.eth.abi.encodeParameter('uint256',n).slice(2);}
 
 // ==================== 关联核对 ====================
 async function checkLinks() {
     const r = $('r1'); r.style.display='block'; r.innerHTML='⏳ 核对中...';
     let L=[];
     try {
-        // 手工验证每个函数签名
-        const checks = [
-            {name:'MYK.rewardPool', addr:M, data:'0x7866fa0e', expected:RP},
-            {name:'MYK.communityGovernance', addr:M, data:'0x5d3b1d30', expected:GV},
-            {name:'RP.mykToken', addr:RP, data:'0x9471710c', expected:M},
-            {name:'RP.communityGovernance', addr:RP, data:'0x5d3b1d30', expected:GV},
-            {name:'RP.fundManager', addr:RP, data:'0x8da5cb5b', expected:FM},
-            {name:'RP.pair', addr:RP, data:'0x8a1dfcd8', expected:''},
-            {name:'GV.mykToken', addr:GV, data:'0x9471710c', expected:M},
-            {name:'GV.rewardPool', addr:GV, data:'0x7866fa0e', expected:RP},
-            {name:'GV.usdt', addr:GV, data:'0x5caed414', expected:USDT},
-            {name:'FM.myk', addr:FM, data:'0x1b017535', expected:M},
-            {name:'FM.communityGovernance', addr:FM, data:'0x5d3b1d30', expected:GV},
-            {name:'FM.rewardPool', addr:FM, data:'0x7866fa0e', expected:RP},
-            {name:'FM.pair', addr:FM, data:'0x8a1dfcd8', expected:''},
-        ];
+        // 无参数函数签名
+        const sigs = {
+            'rewardPool()':'7866fa0e','communityGovernance()':'5d3b1d30','mykToken()':'9471710c',
+            'fundManager()':'8da5cb5b','pair()':'8a1dfcd8','myk()':'1b017535','usdt()':'5caed414'
+        };
 
-        for(const c of checks) {
-            try {
-                const result = await rawCall(c.addr, c.data);
-                const val = w3.eth.abi.decodeParameter('address', result);
-                if(c.expected === '') {
-                    L.push(`${c.name}: ${val==='0x0000000000000000000000000000000000000000'?'<span class="t tw">⚠️ 未设置</span>':'<span class="t to">✅ '+a6(val)+'</span>'}`);
-                } else {
-                    const ok = val.toLowerCase() === c.expected.toLowerCase();
-                    L.push((ok?'<span class="t to">✅</span> ':'<span class="t te">❌</span> ')+c.name+': '+a6(val)+(ok?'':' 预期'+a6(c.expected)));
-                }
-            } catch(e) {
-                L.push(`<span class="t te">❌</span> ${c.name}: 调用失败`);
-            }
+        async function callNoArg(addr, sig) {
+            const result = await w3.eth.call({to:addr, data:'0x'+sig});
+            return w3.eth.abi.decodeParameter('address', result);
         }
+
+        function ok(n,a,e){ const ok=a.toLowerCase()===e.toLowerCase(); return (ok?'<span class="t to">✅</span> ':'<span class="t te">❌</span> ')+n+': '+a6(a)+(ok?'':' 预期'+a6(e)); }
+        function ck(n,a){ const set=a!=='0x0000000000000000000000000000000000000000'; return (set?'<span class="t to">✅</span> ':'<span class="t tw">⚠️</span> ')+n+': '+(set?a6(a):'未设置'); }
+
+        L.push('=== MYK ===');
+        L.push(ok('rewardPool', await callNoArg(M, sigs['rewardPool()']), RP));
+        L.push(ok('communityGovernance', await callNoArg(M, sigs['communityGovernance()']), GV));
+        L.push('=== RewardPool ===');
+        L.push(ok('mykToken', await callNoArg(RP, sigs['mykToken()']), M));
+        L.push(ok('communityGovernance', await callNoArg(RP, sigs['communityGovernance()']), GV));
+        L.push(ck('fundManager', await callNoArg(RP, sigs['fundManager()'])));
+        L.push(ck('pair', await callNoArg(RP, sigs['pair()'])));
+        L.push('=== Governance ===');
+        L.push(ok('mykToken', await callNoArg(GV, sigs['mykToken()']), M));
+        L.push(ok('rewardPool', await callNoArg(GV, sigs['rewardPool()']), RP));
+        L.push(ok('usdt', await callNoArg(GV, sigs['usdt()']), USDT));
+        L.push('=== FundManager ===');
+        L.push(ok('myk', await callNoArg(FM, sigs['myk()']), M));
+        L.push(ok('communityGovernance', await callNoArg(FM, sigs['communityGovernance()']), GV));
+        L.push(ck('rewardPool', await callNoArg(FM, sigs['rewardPool()'])));
+        L.push(ck('pair', await callNoArg(FM, sigs['pair()'])));
         L.push(''); L.push('<span class="gr">✅ 核对完成</span>');
     } catch(e) { L.push('<span class="rd">❌ '+(e.message||'').slice(0,200)+'</span>'); }
     r.innerHTML = L.join('\n');
@@ -199,8 +162,8 @@ async function checkUser() {
     const a = addr(); if(!a) return;
     const r = $('r2'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const data = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const result = await rawCall(RP, data);
+        const data = '0x' + w3.eth.abi.encodeFunctionSignature('users(address)').slice(2) + encAddr(a);
+        const result = await w3.eth.call({to:RP, data:data});
         const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], result);
         const roles=['无','PRIMARY','MIDDLE','COMMUNITY'];
         r.innerHTML = `地址: <span class="yl">${a6(a)}</span>\n身份: <span class="yl">${roles[u[7]]}</span>\n激活: ${u[8]?'<span class="gr">✅</span>':'<span class="rd">❌</span>'}\n推荐人: ${u[0]==='0x0000000000000000000000000000000000000000'?'<span class="rd">无</span>':'<span class="yl">'+a6(u[0])+'</span>'}\n邀请: <span class="yl">${u[1]}</span>人`;
@@ -211,8 +174,8 @@ async function checkBal(t) {
     const a = addr(); if(!a) return;
     const r = $('r2'); r.style.display='block';
     try {
-        const data = '0x70a08231' + encAddr(a).slice(2);
-        const result = await rawCall(t==='MYK'?M:USDT, data);
+        const data = '0x' + w3.eth.abi.encodeFunctionSignature('balanceOf(address)').slice(2) + encAddr(a);
+        const result = await w3.eth.call({to:t==='MYK'?M:USDT, data:data});
         const b = w3.eth.abi.decodeParameter('uint256', result);
         r.innerHTML += `\n💰 ${t}: <span class="gr">${n(b).toFixed(4)}</span>`;
     } catch(e) {}
@@ -223,22 +186,23 @@ async function upRewards(t) {
     const a = addr(); if(!a) return;
     const r = $('r3'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const data = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const result = await rawCall(RP, data);
+        const sig = w3.eth.abi.encodeFunctionSignature('getAllCommunities(address)').slice(2);
+        const data = '0x' + sig + encAddr(a);
+        const result = await w3.eth.call({to:RP, data:data});
         const comms = w3.eth.abi.decodeParameters(['address','address','address','address','address','address'], result);
         const ns=['C1','C2','C3','C4','C5','C6'], rs=['无','PRIMARY','MIDDLE','COMMUNITY'];
         let L=[`查询: <span class="yl">${a6(a)}</span> | <span class="yl">${t}</span>`, ''];
         if(comms[0]==='0x0000000000000000000000000000000000000000'){L.push('<span class="rd">无上级社区</span>');}
         else {
+            const uSig = w3.eth.abi.encodeFunctionSignature('users(address)').slice(2);
+            const bSig = w3.eth.abi.encodeFunctionSignature('balanceOf(address)').slice(2);
             for(let i=0;i<6;i++){
                 const up=comms[i];
                 if(up==='0x0000000000000000000000000000000000000000'){L.push(`<span class="yl">${ns[i]}: 空缺</span>`);continue;}
                 try {
-                    const ud = '0x8a1dfcd8' + encAddr(up).slice(2);
-                    const ur = await rawCall(RP, ud);
+                    const ud = '0x'+uSig+encAddr(up); const ur = await w3.eth.call({to:RP, data:ud});
                     const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], ur);
-                    const bd = '0x70a08231' + encAddr(up).slice(2);
-                    const br = await rawCall(t==='MYK'?M:USDT, bd);
+                    const bd = '0x'+bSig+encAddr(up); const br = await w3.eth.call({to:t==='MYK'?M:USDT, data:bd});
                     const b = w3.eth.abi.decodeParameter('uint256', br);
                     L.push(`${ns[i]}: <span class="yl">${a6(up)}</span> | ${rs[u[7]]} | ${u[8]?'✅':'❌'} | ${n(b).toFixed(4)} ${t}`);
                 } catch(e2) { L.push(`${ns[i]}: <span class="yl">${a6(up)}</span> | 查询失败`); }
@@ -254,22 +218,23 @@ async function lockInfo() {
     const a = laddr(); if(!a) return;
     const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const data = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const result = await rawCall(GV, data);
+        const sig = w3.eth.abi.encodeFunctionSignature('getLockInfo(address)').slice(2);
+        const data = '0x' + sig + encAddr(a);
+        const result = await w3.eth.call({to:GV, data:data});
         const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','bool','uint256'], result);
         const now=Math.floor(Date.now()/1000), rem=Number(i[2])>now?`${Math.floor((Number(i[2])-now)/86400)}天`:'已到期';
         r.innerHTML = `锁仓: <span class="yl">${n(i[0]).toFixed(4)}</span> MYK\n价值: <span class="yl">${n(i[1]).toFixed(4)}</span> USDT\n解锁: ${Number(i[2])>0?new Date(Number(i[2])*1000).toLocaleString():'-'}\n剩余: <span class="yl">${rem}</span>\n状态: ${i[3]?'<span class="gr">✅ 锁仓中</span>':'<span class="rd">❌ 未锁仓</span>'}`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
+    } catch(e) { r.innerHTML='<span class="rd">失败: '+(e.message||'').slice(0,100)+'</span>'; }
 }
 
 async function lockRank() {
     const a = laddr(); if(!a) return;
     const r = $('r4'); r.style.display='block';
     try {
-        const data = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const result = await rawCall(GV, data);
-        const rk = w3.eth.abi.decodeParameter('uint256', result);
-        const rn=Number(rk);
+        const sig = w3.eth.abi.encodeFunctionSignature('getUserRank(address)').slice(2);
+        const data = '0x' + sig + encAddr(a);
+        const result = await w3.eth.call({to:GV, data:data});
+        const rk = w3.eth.abi.decodeParameter('uint256', result); const rn=Number(rk);
         r.innerHTML += `\n🏅 排名: <span class="yl">#${rn}</span>${rn<=3?' <span class="t to">第六社区</span>':rn<=30?' <span class="t tw">第五社区</span>':rn<=1000?' <span class="t tw">第四社区</span>':''}`;
     } catch(e) {}
 }
@@ -278,12 +243,14 @@ async function releaseInfo() {
     const a = laddr(); if(!a) return;
     const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const d1 = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const r1 = await rawCall(GV, d1);
-        const ex = w3.eth.abi.decodeParameters(['uint256','uint256','bool'], r1);
-        const d2 = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const r2 = await rawCall(GV, d2);
-        const rel = w3.eth.abi.decodeParameters(['uint256','uint256','bool','uint256'], r2);
+        const sig1 = w3.eth.abi.encodeFunctionSignature('getLockExtraInfo(address)').slice(2);
+        const sig2 = w3.eth.abi.encodeFunctionSignature('getReleaseInfo(address)').slice(2);
+        const [exR, relR] = await Promise.all([
+            w3.eth.call({to:GV, data:'0x'+sig1+encAddr(a)}),
+            w3.eth.call({to:GV, data:'0x'+sig2+encAddr(a)})
+        ]);
+        const ex = w3.eth.abi.decodeParameters(['uint256','uint256','bool'], exR);
+        const rel = w3.eth.abi.decodeParameters(['uint256','uint256','bool','uint256'], relR);
         r.innerHTML = `已提取: <span class="yl">${n(ex[0]).toFixed(4)}</span> MYK\n可释放: <span class="yl">${n(ex[1]).toFixed(4)}</span> MYK\n宽限期: ${ex[2]?'<span class="t tw">是</span>':'否'}\n进度: <span class="yl">${(Number(rel[3])/100).toFixed(2)}%</span>`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
@@ -292,8 +259,9 @@ async function commTier() {
     const a = laddr(); if(!a) return;
     const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const data = '0x8a1dfcd8' + encAddr(a).slice(2);
-        const result = await rawCall(GV, data);
+        const sig = w3.eth.abi.encodeFunctionSignature('getCommunityTier(address)').slice(2);
+        const data = '0x' + sig + encAddr(a);
+        const result = await w3.eth.call({to:GV, data:data});
         const t = w3.eth.abi.decodeParameter('uint8', result);
         const ns=['无','第一社区','第二社区','第三社区','第四社区','第五社区','第六社区'], cs=['rd','yl','yl','yl','yl','yl','gr'];
         r.innerHTML = `🏆 身份: <span class="${cs[t]}">${ns[t]}</span>`;
@@ -304,11 +272,12 @@ async function commTier() {
 async function sixthSeats() {
     const r = $('r5'); r.style.display='block'; r.innerHTML='⏳';
     try {
+        const sig = w3.eth.abi.encodeFunctionSignature('getSixthSeatInfo(uint256)').slice(2);
         let L=[];
         for(let i=0;i<3;i++){
             try {
-                const data = '0x8a1dfcd8' + encUint256(i).slice(2);
-                const result = await rawCall(GV, data);
+                const data = '0x' + sig + encUint(i);
+                const result = await w3.eth.call({to:GV, data:data});
                 const s = w3.eth.abi.decodeParameters(['address','uint256','uint256'], result);
                 L.push(`席位${i+1}: <span class="yl">${a6(s[0])}</span> | Rank ${s[1]} | ${Number(s[2])>0?new Date(Number(s[2])*1000).toLocaleString():'空'}`);
             } catch(e) { L.push(`席位${i+1}: <span class="rd">空</span>`); }
@@ -321,8 +290,9 @@ async function sixthSeats() {
 async function divPools() {
     const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const data = '0x8a1dfcd8';
-        const result = await rawCall(GV, data);
+        const sig = w3.eth.abi.encodeFunctionSignature('getDividendInfo()').slice(2);
+        const data = '0x' + sig;
+        const result = await w3.eth.call({to:GV, data:data});
         const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], result);
         r.innerHTML = `第六: <span class="yl">${n(i[0]).toFixed(4)}</span> MYK (15%)\n第五: <span class="yl">${n(i[1]).toFixed(4)}</span> MYK (20%)\n第四: <span class="yl">${n(i[2]).toFixed(4)}</span> MYK (30%)\n第三: <span class="yl">${n(i[3]).toFixed(4)}</span> MYK (35%)\n上次: ${Number(i[4])>0?new Date(Number(i[4])*1000).toLocaleString():'未分配'}`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
@@ -331,8 +301,9 @@ async function divPools() {
 async function divState() {
     const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const data = '0x8a1dfcd8';
-        const result = await rawCall(GV, data);
+        const sig = w3.eth.abi.encodeFunctionSignature('getDistributionState()').slice(2);
+        const data = '0x' + sig;
+        const result = await w3.eth.call({to:GV, data:data});
         const s = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256','bool'], result);
         r.innerHTML = `活跃: ${s[5]?'<span class="gr">✅ 分配中</span>':'<span class="rd">❌ 无</span>'}\n总池: <span class="yl">${n(s[0]).toFixed(4)}</span> MYK\n范围: rank ${s[1]}~${s[2]}\n人均: <span class="yl">${n(s[3]).toFixed(6)}</span> MYK\n进度: ${s[4]} 已处理`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
@@ -342,27 +313,32 @@ async function divState() {
 async function rpStats() {
     const r = $('r7'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const u = w3.eth.abi.decodeParameter('uint256', await rawCall(RP, '0x8a1dfcd8'));
-        const b = w3.eth.abi.decodeParameter('uint256', await rawCall(RP, '0x8a1dfcd8'));
-        const p = w3.eth.abi.decodeParameter('uint256', await rawCall(RP, '0x8a1dfcd8'));
-        r.innerHTML = `👥 活跃: <span class="yl">${u}</span>\n💰 MYK: <span class="yl">${n(b).toFixed(2)}</span>\n💵 价格: <span class="yl">${n(p).toFixed(6)}</span> USDT`;
+        const [u,b,p] = await Promise.all([
+            w3.eth.call({to:RP, data:'0x'+w3.eth.abi.encodeFunctionSignature('totalActiveUsers()').slice(2)}),
+            w3.eth.call({to:RP, data:'0x'+w3.eth.abi.encodeFunctionSignature('getContractBalance()').slice(2)}),
+            w3.eth.call({to:RP, data:'0x'+w3.eth.abi.encodeFunctionSignature('getCurrentPrice()').slice(2)})
+        ]);
+        r.innerHTML = `👥 活跃: <span class="yl">${w3.eth.abi.decodeParameter('uint256',u)}</span>\n💰 MYK: <span class="yl">${n(w3.eth.abi.decodeParameter('uint256',b)).toFixed(2)}</span>\n💵 价格: <span class="yl">${n(w3.eth.abi.decodeParameter('uint256',p)).toFixed(6)}</span> USDT`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 
 async function govStats() {
     const r = $('r7'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const v = w3.eth.abi.decodeParameter('uint256', await rawCall(GV, '0x8a1dfcd8'));
-        const t = w3.eth.abi.decodeParameter('uint256', await rawCall(GV, '0x8a1dfcd8'));
-        const a = w3.eth.abi.decodeParameter('uint256', await rawCall(GV, '0x8a1dfcd8'));
-        r.innerHTML = `🔒 锁仓: <span class="yl">${n(v).toFixed(4)}</span> USDT\n🏘️ 社区: <span class="yl">${t}</span>\n📊 排名: <span class="yl">${a}</span>`;
+        const [v,t,a] = await Promise.all([
+            w3.eth.call({to:GV, data:'0x'+w3.eth.abi.encodeFunctionSignature('totalLockedValue()').slice(2)}),
+            w3.eth.call({to:GV, data:'0x'+w3.eth.abi.encodeFunctionSignature('totalCommunities()').slice(2)}),
+            w3.eth.call({to:GV, data:'0x'+w3.eth.abi.encodeFunctionSignature('activeLockerCount()').slice(2)})
+        ]);
+        r.innerHTML = `🔒 锁仓: <span class="yl">${n(w3.eth.abi.decodeParameter('uint256',v)).toFixed(4)}</span> USDT\n🏘️ 社区: <span class="yl">${w3.eth.abi.decodeParameter('uint256',t)}</span>\n📊 排名: <span class="yl">${w3.eth.abi.decodeParameter('uint256',a)}</span>`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 
 async function fundStats() {
     const r = $('r7'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const result = await rawCall(FM, '0x8a1dfcd8');
+        const sig = w3.eth.abi.encodeFunctionSignature('getContractInfo()').slice(2);
+        const result = await w3.eth.call({to:FM, data:'0x'+sig});
         const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], result);
         r.innerHTML = `💵 USDT: <span class="yl">${n(i[0]).toFixed(4)}</span>\n💰 MYK: <span class="yl">${n(i[1]).toFixed(4)}</span>\n📈 LP: <span class="yl">${n(i[2]).toFixed(4)}</span>\n🛒 采购池: <span class="yl">${n(i[3]).toFixed(4)}</span>\n📋 订单: <span class="yl">${i[4]}</span>`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
@@ -372,18 +348,22 @@ async function fundStats() {
 async function price() {
     const r = $('r8'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const p = w3.eth.abi.decodeParameter('uint256', await rawCall(RP, '0x8a1dfcd8'));
-        const f = w3.eth.abi.decodeParameter('bool', await rawCall(RP, '0x8a1dfcd8'));
-        r.innerHTML = `💵 价格: <span class="yl">${n(p).toFixed(8)}</span> USDT/MYK\n🕐 ${f?'<span class="gr">✅ 有效</span>':'<span class="rd">❌ 过期</span>'}`;
+        const [p,f] = await Promise.all([
+            w3.eth.call({to:RP, data:'0x'+w3.eth.abi.encodeFunctionSignature('getCurrentPrice()').slice(2)}),
+            w3.eth.call({to:RP, data:'0x'+w3.eth.abi.encodeFunctionSignature('isPriceFresh()').slice(2)})
+        ]);
+        r.innerHTML = `💵 价格: <span class="yl">${n(w3.eth.abi.decodeParameter('uint256',p)).toFixed(8)}</span> USDT/MYK\n🕐 ${w3.eth.abi.decodeParameter('bool',f)?'<span class="gr">✅ 有效</span>':'<span class="rd">❌ 过期</span>'}`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 
 async function subPool() {
     const r = $('r8'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        const p = w3.eth.abi.decodeParameter('uint256', await rawCall(GV, '0x8a1dfcd8'));
-        const d = w3.eth.abi.decodeParameter('uint256', await rawCall(GV, '0x8a1dfcd8'));
-        r.innerHTML = `📦 认购池: <span class="yl">${n(p).toFixed(4)}</span> MYK\n🔒 ${Math.floor(Number(d)/86400)}天`;
+        const [p,d] = await Promise.all([
+            w3.eth.call({to:GV, data:'0x'+w3.eth.abi.encodeFunctionSignature('subscriptionPool()').slice(2)}),
+            w3.eth.call({to:GV, data:'0x'+w3.eth.abi.encodeFunctionSignature('subscriptionLockDays()').slice(2)})
+        ]);
+        r.innerHTML = `📦 认购池: <span class="yl">${n(w3.eth.abi.decodeParameter('uint256',p)).toFixed(4)}</span> MYK\n🔒 ${Math.floor(Number(w3.eth.abi.decodeParameter('uint256',d))/86400)}天`;
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 </script>
