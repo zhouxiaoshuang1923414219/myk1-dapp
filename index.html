@@ -14,37 +14,36 @@
             display: flex; justify-content: center;
         }
         .container { max-width: 700px; width: 100%; }
-        h1 { text-align: center; color: #f0a500; margin-bottom: 8px; font-size: 24px; }
+        h1 { text-align: center; color: #f0a500; margin-bottom: 4px; font-size: 22px; }
         .subtitle { text-align: center; color: #888; font-size: 11px; margin-bottom: 16px; }
         .card {
-            background: rgba(22, 33, 62, 0.8); border-radius: 16px; padding: 16px;
-            margin-bottom: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(22, 33, 62, 0.85); border-radius: 14px; padding: 14px;
+            margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.06);
         }
-        .card h2 { font-size: 15px; color: #4ecca3; margin-bottom: 10px; }
+        .card h2 { font-size: 14px; color: #4ecca3; margin-bottom: 8px; }
         input {
             width: 100%; padding: 10px; border: 1px solid #2a2f52; border-radius: 10px;
-            background: #0f1422; color: #fff; font-size: 14px; margin-bottom: 8px;
+            background: #0f1422; color: #fff; font-size: 14px; margin-bottom: 6px;
         }
         button {
-            width: 100%; padding: 12px; background: #e94560; color: #fff;
-            border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
-            margin-bottom: 6px; transition: all 0.2s;
+            width: 100%; padding: 11px; background: #e94560; color: #fff;
+            border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+            margin-bottom: 5px; transition: all 0.2s;
         }
         button:hover { background: #ff6b81; }
-        button:disabled { background: #555; cursor: not-allowed; }
         button.green-btn { background: #4ecca3; color: #000; }
         button.green-btn:hover { background: #6ee7c3; }
         .result {
-            background: #0b0e1a; padding: 10px; border-radius: 8px; margin-top: 8px;
-            font-size: 13px; font-family: monospace; border: 1px solid #2a2f52;
-            white-space: pre-wrap; max-height: 400px; overflow-y: auto; line-height: 1.6;
+            background: #0b0e1a; padding: 10px; border-radius: 8px; margin-top: 6px;
+            font-size: 12px; font-family: 'Courier New', monospace; border: 1px solid #2a2f52;
+            white-space: pre-wrap; max-height: 380px; overflow-y: auto; line-height: 1.5;
         }
         .green { color: #4ecca3; } .red { color: #e94560; } .yellow { color: #f0a500; }
-        .row { display: flex; gap: 8px; }
+        .row { display: flex; gap: 6px; }
         .row button { flex: 1; }
         .tag {
-            display: inline-block; padding: 2px 8px; border-radius: 4px;
-            font-size: 11px; font-weight: 700; margin-right: 4px;
+            display: inline-block; padding: 2px 7px; border-radius: 4px;
+            font-size: 10px; font-weight: 700; margin-right: 3px;
         }
         .tag-ok { background: #4ecca3; color: #000; }
         .tag-err { background: #e94560; color: #fff; }
@@ -58,7 +57,7 @@
 
     <div class="card">
         <h2>📋 已部署合约</h2>
-        <div class="result" id="addrInfo" style="font-size:11px;">
+        <div class="result" style="font-size:11px;">
 MYK:            <span class="green">0x04f41F35c4A3859310249971e7A82A468607CBDB</span>
 RewardPool:     <span class="green">0xdDc7ccc9620075a9107d2F2dE48f3374F67AB5Ce</span>
 CommunityGov:   <span class="green">0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72</span>
@@ -78,15 +77,14 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         <input id="userAddr" type="text" placeholder="钱包地址（留空查自己）">
         <div class="row">
             <button onclick="checkUserStatus()">查身份</button>
-            <button onclick="checkMYKBalance()">查MYK余额</button>
-            <button onclick="checkUSDTBalance()">查USDT余额</button>
+            <button onclick="checkMYKBalance()">MYK余额</button>
+            <button onclick="checkUSDTBalance()">USDT余额</button>
         </div>
         <div class="result" id="userResult"></div>
     </div>
 
     <div class="card">
         <h2>🎁 上级奖励到账查询</h2>
-        <p style="font-size:11px;color:#888;margin-bottom:8px;">查看推荐链上6层社区成员的余额（奖励已自动发放到钱包）</p>
         <div class="row">
             <button onclick="checkUpRewards('MYK')">查MYK奖励</button>
             <button onclick="checkUpRewards('USDT')">查USDT奖励</button>
@@ -99,7 +97,7 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         <input id="lockAddr" type="text" placeholder="钱包地址">
         <div class="row">
             <button onclick="checkLockInfo()">锁仓详情</button>
-            <button onclick="checkLockRank()">排名查询</button>
+            <button onclick="checkLockRank()">排名</button>
         </div>
         <button onclick="checkReleaseInfo()">可释放量 & 进度</button>
         <button onclick="checkCommunityTier()">社区身份档位</button>
@@ -114,8 +112,8 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
 
     <div class="card">
         <h2>💧 分红池</h2>
-        <button onclick="checkDividendPools()">查看分红池余额</button>
-        <button onclick="checkDistState()">查看分配状态</button>
+        <button onclick="checkDividendPools()">分红池余额</button>
+        <button onclick="checkDistState()">分配状态</button>
         <div class="result" id="dividendResult"></div>
     </div>
 
@@ -140,7 +138,6 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
 </div>
 
 <script>
-    // ==================== 合约地址 ====================
     const MYK = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
     const REWARD_POOL = '0xdDc7ccc9620075a9107d2F2dE48f3374F67AB5Ce';
     const GOV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
@@ -155,78 +152,51 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
             try {
                 const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 if (accs.length > 0) { userAddress = accs[0]; R('userAddr').value = userAddress; R('lockAddr').value = userAddress; }
-            } catch(e) { console.log('用户拒绝连接'); }
+            } catch(e) {}
         } else { alert('请安装 MetaMask 或 TrustWallet'); }
     });
 
-    function R(elId) { return document.getElementById(elId); }
-    function addr6(a) { return a.slice(0,6)+'...'+a.slice(-4); }
-    function toNum(w) { return parseFloat(web3.utils.fromWei(w,'ether')); }
+    function R(id) { return document.getElementById(id); }
+    function a6(a) { return a.slice(0,6)+'...'+a.slice(-4); }
+    function n(w) { return parseFloat(web3.utils.fromWei(w+'','ether')); }
 
     // ==================== 关联核对 ====================
     async function checkAllLinks() {
         if (!web3) { alert('请先连接钱包'); return; }
         const r = R('linkResult'); r.style.display = 'block'; r.innerHTML = '⏳ 核对中...';
-        let lines = [];
+        let L = [];
         try {
-            const mykABI = [
-                { "inputs": [], "name": "rewardPool", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "communityGovernance", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" }
-            ];
-            const rpABI = [
-                { "inputs": [], "name": "mykToken", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "communityGovernance", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "fundManager", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "pair", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" }
-            ];
-            const govABI = [
-                { "inputs": [], "name": "mykToken", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "rewardPool", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "usdt", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" }
-            ];
-            const fundABI = [
-                { "inputs": [], "name": "myk", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "communityGovernance", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "rewardPool", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "pair", "outputs": [{"type": "address"}], "stateMutability": "view", "type": "function" }
-            ];
+            function ok(n, a, e) { return a.toLowerCase() === e.toLowerCase() ? `<span class="tag tag-ok">✅</span> ${n}: ${a6(a)}` : `<span class="tag tag-err">❌</span> ${n}: ${a6(a)} 预期 ${a6(e)}`; }
+            function ck(n, a) { return a === '0x0000000000000000000000000000000000000000' ? `<span class="tag tag-warn">⚠️</span> ${n}: 未设置` : `<span class="tag tag-ok">✅</span> ${n}: ${a6(a)}`; }
 
-            function ok(n, a, e) { return a.toLowerCase() === e.toLowerCase() ? `<span class="tag tag-ok">✅</span> ${n}: ${addr6(a)}` : `<span class="tag tag-err">❌</span> ${n}: ${addr6(a)} 预期 ${addr6(e)}`; }
-            function chk(n, a) { return a === '0x0000000000000000000000000000000000000000' ? `<span class="tag tag-warn">⚠️</span> ${n}: 未设置` : `<span class="tag tag-ok">✅</span> ${n}: ${addr6(a)}`; }
+            async function call(addr, method) {
+                const c = new web3.eth.Contract([{"inputs":[],"name":method,"outputs":[{"type":"address"}],"stateMutability":"view","type":"function"}], addr);
+                return await c.methods[method]().call();
+            }
 
-            const m = new web3.eth.Contract(mykABI, MYK);
-            const rp = new web3.eth.Contract(rpABI, REWARD_POOL);
-            const gv = new web3.eth.Contract(govABI, GOV);
-            const fm = new web3.eth.Contract(fundABI, FUND);
-
-            const [m_rp, m_gv] = await Promise.all([m.methods.rewardPool().call(), m.methods.communityGovernance().call()]);
-            const [rp_m, rp_gv, rp_fm, rp_p] = await Promise.all([rp.methods.mykToken().call(), rp.methods.communityGovernance().call(), rp.methods.fundManager().call(), rp.methods.pair().call()]);
-            const [gv_m, gv_rp, gv_u] = await Promise.all([gv.methods.mykToken().call(), gv.methods.rewardPool().call(), gv.methods.usdt().call()]);
-            const [fm_m, fm_gv, fm_rp, fm_p] = await Promise.all([fm.methods.myk().call(), fm.methods.communityGovernance().call(), fm.methods.rewardPool().call(), fm.methods.pair().call()]);
-
-            lines.push('=== MYK ===');
-            lines.push(ok('rewardPool', m_rp, REWARD_POOL));
-            lines.push(ok('communityGovernance', m_gv, GOV));
-            lines.push('=== RewardPool ===');
-            lines.push(ok('mykToken', rp_m, MYK));
-            lines.push(ok('communityGovernance', rp_gv, GOV));
-            lines.push(ok('fundManager', rp_fm, FUND));
-            lines.push(chk('pair', rp_p));
-            lines.push('=== CommunityGovernance ===');
-            lines.push(ok('mykToken', gv_m, MYK));
-            lines.push(ok('rewardPool', gv_rp, REWARD_POOL));
-            lines.push(ok('usdt', gv_u, USDT));
-            lines.push('=== FundManager ===');
-            lines.push(ok('myk', fm_m, MYK));
-            lines.push(ok('communityGovernance', fm_gv, GOV));
-            lines.push(ok('rewardPool', fm_rp, REWARD_POOL));
-            lines.push(chk('pair', fm_p));
-            lines.push('');
-            lines.push('<span class="green">✅ 核对完成</span>');
+            L.push('=== MYK ===');
+            L.push(ok('rewardPool', await call(MYK,'rewardPool'), REWARD_POOL));
+            L.push(ok('communityGovernance', await call(MYK,'communityGovernance'), GOV));
+            L.push('=== RewardPool ===');
+            L.push(ok('mykToken', await call(REWARD_POOL,'mykToken'), MYK));
+            L.push(ok('communityGovernance', await call(REWARD_POOL,'communityGovernance'), GOV));
+            L.push(ck('fundManager', await call(REWARD_POOL,'fundManager')));
+            L.push(ck('pair', await call(REWARD_POOL,'pair')));
+            L.push('=== CommunityGovernance ===');
+            L.push(ok('mykToken', await call(GOV,'mykToken'), MYK));
+            L.push(ok('rewardPool', await call(GOV,'rewardPool'), REWARD_POOL));
+            L.push(ok('usdt', await call(GOV,'usdt'), USDT));
+            L.push('=== FundManager ===');
+            L.push(ok('myk', await call(FUND,'myk'), MYK));
+            L.push(ok('communityGovernance', await call(FUND,'communityGovernance'), GOV));
+            L.push(ck('rewardPool', await call(FUND,'rewardPool')));
+            L.push(ck('pair', await call(FUND,'pair')));
+            L.push('');
+            L.push('<span class="green">✅ 核对完成</span>');
         } catch (e) {
-            lines.push('<span class="red">❌ 出错: ' + (e.message||'').slice(0, 200) + '</span>');
+            L.push('<span class="red">❌ 出错: ' + (e.message||'').slice(0, 200) + '</span>');
         }
-        r.innerHTML = lines.join('\n');
+        r.innerHTML = L.join('\n');
     }
 
     // ==================== 用户状态 ====================
@@ -235,17 +205,11 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) { alert('请输入地址或连接钱包'); return; }
         const r = R('userResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{"type": "address"}], "name": "users", "outputs": [{"type": "address"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint8"},{"type": "bool"}], "stateMutability": "view", "type": "function" }];
-            const u = await new web3.eth.Contract(abi, REWARD_POOL).methods.users(addr).call();
+            const c = new web3.eth.Contract([{"inputs":[{"type":"address"}],"name":"users","outputs":[{"type":"address"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint8"},{"type":"bool"}],"stateMutability":"view","type":"function"}], REWARD_POOL);
+            const u = await c.methods.users(addr).call();
             const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
-            r.innerHTML = [
-                `地址: <span class="yellow">${addr6(addr)}</span>`,
-                `身份: <span class="yellow">${roles[u[7]]}</span>`,
-                `激活: ${u[8]?'<span class="green">✅ 已激活</span>':'<span class="red">❌ 未激活</span>'}`,
-                `推荐人: ${u[0]==='0x0000000000000000000000000000000000000000'?'<span class="red">无</span>':'<span class="yellow">'+addr6(u[0])+'</span>'}`,
-                `邀请: <span class="yellow">${u[1]}</span>人`,
-            ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: ' + (e.message||'').slice(0,100) + '</span>'; }
+            r.innerHTML = `地址: <span class="yellow">${a6(addr)}</span>\n身份: <span class="yellow">${roles[u[7]]}</span>\n激活: ${u[8]?'<span class="green">✅ 已激活</span>':'<span class="red">❌ 未激活</span>'}\n推荐人: ${u[0]==='0x0000000000000000000000000000000000000000'?'<span class="red">无</span>':'<span class="yellow">'+a6(u[0])+'</span>'}\n邀请: <span class="yellow">${u[1]}</span>人`;
+        } catch (e) { r.innerHTML = '<span class="red">失败: '+(e.message||'').slice(0,100)+'</span>'; }
     }
 
     async function checkMYKBalance() {
@@ -253,10 +217,10 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) return;
         const r = R('userResult'); r.style.display = 'block';
         try {
-            const abi = [{ "constant": true, "inputs": [{"name": "_owner", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "balance", "type": "uint256"}], "type": "function" }];
-            const bal = await new web3.eth.Contract(abi, MYK).methods.balanceOf(addr).call();
-            r.innerHTML += `\n💰 MYK: <span class="green">${toNum(bal).toFixed(4)}</span>`;
-        } catch (e) { r.innerHTML += '\n<span class="red">MYK查询失败</span>'; }
+            const c = new web3.eth.Contract([{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}], MYK);
+            const bal = await c.methods.balanceOf(addr).call();
+            r.innerHTML += `\n💰 MYK: <span class="green">${n(bal).toFixed(4)}</span>`;
+        } catch (e) {}
     }
 
     async function checkUSDTBalance() {
@@ -264,10 +228,10 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) return;
         const r = R('userResult'); r.style.display = 'block';
         try {
-            const abi = [{ "constant": true, "inputs": [{"name": "_owner", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "balance", "type": "uint256"}], "type": "function" }];
-            const bal = await new web3.eth.Contract(abi, USDT).methods.balanceOf(addr).call();
-            r.innerHTML += `\n💵 USDT: <span class="green">${toNum(bal).toFixed(4)}</span>`;
-        } catch (e) { r.innerHTML += '\n<span class="red">USDT查询失败</span>'; }
+            const c = new web3.eth.Contract([{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}], USDT);
+            const bal = await c.methods.balanceOf(addr).call();
+            r.innerHTML += `\n💵 USDT: <span class="green">${n(bal).toFixed(4)}</span>`;
+        } catch (e) {}
     }
 
     // ==================== 上级奖励 ====================
@@ -276,41 +240,41 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) { alert('请输入地址或连接钱包'); return; }
         const r = R('rewardResult'); r.style.display = 'block'; r.innerHTML = '⏳ 查询6层上级社区...';
         try {
-            const commABI = [{ "inputs": [{"type": "address"}], "name": "getAllCommunities", "outputs": [{"type": "address"},{"type": "address"},{"type": "address"},{"type": "address"},{"type": "address"},{"type": "address"}], "stateMutability": "view", "type": "function" }];
+            const commABI = [{"inputs":[{"type":"address"}],"name":"getAllCommunities","outputs":[{"type":"address"},{"type":"address"},{"type":"address"},{"type":"address"},{"type":"address"},{"type":"address"}],"stateMutability":"view","type":"function"}];
             const communities = await new web3.eth.Contract(commABI, REWARD_POOL).methods.getAllCommunities(addr).call();
 
-            const userABI = [{ "inputs": [{"type": "address"}], "name": "users", "outputs": [{"type": "address"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint8"},{"type": "bool"}], "stateMutability": "view", "type": "function" }];
+            const userABI = [{"inputs":[{"type":"address"}],"name":"users","outputs":[{"type":"address"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint8"},{"type":"bool"}],"stateMutability":"view","type":"function"}];
             const rpUser = new web3.eth.Contract(userABI, REWARD_POOL);
 
-            const balABI = [{ "constant": true, "inputs": [{"name": "_owner", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "balance", "type": "uint256"}], "type": "function" }];
+            const balABI = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
             const tokenAddr = tokenType === 'MYK' ? MYK : USDT;
-            const tokenContract = new web3.eth.Contract(balABI, tokenAddr);
+            const tokenC = new web3.eth.Contract(balABI, tokenAddr);
 
             const names = ['C1','C2','C3','C4','C5','C6'];
             const roleNames = ['无','PRIMARY','MIDDLE','COMMUNITY'];
-            let lines = [`查询: <span class="yellow">${addr6(addr)}</span> | 代币: <span class="yellow">${tokenType}</span>`, ''];
+            let L = [`查询: <span class="yellow">${a6(addr)}</span> | 代币: <span class="yellow">${tokenType}</span>`, ''];
 
             if (communities[0] === '0x0000000000000000000000000000000000000000') {
-                lines.push('<span class="red">该用户没有上级社区</span>');
+                L.push('<span class="red">该用户没有上级社区</span>');
             } else {
                 for (let i = 0; i < 6; i++) {
                     const up = communities[i];
                     if (up === '0x0000000000000000000000000000000000000000') {
-                        lines.push(`<span class="yellow">${names[i]}: 空缺</span>`);
+                        L.push(`<span class="yellow">${names[i]}: 空缺</span>`);
                     } else {
                         try {
                             const info = await rpUser.methods.users(up).call();
-                            const bal = await tokenContract.methods.balanceOf(up).call();
-                            lines.push(`${names[i]}: <span class="yellow">${addr6(up)}</span> | ${roleNames[info[7]]} | ${info[8]?'✅':'❌'} | 余额: ${toNum(bal).toFixed(4)} ${tokenType}`);
+                            const bal = await tokenC.methods.balanceOf(up).call();
+                            L.push(`${names[i]}: <span class="yellow">${a6(up)}</span> | ${roleNames[info[7]]} | ${info[8]?'✅':'❌'} | 余额: ${n(bal).toFixed(4)} ${tokenType}`);
                         } catch (e2) {
-                            lines.push(`${names[i]}: <span class="yellow">${addr6(up)}</span> | <span class="red">查询失败</span>`);
+                            L.push(`${names[i]}: <span class="yellow">${a6(up)}</span> | <span class="red">查询失败</span>`);
                         }
                     }
                 }
             }
-            lines.push('');
-            lines.push('<span class="yellow">💡 奖励自动发放到上级钱包，余额增长即表示已到账</span>');
-            r.innerHTML = lines.join('\n');
+            L.push('');
+            L.push('<span class="yellow">💡 奖励已自动发放到上级钱包</span>');
+            r.innerHTML = L.join('\n');
         } catch (e) {
             r.innerHTML = '<span class="red">❌ ' + (e.message||'').slice(0, 200) + '</span>';
         }
@@ -322,18 +286,12 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) { alert('请输入地址'); return; }
         const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{"type": "address"}], "name": "getLockInfo", "outputs": [{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "bool"},{"type": "uint256"}], "stateMutability": "view", "type": "function" }];
-            const info = await new web3.eth.Contract(abi, GOV).methods.getLockInfo(addr).call();
+            const c = new web3.eth.Contract([{"inputs":[{"type":"address"}],"name":"getLockInfo","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"bool"},{"type":"uint256"}],"stateMutability":"view","type":"function"}], GOV);
+            const info = await c.methods.getLockInfo(addr).call();
             const now = Math.floor(Date.now()/1000);
-            const remaining = Number(info[2]) > now ? formatTime(Number(info[2]) - now) : '已到期';
-            r.innerHTML = [
-                `锁仓MYK: <span class="yellow">${toNum(info[0]).toFixed(4)}</span> MYK`,
-                `USDT价值: <span class="yellow">${toNum(info[1]).toFixed(4)}</span> USDT`,
-                `解锁时间: ${Number(info[2])>0?new Date(Number(info[2])*1000).toLocaleString():'-'}`,
-                `剩余: <span class="yellow">${remaining}</span>`,
-                `状态: ${info[3]?'<span class="green">✅ 锁仓中</span>':'<span class="red">❌ 未锁仓</span>'}`,
-            ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: '+(e.message||'').slice(0,100)+'</span>'; }
+            const rem = Number(info[2]) > now ? formatTime(Number(info[2]) - now) : '已到期';
+            r.innerHTML = `锁仓MYK: <span class="yellow">${n(info[0]).toFixed(4)}</span> MYK\nUSDT价值: <span class="yellow">${n(info[1]).toFixed(4)}</span> USDT\n解锁时间: ${Number(info[2])>0?new Date(Number(info[2])*1000).toLocaleString():'-'}\n剩余: <span class="yellow">${rem}</span>\n状态: ${info[3]?'<span class="green">✅ 锁仓中</span>':'<span class="red">❌ 未锁仓</span>'}`;
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkLockRank() {
@@ -341,11 +299,11 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) return;
         const r = R('lockResult'); r.style.display = 'block';
         try {
-            const abi = [{ "inputs": [{"type": "address"}], "name": "getUserRank", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" }];
-            const rank = await new web3.eth.Contract(abi, GOV).methods.getUserRank(addr).call();
+            const c = new web3.eth.Contract([{"inputs":[{"type":"address"}],"name":"getUserRank","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}], GOV);
+            const rank = await c.methods.getUserRank(addr).call();
             const rn = Number(rank);
             r.innerHTML += `\n🏅 排名: <span class="yellow">#${rn}</span>${rn<=3?' <span class="tag tag-ok">第六社区</span>':rn<=30?' <span class="tag tag-warn">第五社区</span>':rn<=1000?' <span class="tag tag-warn">第四社区</span>':''}`;
-        } catch (e) { r.innerHTML += '\n<span class="red">排名查询失败</span>'; }
+        } catch (e) {}
     }
 
     async function checkReleaseInfo() {
@@ -353,16 +311,12 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) return;
         const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const extraABI = [{ "inputs": [{"type": "address"}], "name": "getLockExtraInfo", "outputs": [{"type": "uint256"},{"type": "uint256"},{"type": "bool"}], "stateMutability": "view", "type": "function" }];
-            const releaseABI = [{ "inputs": [{"type": "address"}], "name": "getReleaseInfo", "outputs": [{"type": "uint256"},{"type": "uint256"},{"type": "bool"},{"type": "uint256"}], "stateMutability": "view", "type": "function" }];
-            const gov = new web3.eth.Contract(extraABI.concat(releaseABI), GOV);
-            const [extra, rel] = await Promise.all([gov.methods.getLockExtraInfo(addr).call(), gov.methods.getReleaseInfo(addr).call()]);
-            r.innerHTML = [
-                `已提取: <span class="yellow">${toNum(extra[0]).toFixed(4)}</span> MYK`,
-                `可释放: <span class="yellow">${toNum(extra[1]).toFixed(4)}</span> MYK`,
-                `宽限期: ${extra[2]?'<span class="tag tag-warn">是</span>':'否'}`,
-                `释放进度: <span class="yellow">${(Number(rel[3])/100).toFixed(2)}%</span>`,
-            ].join('\n');
+            const c = new web3.eth.Contract([
+                {"inputs":[{"type":"address"}],"name":"getLockExtraInfo","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"bool"}],"stateMutability":"view","type":"function"},
+                {"inputs":[{"type":"address"}],"name":"getReleaseInfo","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"bool"},{"type":"uint256"}],"stateMutability":"view","type":"function"}
+            ], GOV);
+            const [extra, rel] = await Promise.all([c.methods.getLockExtraInfo(addr).call(), c.methods.getReleaseInfo(addr).call()]);
+            r.innerHTML = `已提取: <span class="yellow">${n(extra[0]).toFixed(4)}</span> MYK\n可释放: <span class="yellow">${n(extra[1]).toFixed(4)}</span> MYK\n宽限期: ${extra[2]?'<span class="tag tag-warn">是</span>':'否'}\n释放进度: <span class="yellow">${(Number(rel[3])/100).toFixed(2)}%</span>`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
@@ -371,8 +325,8 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
         if (!addr) return;
         const r = R('lockResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{"type": "address"}], "name": "getCommunityTier", "outputs": [{"type": "uint8"}], "stateMutability": "view", "type": "function" }];
-            const tier = await new web3.eth.Contract(abi, GOV).methods.getCommunityTier(addr).call();
+            const c = new web3.eth.Contract([{"inputs":[{"type":"address"}],"name":"getCommunityTier","outputs":[{"type":"uint8"}],"stateMutability":"view","type":"function"}], GOV);
+            const tier = await c.methods.getCommunityTier(addr).call();
             const names = ['无','第一社区','第二社区','第三社区','第四社区','第五社区','第六社区'];
             const colors = ['red','yellow','yellow','yellow','yellow','yellow','green'];
             r.innerHTML = `🏆 社区身份: <span class="${colors[tier]}">${names[tier]}</span>`;
@@ -383,17 +337,15 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
     async function checkSixthSeats() {
         const r = R('sixthResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [{"type": "uint256"}], "name": "getSixthSeatInfo", "outputs": [{"type": "address"},{"type": "uint256"},{"type": "uint256"}], "stateMutability": "view", "type": "function" }];
-            const gov = new web3.eth.Contract(abi, GOV);
-            let lines = [];
+            const c = new web3.eth.Contract([{"inputs":[{"type":"uint256"}],"name":"getSixthSeatInfo","outputs":[{"type":"address"},{"type":"uint256"},{"type":"uint256"}],"stateMutability":"view","type":"function"}], GOV);
+            let L = [];
             for (let i = 0; i < 3; i++) {
                 try {
-                    const s = await gov.methods.getSixthSeatInfo(i).call();
-                    const locked = Number(s[2]) > 0 ? new Date(Number(s[2])*1000).toLocaleString() : '空';
-                    lines.push(`席位${i+1}: <span class="yellow">${addr6(s[0])}</span> | Rank ${s[1]} | ${locked}`);
-                } catch(e) { lines.push(`席位${i+1}: <span class="red">查询失败</span>`); }
+                    const s = await c.methods.getSixthSeatInfo(i).call();
+                    L.push(`席位${i+1}: <span class="yellow">${a6(s[0])}</span> | Rank ${s[1]} | ${Number(s[2])>0?new Date(Number(s[2])*1000).toLocaleString():'空'}`);
+                } catch(e) { L.push(`席位${i+1}: <span class="red">空</span>`); }
             }
-            r.innerHTML = lines.join('\n');
+            r.innerHTML = L.join('\n');
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
@@ -401,30 +353,18 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
     async function checkDividendPools() {
         const r = R('dividendResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [], "name": "getDividendInfo", "outputs": [{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"}], "stateMutability": "view", "type": "function" }];
-            const info = await new web3.eth.Contract(abi, GOV).methods.getDividendInfo().call();
-            r.innerHTML = [
-                `第六社区池: <span class="yellow">${toNum(info[0]).toFixed(4)}</span> MYK (15%)`,
-                `第五社区池: <span class="yellow">${toNum(info[1]).toFixed(4)}</span> MYK (20%)`,
-                `第四社区池: <span class="yellow">${toNum(info[2]).toFixed(4)}</span> MYK (30%)`,
-                `第三社区池: <span class="yellow">${toNum(info[3]).toFixed(4)}</span> MYK (35%)`,
-                `上次分配: ${Number(info[4])>0?new Date(Number(info[4])*1000).toLocaleString():'未分配'}`,
-            ].join('\n');
+            const c = new web3.eth.Contract([{"inputs":[],"name":"getDividendInfo","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"}],"stateMutability":"view","type":"function"}], GOV);
+            const info = await c.methods.getDividendInfo().call();
+            r.innerHTML = `第六社区池: <span class="yellow">${n(info[0]).toFixed(4)}</span> MYK (15%)\n第五社区池: <span class="yellow">${n(info[1]).toFixed(4)}</span> MYK (20%)\n第四社区池: <span class="yellow">${n(info[2]).toFixed(4)}</span> MYK (30%)\n第三社区池: <span class="yellow">${n(info[3]).toFixed(4)}</span> MYK (35%)\n上次分配: ${Number(info[4])>0?new Date(Number(info[4])*1000).toLocaleString():'未分配'}`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkDistState() {
         const r = R('dividendResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [], "name": "getDistributionState", "outputs": [{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "bool"}], "stateMutability": "view", "type": "function" }];
-            const s = await new web3.eth.Contract(abi, GOV).methods.getDistributionState().call();
-            r.innerHTML = [
-                `活跃: ${s[5]?'<span class="green">✅ 分配中</span>':'<span class="red">❌ 无活跃分配</span>'}`,
-                `总池: <span class="yellow">${toNum(s[0]).toFixed(4)}</span> MYK`,
-                `范围: rank ${s[1]}~${s[2]}`,
-                `人均: <span class="yellow">${toNum(s[3]).toFixed(6)}</span> MYK`,
-                `进度: ${s[4]} 已处理`,
-            ].join('\n');
+            const c = new web3.eth.Contract([{"inputs":[],"name":"getDistributionState","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"bool"}],"stateMutability":"view","type":"function"}], GOV);
+            const s = await c.methods.getDistributionState().call();
+            r.innerHTML = `活跃: ${s[5]?'<span class="green">✅ 分配中</span>':'<span class="red">❌ 无活跃分配</span>'}\n总池: <span class="yellow">${n(s[0]).toFixed(4)}</span> MYK\n范围: rank ${s[1]}~${s[2]}\n人均: <span class="yellow">${n(s[3]).toFixed(6)}</span> MYK\n进度: ${s[4]} 已处理`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
@@ -432,51 +372,35 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
     async function checkGlobalStats() {
         const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [
-                { "inputs": [], "name": "totalActiveUsers", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "getContractBalance", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "getCurrentPrice", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-            ];
-            const rp = new web3.eth.Contract(abi, REWARD_POOL);
-            const [users, bal, price] = await Promise.all([rp.methods.totalActiveUsers().call(), rp.methods.getContractBalance().call(), rp.methods.getCurrentPrice().call()]);
-            r.innerHTML = [
-                `👥 活跃用户: <span class="yellow">${users}</span>`,
-                `💰 MYK余额: <span class="yellow">${toNum(bal).toFixed(2)}</span> MYK`,
-                `💵 价格: <span class="yellow">${toNum(price).toFixed(6)}</span> USDT/MYK`,
-            ].join('\n');
-        } catch (e) { r.innerHTML = '<span class="red">失败: '+(e.message||'').slice(0,100)+'</span>'; }
+            const c = new web3.eth.Contract([
+                {"inputs":[],"name":"totalActiveUsers","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+                {"inputs":[],"name":"getContractBalance","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+                {"inputs":[],"name":"getCurrentPrice","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}
+            ], REWARD_POOL);
+            const [users, bal, price] = await Promise.all([c.methods.totalActiveUsers().call(), c.methods.getContractBalance().call(), c.methods.getCurrentPrice().call()]);
+            r.innerHTML = `👥 活跃用户: <span class="yellow">${users}</span>\n💰 MYK余额: <span class="yellow">${n(bal).toFixed(2)}</span> MYK\n💵 价格: <span class="yellow">${n(price).toFixed(6)}</span> USDT/MYK`;
+        } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkLockerStats() {
         const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [
-                { "inputs": [], "name": "totalLockedValue", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "totalCommunities", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "activeLockerCount", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-            ];
-            const gv = new web3.eth.Contract(abi, GOV);
-            const [tlv, tc, alc] = await Promise.all([gv.methods.totalLockedValue().call(), gv.methods.totalCommunities().call(), gv.methods.activeLockerCount().call()]);
-            r.innerHTML = [
-                `🔒 总锁仓: <span class="yellow">${toNum(tlv).toFixed(4)}</span> USDT`,
-                `🏘️ 社区数: <span class="yellow">${tc}</span>`,
-                `📊 活跃排名: <span class="yellow">${alc}</span>`,
-            ].join('\n');
+            const c = new web3.eth.Contract([
+                {"inputs":[],"name":"totalLockedValue","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+                {"inputs":[],"name":"totalCommunities","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+                {"inputs":[],"name":"activeLockerCount","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}
+            ], GOV);
+            const [tlv, tc, alc] = await Promise.all([c.methods.totalLockedValue().call(), c.methods.totalCommunities().call(), c.methods.activeLockerCount().call()]);
+            r.innerHTML = `🔒 总锁仓: <span class="yellow">${n(tlv).toFixed(4)}</span> USDT\n🏘️ 社区数: <span class="yellow">${tc}</span>\n📊 活跃排名: <span class="yellow">${alc}</span>`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkFundStats() {
         const r = R('globalResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [{ "inputs": [], "name": "getContractInfo", "outputs": [{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"},{"type": "uint256"}], "stateMutability": "view", "type": "function" }];
-            const info = await new web3.eth.Contract(abi, FUND).methods.getContractInfo().call();
-            r.innerHTML = [
-                `💵 USDT: <span class="yellow">${toNum(info[0]).toFixed(4)}</span>`,
-                `💰 MYK: <span class="yellow">${toNum(info[1]).toFixed(4)}</span>`,
-                `📈 活跃LP: <span class="yellow">${toNum(info[2]).toFixed(4)}</span>`,
-                `🛒 采购池: <span class="yellow">${toNum(info[3]).toFixed(4)}</span> USDT`,
-                `📋 LP订单: <span class="yellow">${info[4]}</span>`,
-            ].join('\n');
+            const c = new web3.eth.Contract([{"inputs":[],"name":"getContractInfo","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"}],"stateMutability":"view","type":"function"}], FUND);
+            const info = await c.methods.getContractInfo().call();
+            r.innerHTML = `💵 USDT: <span class="yellow">${n(info[0]).toFixed(4)}</span>\n💰 MYK: <span class="yellow">${n(info[1]).toFixed(4)}</span>\n📈 活跃LP: <span class="yellow">${n(info[2]).toFixed(4)}</span>\n🛒 采购池: <span class="yellow">${n(info[3]).toFixed(4)}</span> USDT\n📋 LP订单: <span class="yellow">${info[4]}</span>`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
@@ -484,39 +408,29 @@ USDT:           <span class="green">0x55d398326f99059fF775485246999027B3197955</
     async function checkPrice() {
         const r = R('priceResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [
-                { "inputs": [], "name": "getCurrentPrice", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "isPriceFresh", "outputs": [{"type": "bool"}], "stateMutability": "view", "type": "function" },
-            ];
-            const rp = new web3.eth.Contract(abi, REWARD_POOL);
-            const [price, fresh] = await Promise.all([rp.methods.getCurrentPrice().call(), rp.methods.isPriceFresh().call()]);
-            r.innerHTML = [
-                `💵 价格: <span class="yellow">${toNum(price).toFixed(8)}</span> USDT/MYK`,
-                `🕐 有效: ${fresh?'<span class="green">✅</span>':'<span class="red">❌ 已过期</span>'}`,
-            ].join('\n');
+            const c = new web3.eth.Contract([
+                {"inputs":[],"name":"getCurrentPrice","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+                {"inputs":[],"name":"isPriceFresh","outputs":[{"type":"bool"}],"stateMutability":"view","type":"function"}
+            ], REWARD_POOL);
+            const [price, fresh] = await Promise.all([c.methods.getCurrentPrice().call(), c.methods.isPriceFresh().call()]);
+            r.innerHTML = `💵 价格: <span class="yellow">${n(price).toFixed(8)}</span> USDT/MYK\n🕐 有效: ${fresh?'<span class="green">✅</span>':'<span class="red">❌ 已过期</span>'}`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     async function checkSubPool() {
         const r = R('priceResult'); r.style.display = 'block'; r.innerHTML = '⏳';
         try {
-            const abi = [
-                { "inputs": [], "name": "subscriptionPool", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-                { "inputs": [], "name": "subscriptionLockDays", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function" },
-            ];
-            const gv = new web3.eth.Contract(abi, GOV);
-            const [pool, days] = await Promise.all([gv.methods.subscriptionPool().call(), gv.methods.subscriptionLockDays().call()]);
-            r.innerHTML = [
-                `📦 认购池: <span class="yellow">${toNum(pool).toFixed(4)}</span> MYK`,
-                `🔒 锁仓天数: <span class="yellow">${Math.floor(Number(days)/86400)}</span> 天`,
-            ].join('\n');
+            const c = new web3.eth.Contract([
+                {"inputs":[],"name":"subscriptionPool","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+                {"inputs":[],"name":"subscriptionLockDays","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"}
+            ], GOV);
+            const [pool, days] = await Promise.all([c.methods.subscriptionPool().call(), c.methods.subscriptionLockDays().call()]);
+            r.innerHTML = `📦 认购池: <span class="yellow">${n(pool).toFixed(4)}</span> MYK\n🔒 锁仓天数: <span class="yellow">${Math.floor(Number(days)/86400)}</span> 天`;
         } catch (e) { r.innerHTML = '<span class="red">失败</span>'; }
     }
 
     function formatTime(seconds) {
-        const d = Math.floor(seconds/86400);
-        const h = Math.floor((seconds%86400)/3600);
-        return `${d}天${h}小时`;
+        return `${Math.floor(seconds/86400)}天${Math.floor((seconds%86400)/3600)}小时`;
     }
 </script>
 </body>
