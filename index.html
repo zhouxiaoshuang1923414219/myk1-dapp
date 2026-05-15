@@ -43,20 +43,20 @@ FundManager: <span class="gr">0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027</span><
     </div>
 
     <div class="card">
-        <h2>👤 用户</h2>
+        <h2>👤 用户状态</h2>
         <input id="uaddr" placeholder="地址（留空=自己）">
-        <div class="row"><button onclick="checkUser()">身份</button><button onclick="checkBal('MYK')">MYK</button><button onclick="checkBal('USDT')">USDT</button></div>
+        <div class="row"><button onclick="checkUser()">身份</button><button onclick="checkBal()">MYK+USDT余额</button></div>
         <div class="res" id="r2"></div>
     </div>
 
     <div class="card">
-        <h2>🎁 上级奖励</h2>
-        <div class="row"><button onclick="upRewards()">查MYK/USDT</button></div>
+        <h2>🎁 上级社区奖励</h2>
+        <button onclick="upRewards()">查6层上级</button>
         <div class="res" id="r3"></div>
     </div>
 
     <div class="card">
-        <h2>🔒 锁仓</h2>
+        <h2>🔒 锁仓状态</h2>
         <input id="laddr" placeholder="地址">
         <div class="row"><button onclick="lockInfo()">详情</button><button onclick="lockRank()">排名</button></div>
         <button onclick="releaseInfo()">释放进度</button>
@@ -71,24 +71,11 @@ FundManager: <span class="gr">0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027</span><
     </div>
 
     <div class="card">
-        <h2>💧 分红池</h2>
-        <button onclick="divPools()">余额</button>
+        <h2>💧 分红池 & 全局</h2>
+        <button onclick="divPools()">分红池余额</button>
         <button onclick="divState()">分配状态</button>
-        <div class="res" id="r6"></div>
-    </div>
-
-    <div class="card">
-        <h2>📊 全局</h2>
-        <div class="row"><button onclick="rpStats()">RewardPool</button><button onclick="govStats()">Governance</button></div>
-        <button onclick="fundStats()">FundManager</button>
-        <div class="res" id="r7"></div>
-    </div>
-
-    <div class="card">
-        <h2>💰 价格</h2>
         <button onclick="price()">当前价格</button>
-        <button onclick="subPool()">认购池</button>
-        <div class="res" id="r8"></div>
+        <div class="res" id="r6"></div>
     </div>
 </div>
 
@@ -145,7 +132,7 @@ async function checkLinks() {
                     const ok = val.toLowerCase()===expected.toLowerCase();
                     L.push((ok?'<span class="t to">✅</span> ':'<span class="t te">❌</span> ')+name+': '+a6(val)+(ok?'':' 预期'+a6(expected)));
                 }
-            } catch(e) { L.push(`<span class="t te">❌</span> ${name}: ${(e.message||'').slice(0,50)}`); }
+            } catch(e) { L.push(`<span class="t te">❌</span> ${name}: 调用失败`); }
         }
         L.push(''); L.push('<span class="gr">✅ 核对完成</span>');
     } catch(e) { L.push('<span class="rd">❌ '+(e.message||'').slice(0,200)+'</span>'); }
@@ -160,34 +147,29 @@ async function checkUser() {
         const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], await w3.eth.call({to:RP, data:'0x'+sig('users(address)')+encAddr(a)}));
         const roles=['无','PRIMARY','MIDDLE','COMMUNITY'];
         r.innerHTML = `地址: <span class="yl">${a6(a)}</span>\n身份: <span class="yl">${roles[u[7]]}</span>\n激活: ${u[8]?'<span class="gr">✅</span>':'<span class="rd">❌</span>'}\n推荐人: ${u[0]==='0x0000000000000000000000000000000000000000'?'<span class="rd">无</span>':'<span class="yl">'+a6(u[0])+'</span>'}\n邀请: <span class="yl">${u[1]}</span>人`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: '+(e.message||'').slice(0,100)+'</span>'; }
+    } catch(e) { r.innerHTML='<span class="rd">失败: 该地址未激活或不存在</span>'; }
 }
 
-async function checkBal(t) {
+async function checkBal() {
     const a = addr(); if(!a) return;
     const r = $('r2'); r.style.display='block';
     try {
-        const b = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:t==='MYK'?M:USDT, data:'0x'+sig('balanceOf(address)')+encAddr(a)}));
-        r.innerHTML += `\n💰 ${t}: <span class="gr">${n(b).toFixed(4)}</span>`;
+        const mb = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:M, data:'0x'+sig('balanceOf(address)')+encAddr(a)}));
+        const ub = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:USDT, data:'0x'+sig('balanceOf(address)')+encAddr(a)}));
+        r.innerHTML += `\n💰 MYK: <span class="gr">${n(mb).toFixed(4)}</span>\n💵 USDT: <span class="gr">${n(ub).toFixed(4)}</span>`;
     } catch(e) {}
 }
 
-// ==================== 上级奖励（修复：一次查MYK+USDT） ====================
+// ==================== 上级奖励 ====================
 async function upRewards() {
     const a = addr(); if(!a) return;
     const r = $('r3'); r.style.display='block'; r.innerHTML='⏳';
     try {
-        // 使用 firstCommunity 链表遍历而不是 getAllCommunities
         let L=[`查询: <span class="yl">${a6(a)}</span>`, ''];
         const roles=['无','PRIMARY','MIDDLE','COMMUNITY'];
         const ns=['C1','C2','C3','C4','C5','C6'];
-        const uSig = sig('users(address)');
-        const bSig = sig('balanceOf(address)');
-        
-        // 从用户的 firstCommunity 开始
         let fc = '0x0000000000000000000000000000000000000000';
         try { fc = w3.eth.abi.decodeParameter('address', await w3.eth.call({to:RP, data:'0x'+sig('firstCommunity(address)')+encAddr(a)})); } catch(e) {}
-        
         if(fc==='0x0000000000000000000000000000000000000000') {
             L.push('<span class="rd">该用户没有上级社区</span>');
         } else {
@@ -195,15 +177,13 @@ async function upRewards() {
             for(let i=0;i<6;i++){
                 if(cur==='0x0000000000000000000000000000000000000000'){L.push(`<span class="yl">${ns[i]}: 空缺</span>`);break;}
                 try {
-                    const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], await w3.eth.call({to:RP, data:'0x'+uSig+encAddr(cur)}));
-                    const mykB = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:M, data:'0x'+bSig+encAddr(cur)}));
-                    const usdtB = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:USDT, data:'0x'+bSig+encAddr(cur)}));
-                    L.push(`${ns[i]}: <span class="yl">${a6(cur)}</span> | ${roles[u[7]]} | ${u[8]?'✅':'❌'} | MYK:${n(mykB).toFixed(4)} USDT:${n(usdtB).toFixed(4)}`);
-                    // 找下一个：communityNodes[cur].next
+                    const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], await w3.eth.call({to:RP, data:'0x'+sig('users(address)')+encAddr(cur)}));
+                    const mb = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:M, data:'0x'+sig('balanceOf(address)')+encAddr(cur)}));
+                    const ub = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:USDT, data:'0x'+sig('balanceOf(address)')+encAddr(cur)}));
+                    L.push(`${ns[i]}: <span class="yl">${a6(cur)}</span> | ${roles[u[7]]} | ${u[8]?'✅':'❌'} | MYK:${n(mb).toFixed(4)} USDT:${n(ub).toFixed(4)}`);
                     try {
-                        const nextData = '0x'+sig('communityNodes(address)')+encAddr(cur);
-                        const node = w3.eth.abi.decodeParameters(['address','address','bool'], await w3.eth.call({to:RP, data:nextData}));
-                        cur = node[1]; // next
+                        const node = w3.eth.abi.decodeParameters(['address','address','bool'], await w3.eth.call({to:RP, data:'0x'+sig('communityNodes(address)')+encAddr(cur)}));
+                        cur = node[1];
                     } catch(e) { cur = '0x0000000000000000000000000000000000000000'; }
                 } catch(e2) { L.push(`${ns[i]}: <span class="yl">${a6(cur)}</span> | 查询失败`); break; }
             }
@@ -221,7 +201,7 @@ async function lockInfo() {
         const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','bool','uint256'], await w3.eth.call({to:GV, data:'0x'+sig('getLockInfo(address)')+encAddr(a)}));
         const now=Math.floor(Date.now()/1000), rem=Number(i[2])>now?`${Math.floor((Number(i[2])-now)/86400)}天`:'已到期';
         r.innerHTML = `锁仓: <span class="yl">${n(i[0]).toFixed(4)}</span> MYK\n价值: <span class="yl">${n(i[1]).toFixed(4)}</span> USDT\n解锁: ${Number(i[2])>0?new Date(Number(i[2])*1000).toLocaleString():'-'}\n剩余: <span class="yl">${rem}</span>\n状态: ${i[3]?'<span class="gr">✅ 锁仓中</span>':'<span class="rd">❌ 未锁仓</span>'}`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: '+(e.message||'').slice(0,100)+'</span>'; }
+    } catch(e) { r.innerHTML='<span class="rd">失败: 该地址未锁仓</span>'; }
 }
 
 async function lockRank() {
@@ -269,69 +249,30 @@ async function sixthSeats() {
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 
-// ==================== 分红池 ====================
+// ==================== 分红池 & 全局 ====================
 async function divPools() {
     const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
     try {
         const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], await w3.eth.call({to:GV, data:'0x'+sig('getDividendInfo()')}));
-        r.innerHTML = `第六: <span class="yl">${n(i[0]).toFixed(4)}</span> MYK (15%)\n第五: <span class="yl">${n(i[1]).toFixed(4)}</span> MYK (20%)\n第四: <span class="yl">${n(i[2]).toFixed(4)}</span> MYK (30%)\n第三: <span class="yl">${n(i[3]).toFixed(4)}</span> MYK (35%)\n上次: ${Number(i[4])>0?new Date(Number(i[4])*1000).toLocaleString():'未分配'}`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
+        r.innerHTML = `分红池:\n第六(15%): <span class="yl">${n(i[0]).toFixed(4)}</span> MYK\n第五(20%): <span class="yl">${n(i[1]).toFixed(4)}</span> MYK\n第四(30%): <span class="yl">${n(i[2]).toFixed(4)}</span> MYK\n第三(35%): <span class="yl">${n(i[3]).toFixed(4)}</span> MYK`;
+    } catch(e) { r.innerHTML='<span class="rd">分红池查询失败</span>'; }
 }
 
 async function divState() {
     const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
     try {
         const s = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256','bool'], await w3.eth.call({to:GV, data:'0x'+sig('getDistributionState()')}));
-        r.innerHTML = `活跃: ${s[5]?'<span class="gr">✅ 分配中</span>':'<span class="rd">❌ 无</span>'}\n总池: <span class="yl">${n(s[0]).toFixed(4)}</span> MYK\n范围: rank ${s[1]}~${s[2]}\n人均: <span class="yl">${n(s[3]).toFixed(6)}</span> MYK\n进度: ${s[4]} 已处理`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
+        r.innerHTML = `分配状态: ${s[5]?'<span class="gr">✅ 分配中</span>':'<span class="rd">❌ 无</span>'}\n总池: <span class="yl">${n(s[0]).toFixed(4)}</span> MYK\n人均: <span class="yl">${n(s[3]).toFixed(6)}</span> MYK\n进度: ${s[4]} 已处理`;
+    } catch(e) { r.innerHTML='<span class="rd">分配状态查询失败</span>'; }
 }
 
-// ==================== 全局 ====================
-async function rpStats() {
-    const r = $('r7'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const u = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:RP, data:'0x'+sig('totalActiveUsers()')}));
-        const b = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:RP, data:'0x'+sig('getContractBalance()')}));
-        const p = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:RP, data:'0x'+sig('getCurrentPrice()')}));
-        r.innerHTML = `👥 活跃: <span class="yl">${u}</span>\n💰 MYK: <span class="yl">${n(b).toFixed(2)}</span>\n💵 价格: <span class="yl">${n(p).toFixed(6)}</span> USDT`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: '+(e.message||'').slice(0,100)+'</span>'; }
-}
-
-async function govStats() {
-    const r = $('r7'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const v = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:GV, data:'0x'+sig('totalLockedValue()')}));
-        const t = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:GV, data:'0x'+sig('totalCommunities()')}));
-        const a = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:GV, data:'0x'+sig('activeLockerCount()')}));
-        r.innerHTML = `🔒 锁仓: <span class="yl">${n(v).toFixed(4)}</span> USDT\n🏘️ 社区: <span class="yl">${t}</span>\n📊 排名: <span class="yl">${a}</span>`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: '+(e.message||'').slice(0,100)+'</span>'; }
-}
-
-async function fundStats() {
-    const r = $('r7'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], await w3.eth.call({to:FM, data:'0x'+sig('getContractInfo()')}));
-        r.innerHTML = `💵 USDT: <span class="yl">${n(i[0]).toFixed(4)}</span>\n💰 MYK: <span class="yl">${n(i[1]).toFixed(4)}</span>\n📈 LP: <span class="yl">${n(i[2]).toFixed(4)}</span>\n🛒 采购池: <span class="yl">${n(i[3]).toFixed(4)}</span>\n📋 订单: <span class="yl">${i[4]}</span>`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: '+(e.message||'').slice(0,100)+'</span>'; }
-}
-
-// ==================== 价格 ====================
 async function price() {
-    const r = $('r8'); r.style.display='block'; r.innerHTML='⏳';
+    const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
     try {
         const p = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:RP, data:'0x'+sig('getCurrentPrice()')}));
         const f = w3.eth.abi.decodeParameter('bool', await w3.eth.call({to:RP, data:'0x'+sig('isPriceFresh()')}));
-        r.innerHTML = `💵 价格: <span class="yl">${n(p).toFixed(8)}</span> USDT/MYK\n🕐 ${f?'<span class="gr">✅ 有效</span>':'<span class="rd">❌ 过期</span>'}`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
-}
-
-async function subPool() {
-    const r = $('r8'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const p = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:GV, data:'0x'+sig('subscriptionPool()')}));
-        const d = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:GV, data:'0x'+sig('subscriptionLockDays()')}));
-        r.innerHTML = `📦 认购池: <span class="yl">${n(p).toFixed(4)}</span> MYK\n🔒 ${Math.floor(Number(d)/86400)}天`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
+        r.innerHTML = `💵 价格: <span class="yl">${n(p).toFixed(8)}</span> USDT/MYK\n🕐 ${f?'<span class="gr">✅ 有效</span>':'<span class="rd">❌ 过期（需调用updatePrice）</span>'}`;
+    } catch(e) { r.innerHTML='<span class="rd">价格查询失败</span>'; }
 }
 </script>
 </body>
