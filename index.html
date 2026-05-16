@@ -43,6 +43,7 @@ FundManager: <span class="gr">0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027</span><
         <div class="res" id="r1"></div>
     </div>
 
+    <!-- 新增：管理员价格设置 -->
     <div class="card">
         <h2>🛠️ 管理员工具</h2>
         <p style="font-size:11px;color:#888;margin-bottom:6px;">设置 Governance 价格缓存（需 trustedUpdater 权限）</p>
@@ -114,6 +115,7 @@ function encAddr(a){return w3.eth.abi.encodeParameter('address',a).slice(2);}
 function encUint(n){return w3.eth.abi.encodeParameter('uint256',n).slice(2);}
 function sig(name){return w3.eth.abi.encodeFunctionSignature(name).slice(2);}
 
+// ==================== 管理员功能 ====================
 async function adminSetPrice() {
     if (!ua) { alert('请先连接钱包'); return; }
     const priceInput = $('adminPriceInput').value;
@@ -137,6 +139,7 @@ async function completeLock() {
     } catch(e) { r.innerHTML='<span class="rd">❌ '+(e.message||'').slice(0,150)+'</span>'; }
 }
 
+// ==================== 关联核对 ====================
 async function checkLinks() {
     const r = $('r1'); r.style.display='block'; r.innerHTML='⏳ 核对中...';
     let L=[];
@@ -172,6 +175,7 @@ async function checkLinks() {
     r.innerHTML = L.join('\n');
 }
 
+// ==================== 用户 ====================
 async function checkUser() {
     const a = addr(); if(!a) return;
     const r = $('r2'); r.style.display='block'; r.innerHTML='⏳';
@@ -192,6 +196,7 @@ async function checkBal() {
     } catch(e) {}
 }
 
+// ==================== 上级奖励 ====================
 async function upRewards() {
     const a = addr(); if(!a) return;
     const r = $('r3'); r.style.display='block'; r.innerHTML='⏳';
@@ -224,6 +229,7 @@ async function upRewards() {
     } catch(e) { r.innerHTML='<span class="rd">❌ '+(e.message||'').slice(0,200)+'</span>'; }
 }
 
+// ==================== 锁仓 ====================
 async function lockInfo() {
     const a = laddr(); if(!a) return;
     const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
@@ -264,6 +270,7 @@ async function commTier() {
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 
+// ==================== 第六社区席位 ====================
 async function sixthSeats() {
     const r = $('r5'); r.style.display='block'; r.innerHTML='⏳';
     try {
@@ -278,6 +285,7 @@ async function sixthSeats() {
     } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
 }
 
+// ==================== 分红池 & 全局 ====================
 async function divPools() {
     const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
     try {
