@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X.Claw DApp - 钱包连接</title>
+    <title>X.Claw DApp</title>
     <style>
         /* ===== 全局样式 ===== */
         * {
@@ -27,7 +27,7 @@
             max-width: 414px;
             background-color: #0f1018;
             background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
-            padding: 70px 15px 80px 15px; /* 顶部留白给固定 Header */
+            padding: 70px 15px 80px 15px;
             position: relative;
             min-height: 100vh;
             border: 1px solid #1c1d2a;
@@ -103,6 +103,26 @@
             background-color: #4caf50;
         }
 
+        /* ===== 旋转图标样式 (新增) ===== */
+        .spinner-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid #ff4d4d;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+            background-color: rgba(255, 59, 59, 0.2);
+            box-shadow: 0 0 6px rgba(255, 59, 59, 0.4);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* ===== 通用卡片样式 ===== */
         .card {
             background: rgba(21, 22, 36, 0.9);
@@ -143,15 +163,17 @@
             font-weight: bold;
         }
 
+        /* 状态标签 - 修改为 flex 布局 */
         .status-badge {
             background-color: #3e1d24;
             color: #ff6b6b;
             font-size: 11px;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 12px;
-            display: inline-block;
-            margin: 5px 0 15px 0;
+            display: inline-flex;
+            align-items: center;
             border: 1px solid #5e2a30;
+            margin: 5px 0 15px 0;
         }
 
         .stats-grid {
@@ -410,7 +432,11 @@
                         <span class="progress-text">72.07%</span>
                     </div>
                 </div>
-                <div class="status-badge">⏳ 认购进行中</div>
+                
+                <!-- === 修改后的状态标签 === -->
+                <div class="status-badge">
+                    <span class="spinner-icon"></span> 认购进行中
+                </div>
 
                 <div class="stats-grid">
                     <div class="stat-item">
