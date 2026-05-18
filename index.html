@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X.Claw DApp</title>
+    <title>X.Claw DApp - 钱包连接</title>
     <style>
-        /* 全局样式 */
+        /* ===== 全局样式 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -21,24 +21,24 @@
             min-height: 100vh;
         }
 
-        /* 手机容器模拟 */
+        /* ===== 手机容器 ===== */
         .mobile-container {
             width: 100%;
             max-width: 414px;
             background-color: #0f1018;
             background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
-            padding: 70px 15px 80px 15px;
+            padding: 70px 15px 80px 15px; /* 顶部留白给固定 Header */
             position: relative;
             min-height: 100vh;
             border: 1px solid #1c1d2a;
-            box-sizing: border-box;
         }
 
-        /* 顶部导航 - 浮动固定 */
+        /* ===== 顶部导航 (固定悬浮) ===== */
         header {
             position: fixed;
             top: 0;
-            left: 0;
+            left: 50%;
+            transform: translateX(-50%);
             width: 100%;
             max-width: 414px;
             z-index: 1000;
@@ -47,16 +47,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-sizing: border-box;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
+
         .logo-area {
             display: flex;
             align-items: center;
             font-size: 18px;
             font-weight: bold;
         }
+
         .logo-icon {
             width: 20px;
             height: 20px;
@@ -66,7 +66,7 @@
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
         }
 
-        /* 钱包连接按钮 - 新样式 */
+        /* ===== 钱包连接按钮 ===== */
         .wallet-btn {
             background-color: #1e1f2d;
             padding: 6px 12px;
@@ -78,44 +78,32 @@
             align-items: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
         }
+
         .wallet-btn:hover {
-            border-color: #ff3b3b;
             background-color: #2a2b3d;
+            border-color: #ff3b3b;
         }
+
         .wallet-btn.connected {
-            border-color: #4ade80;
+            border-color: #4caf50;
         }
+
         .wallet-dot {
             width: 6px;
             height: 6px;
+            background-color: #ff4d4d;
             border-radius: 50%;
             margin-right: 6px;
-            transition: all 0.3s ease;
-        }
-        .wallet-dot.disconnected {
-            background-color: #666;
-        }
-        .wallet-dot.connected {
-            background-color: #4ade80; /* 绿色表示已连接 */
-        }
-        .wallet-address {
-            font-size: 12px;
+            transition: background-color 0.3s;
         }
 
-        /* 授权状态提示 */
-        .auth-status {
-            font-size: 10px;
-            color: #ff6b6b;
-            margin-top: 2px;
-            text-align: right;
-            display: none;
-        }
-        .auth-status.visible {
-            display: block;
+        .wallet-dot.connected-dot {
+            background-color: #4caf50;
         }
 
-        /* 其余样式保持不变 */
+        /* ===== 通用卡片样式 ===== */
         .card {
             background: rgba(21, 22, 36, 0.9);
             border-radius: 16px;
@@ -130,14 +118,16 @@
             justify-content: space-between;
             margin-bottom: 10px;
         }
+
         .title-left h2 {
             font-size: 18px;
         }
+
         .title-left span {
             font-size: 12px;
             color: #888;
         }
-        
+
         .progress-ring {
             position: relative;
             width: 60px;
@@ -146,9 +136,7 @@
             align-items: center;
             justify-content: center;
         }
-        .progress-ring svg {
-            transform: rotate(-90deg);
-        }
+
         .progress-text {
             position: absolute;
             font-size: 12px;
@@ -172,6 +160,7 @@
             gap: 10px;
             margin-bottom: 15px;
         }
+
         .stat-item {
             background-color: #0f101e;
             border-radius: 10px;
@@ -179,15 +168,12 @@
             text-align: center;
             border: 1px solid #1f2135;
         }
-        .stat-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-            display: block;
-        }
+
         .stat-num {
             font-size: 16px;
             font-weight: bold;
         }
+
         .stat-label {
             font-size: 10px;
             color: #666;
@@ -205,9 +191,11 @@
             border: 1px solid #1f2135;
         }
 
+        /* ===== 输入框区域 ===== */
         .input-wrapper {
             margin-top: 10px;
         }
+
         .input-label {
             display: flex;
             justify-content: space-between;
@@ -215,6 +203,7 @@
             color: #aaa;
             margin-bottom: 5px;
         }
+
         .input-box {
             background-color: #0a0a14;
             border-radius: 10px;
@@ -224,6 +213,7 @@
             align-items: center;
             border: 1px solid #25263a;
         }
+
         .input-box input {
             background: transparent;
             border: none;
@@ -231,25 +221,30 @@
             font-size: 18px;
             width: 60%;
         }
+
         .input-box input:focus {
             outline: none;
         }
+
         .input-actions {
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
         .max-btn {
             color: #ff3b3b;
             font-weight: bold;
             font-size: 12px;
             cursor: pointer;
         }
+
         .token-tag {
             display: flex;
             align-items: center;
             font-size: 14px;
         }
+
         .token-icon {
             width: 16px;
             height: 16px;
@@ -277,6 +272,12 @@
             margin-top: 15px;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(255, 59, 59, 0.3);
+            transition: opacity 0.3s;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .rules {
@@ -284,16 +285,18 @@
             color: #999;
             margin-top: 15px;
         }
+
         .rules li {
             margin-bottom: 4px;
             list-style: none;
         }
+
         .rules li::before {
             content: "● ";
             color: #666;
         }
 
-        /* 底部导航栏 */
+        /* ===== 底部导航 ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -308,6 +311,7 @@
             padding: 10px 0;
             z-index: 100;
         }
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -316,10 +320,13 @@
             font-size: 10px;
             cursor: pointer;
             text-decoration: none;
+            transition: color 0.3s;
         }
+
         .nav-item.active {
             color: #ff3b3b;
         }
+
         .nav-icon {
             width: 24px;
             height: 24px;
@@ -327,10 +334,11 @@
             border-radius: 4px;
             display: block;
         }
+
         .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
         .nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
 
-        /* 其他页面占位 */
+        /* ===== 页面占位 ===== */
         .page-placeholder {
             display: none;
             justify-content: center;
@@ -339,32 +347,53 @@
             color: #555;
             font-size: 18px;
         }
+
+        /* ===== 通知提示 ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+            border: 1px solid #333;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.success { border-color: #4caf50; }
+        .toast.error { border-color: #ff4d4d; }
     </style>
 </head>
 <body>
 
+    <!-- ===== 通知提示 ===== -->
+    <div id="toast" class="toast"></div>
+
     <div class="mobile-container">
-        <!-- 顶部浮动导航 Header -->
+        <!-- ===== 顶部导航 ===== -->
         <header>
             <div class="logo-area">
                 <div class="logo-icon"></div>
                 X.CLAW
             </div>
-            <div style="display: flex; gap: 10px; align-items: flex-end; flex-direction: column;">
+            <div style="display: flex; gap: 10px; align-items: center;">
                 <!-- 钱包连接按钮 -->
-                <div class="wallet-btn" id="walletBtn" onclick="connectWallet()">
-                    <span class="wallet-dot disconnected" id="walletDot"></span>
-                    <span class="wallet-address" id="walletText">连接钱包</span>
-                </div>
-                <!-- 授权状态提示 -->
-                <div class="auth-status" id="authStatus">⚡ 未授权</div>
+                <button id="walletConnectBtn" class="wallet-btn" onclick="toggleWallet()">
+                    <span id="walletDot" class="wallet-dot"></span>
+                    <span id="walletStatus">连接钱包</span>
+                </button>
+                <div style="font-size: 20px; cursor: pointer;">🌐</div>
             </div>
-            <div style="font-size: 20px;">🌐</div>
         </header>
 
-        <!-- 首页主要内容 ID="home-content" -->
+        <!-- ===== 首页内容 ===== -->
         <div id="home-content">
-            
             <!-- 先锋配售卡片 -->
             <div class="card">
                 <div class="title-section">
@@ -385,17 +414,17 @@
 
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <span class="stat-icon">👤</span>
+                        <span style="font-size:20px;">👤</span>
                         <div class="stat-num">3,380</div>
                         <div class="stat-label">认购地址</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-icon">💳</span>
+                        <span style="font-size:20px;">💳</span>
                         <div class="stat-num">2,162.3</div>
                         <div class="stat-label">已认购(BNB)</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-icon">🪙</span>
+                        <span style="font-size:20px;">🪙</span>
                         <div class="stat-num">540,575,000</div>
                         <div class="stat-label">已配售(XClaw)</div>
                     </div>
@@ -416,12 +445,12 @@
                 <div class="input-wrapper">
                     <div class="input-label">
                         <span>认购金额</span>
-                        <span>余额: 0 BNB</span>
+                        <span>余额: <span id="bnbBalance">0</span> BNB</span>
                     </div>
                     <div class="input-box">
-                        <input type="text" value="0.2~5" placeholder="0.0">
+                        <input type="text" id="amountInput" placeholder="0.0" value="">
                         <div class="input-actions">
-                            <span class="max-btn">MAX</span>
+                            <span class="max-btn" onclick="setMaxAmount()">MAX</span>
                             <div class="token-tag">
                                 <div class="token-icon"></div> BNB
                             </div>
@@ -436,14 +465,14 @@
                         <span>获得代币</span>
                     </div>
                     <div class="input-box">
-                        <input type="text" value="0" disabled style="color: #fff;">
+                        <input type="text" id="outputAmount" value="0" disabled style="color: #fff;">
                         <div class="token-tag">
-                            <div class="token-icon" style="background: #ff3b3b;"></div> XClaw
+                            <div style="width:16px;height:16px;background:#ff3b3b;border-radius:50%;margin-right:5px;"></div> XClaw
                         </div>
                     </div>
                 </div>
 
-                <button class="action-btn">确认认购</button>
+                <button id="confirmBtn" class="action-btn" onclick="confirmPurchase()">确认认购</button>
 
                 <div class="rules">
                     <li>首次认购最低 0.2 BNB，追加认购最低 0.1 BNB</li>
@@ -452,14 +481,13 @@
             </div>
         </div>
 
-        <!-- 其他页面占位内容 (默认隐藏) -->
+        <!-- ===== 其他页面占位 ===== -->
         <div id="page-predict" class="page-placeholder">预测界面 (空)</div>
         <div id="page-openclaw" class="page-placeholder">OpenClaw 界面 (空)</div>
         <div id="page-community" class="page-placeholder">社区界面 (空)</div>
         <div id="page-rewards" class="page-placeholder">奖励界面 (空)</div>
 
-
-        <!-- 底部导航 -->
+        <!-- ===== 底部导航 ===== -->
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('home')">
                 <div class="nav-icon placeholder"></div>
@@ -485,101 +513,191 @@
     </div>
 
     <script>
-        // 钱包状态
+        // ============================================================
+        //  钱包连接逻辑
+        // ============================================================
+
         let isConnected = false;
-        let isAuthorized = false;
+        let currentAccount = null;
+        let mockBalance = 12.5; // 模拟余额
 
-        // 模拟钱包地址
-        const walletAddress = "0x1234...E5Ed";
+        // 模拟钱包地址生成
+        function generateMockAddress() {
+            const chars = '0123456789abcdef';
+            let address = '0x';
+            for (let i = 0; i < 40; i++) {
+                address += chars[Math.floor(Math.random() * 16)];
+            }
+            return address;
+        }
 
-        // 连接钱包功能
-        function connectWallet() {
-            if (!isConnected) {
-                // 模拟连接过程
-                alert("正在请求连接钱包... (模拟)");
-                
-                // 模拟连接成功
-                setTimeout(() => {
-                    isConnected = true;
-                    updateWalletUI();
-                    
-                    // 连接后自动请求授权
-                    setTimeout(() => {
-                        requestAuthorization();
-                    }, 500);
-                }, 1000);
+        // 格式化地址 (0x1234...5678)
+        function formatAddress(address) {
+            if (!address) return '';
+            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+        }
+
+        // 切换钱包连接状态
+        function toggleWallet() {
+            if (isConnected) {
+                // 断开连接
+                disconnectWallet();
             } else {
-                // 已连接状态下，点击可以断开或显示详细信息
-                if (confirm("是否要断开钱包连接？")) {
-                    disconnectWallet();
-                }
+                // 连接钱包
+                connectWallet();
             }
         }
 
-        // 请求授权
-        function requestAuthorization() {
-            if (isConnected && !isAuthorized) {
-                const auth = confirm("DApp 请求授权访问您的钱包资产，是否授权？");
-                if (auth) {
-                    isAuthorized = true;
-                    updateAuthStatus();
-                    alert("✅ 授权成功！");
-                } else {
-                    alert("❌ 用户拒绝授权");
-                }
-            }
+        // 连接钱包
+        function connectWallet() {
+            // 模拟连接过程
+            showToast('正在连接钱包...', 'info');
+
+            // 模拟延迟
+            setTimeout(() => {
+                // 生成随机地址
+                const address = generateMockAddress();
+                currentAccount = address;
+                isConnected = true;
+
+                // 更新 UI
+                updateWalletUI();
+                updateBalanceUI();
+
+                showToast('钱包连接成功!', 'success');
+            }, 800);
         }
 
         // 断开钱包
         function disconnectWallet() {
             isConnected = false;
-            isAuthorized = false;
+            currentAccount = null;
+
+            // 更新 UI
             updateWalletUI();
-            updateAuthStatus();
+            updateBalanceUI();
+
+            showToast('已断开钱包连接', 'info');
         }
 
         // 更新钱包按钮 UI
         function updateWalletUI() {
-            const walletBtn = document.getElementById('walletBtn');
-            const walletDot = document.getElementById('walletDot');
-            const walletText = document.getElementById('walletText');
+            const btn = document.getElementById('walletConnectBtn');
+            const dot = document.getElementById('walletDot');
+            const status = document.getElementById('walletStatus');
 
+            if (isConnected && currentAccount) {
+                btn.classList.add('connected');
+                dot.classList.add('connected-dot');
+                status.textContent = formatAddress(currentAccount);
+            } else {
+                btn.classList.remove('connected');
+                dot.classList.remove('connected-dot');
+                status.textContent = '连接钱包';
+            }
+        }
+
+        // 更新余额 UI
+        function updateBalanceUI() {
+            const balanceEl = document.getElementById('bnbBalance');
             if (isConnected) {
-                walletBtn.classList.add('connected');
-                walletDot.className = 'wallet-dot connected';
-                walletText.textContent = walletAddress;
-                // 显示授权状态
-                document.getElementById('authStatus').classList.add('visible');
+                // 显示模拟余额 (保留2位小数)
+                balanceEl.textContent = mockBalance.toFixed(2);
             } else {
-                walletBtn.classList.remove('connected');
-                walletDot.className = 'wallet-dot disconnected';
-                walletText.textContent = '连接钱包';
-                document.getElementById('authStatus').classList.remove('visible');
+                balanceEl.textContent = '0';
             }
         }
 
-        // 更新授权状态
-        function updateAuthStatus() {
-            const authStatus = document.getElementById('authStatus');
-            if (isAuthorized) {
-                authStatus.textContent = '🔒 已授权';
-                authStatus.style.color = '#4ade80';
-            } else {
-                authStatus.textContent = '⚡ 未授权';
-                authStatus.style.color = '#ff6b6b';
+        // ============================================================
+        //  认购逻辑
+        // ============================================================
+
+        // 价格: 1 BNB = 250,000 XClaw
+        const RATE = 250000;
+
+        // 监听输入金额变化
+        document.getElementById('amountInput').addEventListener('input', function() {
+            const val = parseFloat(this.value) || 0;
+            const output = val * RATE;
+            document.getElementById('outputAmount').value = output.toLocaleString();
+        });
+
+        // 点击 MAX 按钮
+        function setMaxAmount() {
+            if (!isConnected) {
+                showToast('请先连接钱包', 'error');
+                return;
+            }
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (balance > 0) {
+                document.getElementById('amountInput').value = balance;
+                // 触发 input 事件更新输出
+                const event = new Event('input');
+                document.getElementById('amountInput').dispatchEvent(event);
             }
         }
 
-        // 页面切换功能
+        // 确认认购
+        function confirmPurchase() {
+            if (!isConnected) {
+                showToast('请先连接钱包', 'error');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!amount || amount <= 0) {
+                showToast('请输入有效的认购金额', 'error');
+                return;
+            }
+
+            // 验证余额
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (amount > balance) {
+                showToast('余额不足', 'error');
+                return;
+            }
+
+            // 验证规则
+            if (amount < 0.2) {
+                showToast('首次认购最低 0.2 BNB', 'error');
+                return;
+            }
+            if (amount > 5) {
+                showToast('单地址累计认购上限 5 BNB', 'error');
+                return;
+            }
+
+            // 模拟交易
+            showToast('交易处理中...', 'info');
+            setTimeout(() => {
+                // 扣除余额
+                mockBalance -= amount;
+                updateBalanceUI();
+
+                // 重置输入框
+                document.getElementById('amountInput').value = '';
+                document.getElementById('outputAmount').value = '0';
+
+                showToast(`认购成功! 获得 ${(amount * RATE).toLocaleString()} XClaw`, 'success');
+            }, 1500);
+        }
+
+        // ============================================================
+        //  页面切换
+        // ============================================================
+
         function switchTab(tabName) {
+            // 隐藏所有页面
             document.getElementById('home-content').style.display = 'none';
             document.getElementById('page-predict').style.display = 'none';
             document.getElementById('page-openclaw').style.display = 'none';
             document.getElementById('page-community').style.display = 'none';
             document.getElementById('page-rewards').style.display = 'none';
 
+            // 移除所有导航激活状态
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
 
+            // 显示对应页面并激活导航
             if (tabName === 'home') {
                 document.getElementById('home-content').style.display = 'block';
                 document.querySelector('.nav-item:nth-child(1)').classList.add('active');
@@ -590,8 +708,29 @@
             }
         }
 
-        // 初始化状态
-        updateWalletUI();
+        // ============================================================
+        //  Toast 通知
+        // ============================================================
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+
+            // 自动隐藏
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+
+        // 默认显示首页
+        document.getElementById('home-content').style.display = 'block';
     </script>
 </body>
 </html>
