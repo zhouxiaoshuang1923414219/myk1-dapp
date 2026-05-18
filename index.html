@@ -33,44 +33,73 @@
             border: 1px solid #1c1d2a;
         }
 
-        /* 顶部导航 */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-        }
-        .logo-area {
-            display: flex;
-            align-items: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .logo-icon {
-            width: 20px;
-            height: 20px;
-            background-color: #ff3b3b;
-            margin-right: 8px;
-            border-radius: 4px;
-        }
-        .wallet-btn {
-            background-color: #1e1f2d;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: 1px solid #333;
-            color: #fff;
-            display: flex;
-            align-items: center;
-        }
-        .wallet-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #ff4d4d;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
+       /* 顶部导航 - 修改为悬浮固定 */
+header {
+    position: fixed;       /* 关键：固定定位 */
+    top: 0;                /* 距离顶部 0 */
+    left: 0;
+    width: 100%;           /* 宽度撑满 */
+    z-index: 1000;         /* 保证在最上层 */
+    background-color: #0f1018; /* 添加背景色，防止下方内容透视 */
+    padding: 15px 15px 10px 15px; /* 微调 Padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box; /* 确保 padding 不会撑大 width */
+    /* 可以在这里添加一个微弱的底部阴影，增加层次感 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+}
 
+/* 修正移动端容器，增加顶部留白，防止被 Header 遮挡 */
+.mobile-container {
+    width: 100%;
+    max-width: 414px;
+    background-color: #0f1018;
+    background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
+    padding: 70px 15px 80px 15px; /* 这里修改了：原本是 20px，现在改为 70px 给 Header 留出空间 */
+    position: relative;
+    min-height: 100vh;
+    border: 1px solid #1c1d2a;
+    box-sizing: border-box;
+}
+
+/* Logo区域保持原样 */
+.logo-area {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 图标稍微调整 */
+.logo-icon {
+    width: 20px;
+    height: 20px;
+    background-color: #ff3b3b;
+    margin-right: 8px;
+    border-radius: 4px;
+}
+
+/* 钱包按钮保持原样 */
+.wallet-btn {
+    background-color: #1e1f2d;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    border: 1px solid #333;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.wallet-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #ff4d4d;
+    border-radius: 50%;
+    margin-right: 6px;
+}
         /* 通用卡片样式 */
         .card {
             background: rgba(21, 22, 36, 0.9);
