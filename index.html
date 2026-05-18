@@ -21,13 +21,13 @@
             min-height: 100vh;
         }
 
-        /* 手机容器模拟 - 增加了顶部padding给固定header留空间 */
+        /* 手机容器模拟 */
         .mobile-container {
             width: 100%;
-            max-width: 414px; /* 模拟手机宽度 */
+            max-width: 414px;
             background-color: #0f1018;
             background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
-            padding: 70px 15px 80px 15px; /* 顶部的70px是为了避开固定Header */
+            padding: 70px 15px 80px 15px;
             position: relative;
             min-height: 100vh;
             border: 1px solid #1c1d2a;
@@ -40,9 +40,9 @@
             top: 0;
             left: 0;
             width: 100%;
-            max-width: 414px; /* 限制在手机宽度内 */
+            max-width: 414px;
             z-index: 1000;
-            background-color: #0f1018; /* 确保不透明 */
+            background-color: #0f1018;
             padding: 15px 15px 10px 15px;
             display: flex;
             justify-content: space-between;
@@ -63,7 +63,10 @@
             background-color: #ff3b3b;
             margin-right: 8px;
             border-radius: 4px;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
         }
+
+        /* 钱包连接按钮 - 新样式 */
         .wallet-btn {
             background-color: #1e1f2d;
             padding: 6px 12px;
@@ -73,16 +76,46 @@
             color: #fff;
             display: flex;
             align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .wallet-btn:hover {
+            border-color: #ff3b3b;
+            background-color: #2a2b3d;
+        }
+        .wallet-btn.connected {
+            border-color: #4ade80;
         }
         .wallet-dot {
             width: 6px;
             height: 6px;
-            background-color: #ff4d4d;
             border-radius: 50%;
             margin-right: 6px;
+            transition: all 0.3s ease;
+        }
+        .wallet-dot.disconnected {
+            background-color: #666;
+        }
+        .wallet-dot.connected {
+            background-color: #4ade80; /* 绿色表示已连接 */
+        }
+        .wallet-address {
+            font-size: 12px;
         }
 
-        /* 通用卡片样式 */
+        /* 授权状态提示 */
+        .auth-status {
+            font-size: 10px;
+            color: #ff6b6b;
+            margin-top: 2px;
+            text-align: right;
+            display: none;
+        }
+        .auth-status.visible {
+            display: block;
+        }
+
+        /* 其余样式保持不变 */
         .card {
             background: rgba(21, 22, 36, 0.9);
             border-radius: 16px;
@@ -92,7 +125,6 @@
             border: 1px solid #23243a;
         }
 
-        /* 第一部分：配售概览 */
         .title-section {
             display: flex;
             justify-content: space-between;
@@ -173,7 +205,6 @@
             border: 1px solid #1f2135;
         }
 
-        /* 第二部分：参与配售 */
         .input-wrapper {
             margin-top: 10px;
         }
@@ -296,7 +327,6 @@
             border-radius: 4px;
             display: block;
         }
-        /* 占位图标颜色 */
         .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
         .nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
 
@@ -317,16 +347,19 @@
         <!-- 顶部浮动导航 Header -->
         <header>
             <div class="logo-area">
-                <div class="logo-icon" style="clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); background: #ff3b3b;"></div>
+                <div class="logo-icon"></div>
                 X.CLAW
             </div>
-            <div style="display: flex; gap: 10px;">
-                <div class="wallet-btn">
-                    <div class="wallet-dot"></div>
-                    0x ... E5Ed
+            <div style="display: flex; gap: 10px; align-items: flex-end; flex-direction: column;">
+                <!-- 钱包连接按钮 -->
+                <div class="wallet-btn" id="walletBtn" onclick="connectWallet()">
+                    <span class="wallet-dot disconnected" id="walletDot"></span>
+                    <span class="wallet-address" id="walletText">连接钱包</span>
                 </div>
-                <div style="font-size: 20px;">🌐</div>
+                <!-- 授权状态提示 -->
+                <div class="auth-status" id="authStatus">⚡ 未授权</div>
             </div>
+            <div style="font-size: 20px;">🌐</div>
         </header>
 
         <!-- 首页主要内容 ID="home-content" -->
@@ -452,30 +485,113 @@
     </div>
 
     <script>
-        // 简单的页面切换脚本
+        // 钱包状态
+        let isConnected = false;
+        let isAuthorized = false;
+
+        // 模拟钱包地址
+        const walletAddress = "0x1234...E5Ed";
+
+        // 连接钱包功能
+        function connectWallet() {
+            if (!isConnected) {
+                // 模拟连接过程
+                alert("正在请求连接钱包... (模拟)");
+                
+                // 模拟连接成功
+                setTimeout(() => {
+                    isConnected = true;
+                    updateWalletUI();
+                    
+                    // 连接后自动请求授权
+                    setTimeout(() => {
+                        requestAuthorization();
+                    }, 500);
+                }, 1000);
+            } else {
+                // 已连接状态下，点击可以断开或显示详细信息
+                if (confirm("是否要断开钱包连接？")) {
+                    disconnectWallet();
+                }
+            }
+        }
+
+        // 请求授权
+        function requestAuthorization() {
+            if (isConnected && !isAuthorized) {
+                const auth = confirm("DApp 请求授权访问您的钱包资产，是否授权？");
+                if (auth) {
+                    isAuthorized = true;
+                    updateAuthStatus();
+                    alert("✅ 授权成功！");
+                } else {
+                    alert("❌ 用户拒绝授权");
+                }
+            }
+        }
+
+        // 断开钱包
+        function disconnectWallet() {
+            isConnected = false;
+            isAuthorized = false;
+            updateWalletUI();
+            updateAuthStatus();
+        }
+
+        // 更新钱包按钮 UI
+        function updateWalletUI() {
+            const walletBtn = document.getElementById('walletBtn');
+            const walletDot = document.getElementById('walletDot');
+            const walletText = document.getElementById('walletText');
+
+            if (isConnected) {
+                walletBtn.classList.add('connected');
+                walletDot.className = 'wallet-dot connected';
+                walletText.textContent = walletAddress;
+                // 显示授权状态
+                document.getElementById('authStatus').classList.add('visible');
+            } else {
+                walletBtn.classList.remove('connected');
+                walletDot.className = 'wallet-dot disconnected';
+                walletText.textContent = '连接钱包';
+                document.getElementById('authStatus').classList.remove('visible');
+            }
+        }
+
+        // 更新授权状态
+        function updateAuthStatus() {
+            const authStatus = document.getElementById('authStatus');
+            if (isAuthorized) {
+                authStatus.textContent = '🔒 已授权';
+                authStatus.style.color = '#4ade80';
+            } else {
+                authStatus.textContent = '⚡ 未授权';
+                authStatus.style.color = '#ff6b6b';
+            }
+        }
+
+        // 页面切换功能
         function switchTab(tabName) {
-            // 1. 隐藏所有页面
             document.getElementById('home-content').style.display = 'none';
             document.getElementById('page-predict').style.display = 'none';
             document.getElementById('page-openclaw').style.display = 'none';
             document.getElementById('page-community').style.display = 'none';
             document.getElementById('page-rewards').style.display = 'none';
 
-            // 2. 移除所有导航激活状态
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
 
-            // 3. 显示对应页面并激活导航
             if (tabName === 'home') {
                 document.getElementById('home-content').style.display = 'block';
                 document.querySelector('.nav-item:nth-child(1)').classList.add('active');
             } else {
-                // 其他页面显示占位符
                 document.getElementById('page-' + tabName).style.display = 'flex';
-                // 根据点击顺序激活对应的导航项
                 const indexMap = { 'predict': 1, 'openclaw': 2, 'community': 3, 'rewards': 4 };
                 document.querySelectorAll('.nav-item')[indexMap[tabName]].classList.add('active');
             }
         }
+
+        // 初始化状态
+        updateWalletUI();
     </script>
 </body>
 </html>
