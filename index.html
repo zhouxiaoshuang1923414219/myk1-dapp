@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MYK 专业测试面板 | 完整合约集成</title>
+    <title>MYK 专业测试面板 | 多RPC支持</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -13,7 +13,7 @@
         }
         body {
             background: #0a0c10;
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             padding: 16px 12px;
             display: flex;
             justify-content: center;
@@ -33,7 +33,6 @@
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            letter-spacing: -0.3px;
         }
         .sub {
             font-size: 11px;
@@ -49,8 +48,6 @@
             border-radius: 18px;
             padding: 14px 16px;
             margin-bottom: 14px;
-            transition: box-shadow 0.1s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .card-title {
             font-size: 0.85rem;
@@ -73,7 +70,6 @@
         }
         .badge-read { background: #1f6feb20; color: #79c0ff; border: 0.5px solid #1f6feb; }
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
-        .badge-time { background: #d2992220; color: #e3b341; border: 0.5px solid #d29922; }
         input, select {
             width: 100%;
             padding: 8px 12px;
@@ -83,12 +79,10 @@
             color: #f0f6fc;
             font-size: 13px;
             margin-bottom: 8px;
-            transition: 0.2s;
         }
         input:focus, select:focus {
             border-color: #f0883e;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(240,136,62,0.2);
         }
         button {
             background: #21262d;
@@ -99,13 +93,11 @@
             font-size: 12px;
             color: #c9d1d9;
             cursor: pointer;
-            transition: all 0.15s;
             margin: 2px 2px;
         }
         button:hover {
             background: #2d333b;
             border-color: #f0883e;
-            color: #f0f6fc;
         }
         button.primary {
             background: #238636;
@@ -117,7 +109,6 @@
             background: #9e6a03;
             border-color: #d29922;
         }
-        button.warning:hover { background: #b87a0a; }
         .row {
             display: flex;
             gap: 8px;
@@ -131,29 +122,18 @@
             padding: 12px;
             margin-top: 12px;
             font-size: 12px;
-            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-family: monospace;
             border: 1px solid #2d333b;
             white-space: pre-wrap;
             word-break: break-word;
             max-height: 320px;
             overflow-y: auto;
             line-height: 1.45;
-            color: #b1bac4;
         }
         .g { color: #7ee787; }
         .r { color: #ff7b72; }
         .y { color: #ffdf6e; }
         .b { color: #79c0ff; }
-        .tag {
-            display: inline-block;
-            padding: 0px 6px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 700;
-            margin-right: 5px;
-        }
-        .tok { background: #23863680; color: #d2f0d2; }
-        .terr { background: #da363380; color: #ffc1c1; }
         .network-banner {
             background: #1f6feb20;
             border: 1px solid #1f6feb;
@@ -167,13 +147,18 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        .switch-btn {
-            background: #1f6feb;
-            border: none;
-            padding: 4px 12px;
+        .rpc-config {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 8px;
             font-size: 11px;
         }
-        .switch-btn:hover { background: #388bfd; }
+        .rpc-config input {
+            font-size: 11px;
+            padding: 6px 8px;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -182,61 +167,70 @@
         <h1>⚙️ MYK · 全维测试面板</h1>
         <div class="sub">
             <span id="netStatus">🔌 连接中...</span>
-            <span>| 需要 BSC 主网</span>
+            <span>| BSC 主网</span>
         </div>
     </div>
 
-    <!-- 网络提示横幅 -->
     <div id="networkBanner" class="network-banner" style="display: none;">
-        <span>⚠️ 当前网络与合约部署网络不匹配</span>
-        <button class="switch-btn" onclick="switchToBSC()">🔄 切换到 BSC 主网</button>
+        <span>⚠️ 当前网络不是 BSC 主网</span>
+        <button class="switch-btn" onclick="switchToBSC()" style="background:#1f6feb;border:none;padding:4px 12px;">🔄 切换到 BSC</button>
+    </div>
+
+    <!-- RPC 配置区 -->
+    <div class="card">
+        <div class="card-title">🌐 RPC 节点配置 <span class="badge badge-read">解决超时问题</span></div>
+        <div class="row">
+            <select id="rpcSelect" style="flex:2">
+                <option value="https://bsc-dataseed1.binance.org/">Binance 官方节点 1</option>
+                <option value="https://bsc-dataseed2.binance.org/">Binance 官方节点 2</option>
+                <option value="https://bsc-dataseed3.binance.org/">Binance 官方节点 3</option>
+                <option value="https://bsc-dataseed4.binance.org/">Binance 官方节点 4</option>
+                <option value="https://rpc.ankr.com/bsc">Ankr RPC</option>
+                <option value="https://bsc.publicnode.com">PublicNode</option>
+                <option value="https://1rpc.io/bsc">1RPC</option>
+            </select>
+            <button onclick="switchRPC()" class="primary">切换 RPC</button>
+        </div>
+        <div class="rpc-config">
+            <span style="color:#8b949e;">💡 如果超时，请尝试切换不同的 RPC 节点。当前: </span>
+            <span id="currentRpc" class="b">默认</span>
+        </div>
+        <div class="res" id="resRpc">⚡ 选择响应快的 RPC 节点可解决超时问题</div>
     </div>
 
     <!-- 合约地址配置区 -->
     <div class="card">
         <div class="card-title">📋 合约地址配置 <span class="badge badge-read">BSC 主网</span></div>
         <div class="row">
-            <input type="text" id="mykAddr" placeholder="MYK Token 地址" value="0x04f41F35c4A3859310249971e7A82A468607CBDB">
-            <input type="text" id="rpAddr" placeholder="RewardPool 地址" value="0x05e5E0b8158C6cB938201e6a247b2b80D83CfB3B">
+            <input type="text" id="mykAddr" placeholder="MYK Token" value="0x04f41F35c4A3859310249971e7A82A468607CBDB">
+            <input type="text" id="rpAddr" placeholder="RewardPool" value="0x05e5E0b8158C6cB938201e6a247b2b80D83CfB3B">
         </div>
         <div class="row">
-            <input type="text" id="gvAddr" placeholder="CommunityGovernance 地址" value="0x555C5bB763dd72F8f0c2584cC1F62F13320c6215">
-            <input type="text" id="fmAddr" placeholder="FundManager 地址" value="0x71f9128b051a70054a52036164aD1aE92A79d837">
+            <input type="text" id="gvAddr" placeholder="Governance" value="0x555C5bB763dd72F8f0c2584cC1F62F13320c6215">
+            <input type="text" id="fmAddr" placeholder="FundManager" value="0x71f9128b051a70054a52036164aD1aE92A79d837">
         </div>
         <div class="row">
-            <input type="text" id="pairAddr" placeholder="交易对 (LP) 地址" value="0x471D5AC981d728f1D214ffcF6E73d6f24562c16D">
+            <input type="text" id="pairAddr" placeholder="LP Pair" value="0x471D5AC981d728f1D214ffcF6E73d6f24562c16D">
             <button class="primary" onclick="loadDeployed()">📡 加载配置</button>
             <button onclick="checkAllLinks()">🔗 核对合约关联</button>
+            <button onclick="testRpcConnection()">⚡ 测试 RPC 连接</button>
         </div>
-        <div class="res" id="resLink">✅ 已加载 BSC 主网合约地址</div>
-    </div>
-
-    <!-- 时间控制 -->
-    <div class="card">
-        <div class="card-title">⏱️ 时间控制 <span class="badge badge-time">仅 Hardhat</span></div>
-        <div class="row">
-            <button class="warning" onclick="advanceTime(1)">+1 天</button>
-            <button class="warning" onclick="advanceTime(7)">+7 天</button>
-            <button class="warning" onclick="advanceTime(30)">+30 天</button>
-            <button class="warning" onclick="advanceTime(100)">+100 天</button>
-            <button class="warning" onclick="advanceTime(365)">+365 天</button>
-        </div>
-        <div class="res" id="resTime">🕒 仅在 Hardhat 本地链生效 (BSC 主网不可用)</div>
+        <div class="res" id="resLink">✅ 已加载 BSC 主网合约地址<br>点击「核对合约关联」前请确保 RPC 正常</div>
     </div>
 
     <!-- 执行操作 -->
     <div class="card">
-        <div class="card-title">⚡ 执行合约操作 <span class="badge badge-write">Write / 需签名</span></div>
+        <div class="card-title">⚡ 执行合约操作 <span class="badge badge-write">Write</span></div>
         <select id="actionSelect">
             <optgroup label="💰 RewardPool">
                 <option value="activate">activateWithUSDT (激活 2 USDT)</option>
                 <option value="bind">directBind (绑定上级)</option>
-                <option value="claimDaily">claimDailyReward (领取每日持币奖励)</option>
+                <option value="claimDaily">claimDailyReward (领取持币奖励)</option>
             </optgroup>
-            <optgroup label="🏛️ CommunityGovernance">
-                <option value="upgradeUSDT">upgradeWithUSDT (USDT 升级社区)</option>
+            <optgroup label="🏛️ Governance">
+                <option value="upgradeUSDT">upgradeWithUSDT (USDT升级)</option>
                 <option value="burnTier">burnForTier (销毁MYK升级)</option>
-                <option value="renew">renewCommunity (续费社区)</option>
+                <option value="renew">renewCommunity (续费)</option>
                 <option value="checkExp">checkExpiry (检查到期)</option>
             </optgroup>
             <optgroup label="💹 FundManager">
@@ -249,51 +243,45 @@
                 <option value="addAccLP">addAccumulatedLP</option>
                 <option value="redeemLP">redeemLpOrder</option>
             </optgroup>
-            <optgroup label="🛠️ 治理维护">
-                <option value="cleanup">executeCleanupBatch</option>
-                <option value="distDiv">manualDistributeDividends</option>
-                <option value="procDist">processDistributionBatch</option>
-            </optgroup>
         </select>
-        <input type="text" id="actionParam" placeholder="参数: 金额(ether单位) 或 地址/订单索引">
+        <input type="text" id="actionParam" placeholder="参数">
         <button class="primary" onclick="execAction()">▶ 执行交易</button>
         <div class="res" id="resAction">等待执行...</div>
     </div>
 
     <!-- 批量查询 -->
     <div class="card">
-        <div class="card-title">🔍 链上查询面板 <span class="badge badge-read">只读调用</span></div>
-        <input type="text" id="queryAddr" placeholder="查询地址 (留空则使用当前钱包)">
+        <div class="card-title">🔍 链上查询面板 <span class="badge badge-read">只读</span></div>
+        <input type="text" id="queryAddr" placeholder="查询地址 (留空=当前钱包)">
         <div class="row">
             <button onclick="queryUser()">👤 用户状态</button>
             <button onclick="queryTier()">🏆 社区等级</button>
             <button onclick="queryExpiry()">⏳ 到期详情</button>
-            <button onclick="queryRank()">📊 全球排名</button>
+            <button onclick="queryRank()">📊 排名</button>
+            <button onclick="queryBalance()">💰 余额</button>
         </div>
         <div class="row">
-            <button onclick="queryBalance()">💰 代币余额</button>
-            <button onclick="queryPrice()">💵 MYK实时价</button>
-            <button onclick="queryDividend()">💧 分红池信息</button>
-            <button onclick="querySeats()">👑 第六社区席位</button>
+            <button onclick="queryPrice()">💵 MYK价格</button>
+            <button onclick="queryDividend()">💧 分红池</button>
+            <button onclick="querySeats()">👑 席位</button>
+            <button onclick="queryUpRewards()">🎁 上级追溯</button>
+            <button onclick="queryLpInfo()">🔄 LP信息</button>
         </div>
-        <div class="row">
-            <button onclick="queryUpRewards()">🎁 上级社区追溯</button>
-            <button onclick="queryLpInfo()">🔄 LP 基础信息</button>
-        </div>
-        <div class="res" id="resQuery">📡 点击查询按钮获取数据</div>
+        <div class="res" id="resQuery">📡 点击查询</div>
     </div>
 </div>
 
 <script>
-    // ==================== 全局变量 ====================
+    // ==================== 配置 ====================
     let web3, userAccount, chainId;
+    let currentRpc = 'https://bsc-dataseed1.binance.org/';
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
     let REWARD_POOL_ADDR = '0x05e5E0b8158C6cB938201e6a247b2b80D83CfB3B';
     let GOV_ADDR = '0x555C5bB763dd72F8f0c2584cC1F62F13320c6215';
     let FUND_MANAGER_ADDR = '0x71f9128b051a70054a52036164aD1aE92A79d837';
     let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
-    const EXPECTED_CHAIN_ID = 56; // BSC 主网
+    const EXPECTED_CHAIN_ID = 56;
 
     const $ = id => document.getElementById(id);
     const logRes = (id, msg) => { const el = $(id); if(el) el.innerHTML = msg; };
@@ -311,48 +299,59 @@
         for (let p of params) {
             if (typeof p === 'string' && p.startsWith('0x') && p.length === 42) {
                 encoded += encodeAddress(p);
-            } else if (typeof p === 'number' || typeof p === 'string') {
-                encoded += encodeUint(p.toString());
             } else {
-                encoded += p;
+                encoded += encodeUint(p.toString());
             }
         }
         return '0x' + sig.slice(2) + encoded;
     };
 
     function getQueryAddress() {
-        let inputAddr = $('queryAddr').value.trim();
-        return inputAddr === '' ? (userAccount || '') : inputAddr;
+        let input = $('queryAddr').value.trim();
+        return input === '' ? (userAccount || '') : input;
     }
 
-    // 切换到 BSC 主网
-    async function switchToBSC() {
+    // ==================== RPC 切换 ====================
+    async function switchRPC() {
+        const selected = $('rpcSelect').value;
+        currentRpc = selected;
+        $('currentRpc').innerHTML = currentRpc.split('/')[2] || currentRpc;
+        
         try {
-            await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x38' }], // 56 的十六进制
-            });
-        } catch (e) {
-            if (e.code === 4902) {
-                // 添加网络
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x38',
-                            chainName: 'BNB Smart Chain Mainnet',
-                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                            blockExplorerUrls: ['https://bscscan.com/']
-                        }]
-                    });
-                } catch (addErr) {
-                    alert('添加网络失败，请手动添加 BSC 主网');
-                }
-            } else {
-                alert('切换网络失败: ' + e.message);
+            // 创建新的 Web3 实例用于只读查询
+            const testWeb3 = new Web3(currentRpc);
+            const blockNum = await testWeb3.eth.getBlockNumber();
+            logRes('resRpc', `✅ RPC 切换成功！当前区块: ${blockNum}\n使用节点: ${currentRpc}`);
+            
+            // 重新连接 MetaMask 写入功能保留，但只读查询使用新 RPC
+            if (web3 && web3.currentProvider !== window.ethereum) {
+                // 保留 MetaMask 用于写入
             }
+            return true;
+        } catch (e) {
+            logRes('resRpc', `<span class="r">❌ RPC 连接失败: ${e.message.slice(0,100)}</span>`);
+            return false;
         }
+    }
+
+    async function testRpcConnection() {
+        const selected = $('rpcSelect').value;
+        try {
+            const testWeb3 = new Web3(selected);
+            const block = await testWeb3.eth.getBlockNumber();
+            const gasPrice = await testWeb3.eth.getGasPrice();
+            logRes('resRpc', `✅ RPC 可用\n区块: ${block}\nGas价格: ${web3.utils.fromWei(gasPrice, 'gwei')} Gwei\n节点: ${selected}`);
+        } catch (e) {
+            logRes('resRpc', `<span class="r">❌ RPC 不可用: ${e.message.slice(0,100)}</span>`);
+        }
+    }
+
+    // 获取用于只读查询的 Web3 实例
+    function getReadWeb3() {
+        if (currentRpc && currentRpc !== 'metamask') {
+            return new Web3(currentRpc);
+        }
+        return web3;
     }
 
     // ==================== 初始化 ====================
@@ -369,18 +368,18 @@
             updateNetworkDisplay();
             loadDeployed();
             
-            // 检查网络是否正确
             if (chainId !== EXPECTED_CHAIN_ID) {
                 $('networkBanner').style.display = 'flex';
             } else {
                 $('networkBanner').style.display = 'none';
-                // 自动执行一次简单的连接测试
-                testConnection();
+                // 测试默认 RPC
+                await switchRPC();
             }
         } catch (err) {
             $('netStatus').innerHTML = `<span class="r">连接失败</span>`;
         }
-        window.ethereum.on('accountsChanged', (accs) => { userAccount = accs[0]; loadDeployed(); });
+        
+        window.ethereum.on('accountsChanged', (accs) => { userAccount = accs[0]; });
         window.ethereum.on('chainChanged', (newChain) => {
             chainId = parseInt(newChain, 16);
             updateNetworkDisplay();
@@ -388,29 +387,35 @@
                 $('networkBanner').style.display = 'flex';
             } else {
                 $('networkBanner').style.display = 'none';
-                testConnection();
             }
         });
     });
 
     function updateNetworkDisplay() {
-        const isLocal = (chainId === 31337 || chainId === 1337);
-        let netName = '';
-        if (chainId === 56) netName = '✅ BSC Mainnet (正确)';
-        else if (chainId === 97) netName = '⚠️ BSC Testnet';
-        else if (isLocal) netName = '⚠️ Hardhat Local';
-        else netName = `⚠️ 错误网络 (${chainId})`;
-        $('netStatus').innerHTML = `🔌 ${netName}`;
+        if (chainId === 56) $('netStatus').innerHTML = '✅ BSC Mainnet (正确)';
+        else if (chainId === 97) $('netStatus').innerHTML = '⚠️ BSC Testnet';
+        else $('netStatus').innerHTML = `⚠️ 当前网络: ${chainId} (需要 56)`;
     }
 
-    async function testConnection() {
-        if (!REWARD_POOL_ADDR) return;
+    async function switchToBSC() {
         try {
-            const testData = buildCallData('mykToken()');
-            await web3.eth.call({ to: REWARD_POOL_ADDR, data: testData });
-            logRes('resLink', '✅ 连接正常，合约可访问');
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x38' }],
+            });
         } catch (e) {
-            logRes('resLink', '<span class="r">⚠️ 连接测试失败，请确保在 BSC 主网且合约地址正确</span>');
+            if (e.code === 4902) {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x38',
+                        chainName: 'BNB Smart Chain',
+                        nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                        blockExplorerUrls: ['https://bscscan.com/']
+                    }]
+                });
+            }
         }
     }
 
@@ -441,31 +446,39 @@
         return await sendTransaction(tokenAddr, data, '0');
     }
 
-    // ==================== 核对关联 (增加超时和错误处理) ====================
-    async function callWithTimeout(contract, data, timeout = 5000) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
-        try {
-            const result = await web3.eth.call({ to: contract, data });
-            clearTimeout(timeoutId);
-            return result;
-        } catch (e) {
-            clearTimeout(timeoutId);
-            throw e;
+    // ==================== 带重试的合约调用 ====================
+    async function callContract(contractAddr, callData, retries = 2) {
+        const readWeb3 = getReadWeb3();
+        for (let i = 0; i <= retries; i++) {
+            try {
+                const result = await Promise.race([
+                    readWeb3.eth.call({ to: contractAddr, data: callData }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('超时(8s)')), 8000))
+                ]);
+                return result;
+            } catch (e) {
+                if (i === retries) throw e;
+                await new Promise(r => setTimeout(r, 1000));
+            }
         }
     }
 
+    // ==================== 核对关联 ====================
     async function checkAllLinks() {
         if (chainId !== EXPECTED_CHAIN_ID) {
-            logRes('resLink', '<span class="r">❌ 请先切换到 BSC 主网 (Chain ID 56)</span>');
+            logRes('resLink', '<span class="r">❌ 请先切换到 BSC 主网</span>');
             return;
         }
+        
+        // 先测试 RPC
+        const rpcOk = await switchRPC();
+        if (!rpcOk) {
+            logRes('resLink', '<span class="r">❌ RPC 连接失败，请选择其他节点后重试</span>');
+            return;
+        }
+        
         loadDeployed();
-        if (!MYK_ADDR || !REWARD_POOL_ADDR || !GOV_ADDR || !FUND_MANAGER_ADDR) {
-            logRes('resLink', '<span class="r">❌ 请填写完整合约地址</span>');
-            return;
-        }
-        logRes('resLink', '⏳ 核对中... (请确保在 BSC 主网)');
+        logRes('resLink', '⏳ 核对中... (使用独立 RPC，超时 8 秒)');
         
         const tests = [
             ['MYK.rewardPool', MYK_ADDR, 'rewardPool()', REWARD_POOL_ADDR],
@@ -481,30 +494,34 @@
         ];
         
         let output = '';
+        let successCount = 0;
+        
         for (const [name, contract, method, expected] of tests) {
             try {
                 const callData = buildCallData(method);
-                const raw = await callWithTimeout(contract, callData, 3000);
+                const raw = await callContract(contract, callData);
                 const returnedAddr = web3.eth.abi.decodeParameter('address', raw);
                 const match = returnedAddr.toLowerCase() === expected.toLowerCase();
-                output += `${match ? '✅' : '❌'} ${name}: ${truncAddr(returnedAddr)} ${match ? '' : '(期望 ' + truncAddr(expected) + ')'}\n`;
+                if (match) successCount++;
+                output += `${match ? '✅' : '❌'} ${name}: ${truncAddr(returnedAddr)}\n`;
             } catch (e) {
-                let errMsg = e.message || '';
-                if (errMsg.includes('Failed to fetch') || errMsg.includes('timeout')) {
-                    output += `⚠️ ${name}: 网络超时 - 请检查 RPC 连接\n`;
-                } else {
-                    output += `⚠️ ${name}: ${errMsg.slice(0, 70)}\n`;
-                }
+                output += `⚠️ ${name}: ${e.message.slice(0, 50)}\n`;
             }
         }
-        output += '\n<span class="y">💡 提示: 如果大量失败，请确认:\n  1. MetaMask 已切换到 BSC 主网\n  2. 合约地址正确\n  3. 网络连接正常</span>';
+        
+        output += `\n📊 成功率: ${successCount}/${tests.length}`;
+        if (successCount < tests.length) {
+            output += '\n<span class="y">💡 提示: 部分合约方法可能不存在或 RPC 不稳定，请尝试切换 RPC 节点</span>';
+        } else {
+            output += '\n<span class="g">✅ 所有合约关联正确！</span>';
+        }
         logRes('resLink', output);
     }
 
     // ==================== 执行操作 ====================
     async function execAction() {
         if (chainId !== EXPECTED_CHAIN_ID) {
-            alert('请先切换到 BSC 主网 (Chain ID 56)');
+            alert('请先切换到 BSC 主网');
             return;
         }
         if (!userAccount) { alert('请连接钱包'); return; }
@@ -530,10 +547,8 @@
                     break;
                 case 'claimDaily':
                     let amount = param ? toWei(param) : '0';
-                    const proofOffset = '0000000000000000000000000000000000000000000000000000000000000040';
-                    const proofEmpty = '0000000000000000000000000000000000000000000000000000000000000000';
                     callData = '0x' + encodeFunctionSig('claimDailyReward(uint256,uint256,bytes32[],bytes32)').slice(2) 
-                        + encodeUint(amount) + encodeUint(0) + proofOffset + proofEmpty;
+                        + encodeUint(amount) + encodeUint(0) + '0000000000000000000000000000000000000000000000000000000000000040' + '0000000000000000000000000000000000000000000000000000000000000000';
                     toAddr = REWARD_POOL_ADDR;
                     break;
                 case 'upgradeUSDT':
@@ -555,7 +570,7 @@
                     callData = buildCallData('checkExpiry(address)', param || userAccount);
                     const result = await web3.eth.call({ to: GOV_ADDR, data: callData });
                     const dec = web3.eth.abi.decodeParameters(['uint40','uint40','bool','bool'], result);
-                    logRes('resAction', `⏰ 到期: ${Number(dec[1])>0?new Date(Number(dec[1])*1000).toLocaleString():'无'}\n永久: ${dec[2]?'是':'否'}`);
+                    logRes('resAction', `⏰ 到期: ${Number(dec[1])>0?new Date(Number(dec[1])*1000).toLocaleString():'无'}`);
                     return;
                 case 'initDaily': toAddr = FUND_MANAGER_ADDR; callData = buildCallData('initDailyAllocation()'); break;
                 case 'execBatch': toAddr = FUND_MANAGER_ADDR; callData = buildCallData('executeBatchBuy()'); break;
@@ -565,9 +580,6 @@
                 case 'execMykSell': toAddr = FUND_MANAGER_ADDR; callData = buildCallData('executeMykSellBatch()'); break;
                 case 'addAccLP': toAddr = FUND_MANAGER_ADDR; callData = buildCallData('addAccumulatedLP()'); break;
                 case 'redeemLP': toAddr = FUND_MANAGER_ADDR; callData = buildCallData('redeemLpOrder(uint256)', param || '0'); break;
-                case 'cleanup': toAddr = GOV_ADDR; callData = buildCallData('executeCleanupBatch()'); break;
-                case 'distDiv': toAddr = GOV_ADDR; callData = buildCallData('manualDistributeDividends()'); break;
-                case 'procDist': toAddr = GOV_ADDR; callData = buildCallData('processDistributionBatch()'); break;
                 default: throw new Error('未知操作');
             }
             const txHash = await sendTransaction(toAddr, callData, '0');
@@ -577,108 +589,92 @@
         }
     }
 
-    // ==================== 查询函数 (添加网络检查) ====================
-    async function checkNetworkBeforeQuery() {
-        if (chainId !== EXPECTED_CHAIN_ID) {
-            logRes('resQuery', '<span class="r">❌ 请先切换到 BSC 主网 (Chain ID 56) 再查询</span>');
-            return false;
-        }
-        return true;
-    }
-
+    // ==================== 查询函数 ====================
     async function queryUser() {
-        if (!await checkNetworkBeforeQuery()) return;
         const addr = getQueryAddress();
         if (!addr || !REWARD_POOL_ADDR) return;
         try {
             const data = buildCallData('users(address)', addr);
-            const raw = await web3.eth.call({ to: REWARD_POOL_ADDR, data });
+            const raw = await callContract(REWARD_POOL_ADDR, data);
             const d = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], raw);
             const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
-            logRes('resQuery', `👤 ${truncAddr(addr)}\n身份: ${roles[d[7]]}\n激活: ${d[8]?'✅':'❌'}\n推荐人: ${d[0]==='0x0000000000000000000000000000000000000000'?'无':truncAddr(d[0])}\n邀请: ${d[1]}人`);
-        } catch(e) { logRes('resQuery', '<span class="r">查询失败，可能未激活或网络错误</span>'); }
+            logRes('resQuery', `👤 ${truncAddr(addr)}\n身份: ${roles[d[7]]}\n激活: ${d[8]?'✅':'❌'}\n邀请: ${d[1]}人`);
+        } catch(e) { logRes('resQuery', `<span class="r">查询失败: ${e.message.slice(0,80)}</span>`); }
     }
     
     async function queryTier() {
-        if (!await checkNetworkBeforeQuery()) return;
         const addr = getQueryAddress();
         if (!addr || !GOV_ADDR) return;
         try {
             const data = buildCallData('getCommunityTier(address)', addr);
-            const raw = await web3.eth.call({ to: GOV_ADDR, data });
+            const raw = await callContract(GOV_ADDR, data);
             const tier = parseInt(raw);
-            const names = ['无','第一社区','第二社区','第三社区','第四社区','第五社区','第六社区'];
+            const names = ['无','第一','第二','第三','第四','第五','第六'];
             logRes('resQuery', `🏆 社区等级: ${names[tier] || '未知'}`);
-        } catch(e) { logRes('resQuery', '<span class="r">查询失败</span>'); }
+        } catch(e) { logRes('resQuery', `<span class="r">失败: ${e.message.slice(0,60)}</span>`); }
     }
     
     async function queryExpiry() {
-        if (!await checkNetworkBeforeQuery()) return;
         const addr = getQueryAddress();
         if (!addr || !GOV_ADDR) return;
         try {
             const data = buildCallData('getExpiryInfo(address)', addr);
-            const raw = await web3.eth.call({ to: GOV_ADDR, data });
+            const raw = await callContract(GOV_ADDR, data);
             const d = web3.eth.abi.decodeParameters(['uint40','uint40','bool','bool'], raw);
-            const now = Math.floor(Date.now()/1000);
-            const remain = Number(d[1]) > now ? Math.floor((Number(d[1])-now)/86400)+'天' : '已到期';
-            logRes('resQuery', `⏳ 激活: ${Number(d[0])>0?new Date(Number(d[0])*1000).toLocaleString():'-'}\n到期: ${Number(d[1])>0?new Date(Number(d[1])*1000).toLocaleString():'-'}\n剩余: ${remain}`);
-        } catch(e) { logRes('resQuery', '<span class="r">查询失败</span>'); }
+            logRes('resQuery', `⏳ 到期: ${Number(d[1])>0?new Date(Number(d[1])*1000).toLocaleDateString():'无'}`);
+        } catch(e) { logRes('resQuery', `失败`); }
     }
     
     async function queryRank() {
-        if (!await checkNetworkBeforeQuery()) return;
         const addr = getQueryAddress();
         if (!addr || !GOV_ADDR) return;
         try {
             const data = buildCallData('getUserRank(address)', addr);
-            const raw = await web3.eth.call({ to: GOV_ADDR, data });
+            const raw = await callContract(GOV_ADDR, data);
             logRes('resQuery', `📊 排名: #${parseInt(raw)}`);
-        } catch(e) { logRes('resQuery', '<span class="r">无排名</span>'); }
+        } catch(e) { logRes('resQuery', `无排名`); }
     }
     
     async function queryBalance() {
-        if (!await checkNetworkBeforeQuery()) return;
         const addr = getQueryAddress();
         if (!addr || !MYK_ADDR) return;
         try {
             const mykData = buildCallData('balanceOf(address)', addr);
             const usdtData = buildCallData('balanceOf(address)', addr);
-            const mykBal = await web3.eth.call({ to: MYK_ADDR, data: mykData });
-            const usdtBal = await web3.eth.call({ to: USDT_ADDR, data: usdtData });
+            const [mykBal, usdtBal] = await Promise.all([
+                callContract(MYK_ADDR, mykData),
+                callContract(USDT_ADDR, usdtData)
+            ]);
             logRes('resQuery', `💰 MYK: ${fromWei(mykBal).toFixed(4)}\n💵 USDT: ${fromWei(usdtBal).toFixed(2)}`);
-        } catch(e) { logRes('resQuery', '<span class="r">余额查询失败</span>'); }
+        } catch(e) { logRes('resQuery', `余额查询失败`); }
     }
     
     async function queryPrice() {
-        if (!await checkNetworkBeforeQuery()) return;
         if (!REWARD_POOL_ADDR) return;
         try {
             const data = buildCallData('getCurrentPrice()');
-            const raw = await web3.eth.call({ to: REWARD_POOL_ADDR, data });
+            const raw = await callContract(REWARD_POOL_ADDR, data);
             logRes('resQuery', `💵 MYK 价格: ${fromWei(raw).toFixed(8)} USDT`);
-        } catch(e) { logRes('resQuery', '<span class="r">价格查询失败</span>'); }
+        } catch(e) { logRes('resQuery', `价格查询失败`); }
     }
     
     async function queryDividend() {
-        if (!await checkNetworkBeforeQuery()) return;
         if (!GOV_ADDR) return;
         try {
             const data = buildCallData('getDividendInfo()');
-            const raw = await web3.eth.call({ to: GOV_ADDR, data });
+            const raw = await callContract(GOV_ADDR, data);
             const d = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], raw);
-            logRes('resQuery', `💧 分红池:\n第六(15%): ${fromWei(d[0]).toFixed(2)} MYK\n第五(20%): ${fromWei(d[1]).toFixed(2)} MYK`);
-        } catch(e) { logRes('resQuery', '<span class="r">分红池查询失败</span>'); }
+            logRes('resQuery', `💧 分红池:\n第六社区(15%): ${fromWei(d[0]).toFixed(2)} MYK`);
+        } catch(e) { logRes('resQuery', `查询失败`); }
     }
     
     async function querySeats() {
-        if (!await checkNetworkBeforeQuery()) return;
         if (!GOV_ADDR) return;
         let info = '👑 第六社区席位:\n';
         for (let i = 0; i < 3; i++) {
             try {
                 const data = buildCallData('getSixthSeatInfo(uint256)', i);
-                const raw = await web3.eth.call({ to: GOV_ADDR, data });
+                const raw = await callContract(GOV_ADDR, data);
                 const d = web3.eth.abi.decodeParameters(['address','uint256','uint256'], raw);
                 info += `席位${i+1}: ${truncAddr(d[0])} | 排名 ${d[1]}\n`;
             } catch(e) { info += `席位${i+1}: 空\n`; }
@@ -687,41 +683,33 @@
     }
     
     async function queryUpRewards() {
-        if (!await checkNetworkBeforeQuery()) return;
         const addr = getQueryAddress();
         if (!addr || !GOV_ADDR) return;
         try {
             const data = buildCallData('getFirstCommunity(address)', addr);
-            let fc = '0x0000000000000000000000000000000000000000';
-            try { fc = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: GOV_ADDR, data })); } catch(e) {}
+            let fc = '0x0';
+            try { fc = web3.eth.abi.decodeParameter('address', await callContract(GOV_ADDR, data)); } catch(e) {}
             if (fc === '0x0000000000000000000000000000000000000000') {
-                logRes('resQuery', '<span class="r">无上级社区</span>');
+                logRes('resQuery', '无上级社区');
                 return;
             }
             logRes('resQuery', `🎁 上级社区: ${truncAddr(fc)}`);
-        } catch(e) { logRes('resQuery', '<span class="r">查询失败</span>'); }
+        } catch(e) { logRes('resQuery', `查询失败`); }
     }
     
     async function queryLpInfo() {
-        if (!await checkNetworkBeforeQuery()) return;
         if (!LP_PAIR_ADDR) return;
         try {
             const t0Data = buildCallData('token0()');
             const t1Data = buildCallData('token1()');
-            const t0 = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: LP_PAIR_ADDR, data: t0Data }));
-            const t1 = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: LP_PAIR_ADDR, data: t1Data }));
-            logRes('resQuery', `🔄 LP: ${truncAddr(LP_PAIR_ADDR)}\nToken0: ${truncAddr(t0)}\nToken1: ${truncAddr(t1)}`);
-        } catch(e) { logRes('resQuery', '<span class="r">LP查询失败</span>'); }
-    }
-    
-    async function advanceTime(days) {
-        const isLocal = (chainId === 31337 || chainId === 1337);
-        if (!isLocal) { logRes('resTime', '<span class="r">❌ 仅 Hardhat 本地网络支持时间跳跃 (当前不是本地网络)</span>'); return; }
-        try {
-            await web3.currentProvider.send({ method: 'evm_increaseTime', params: [days], jsonrpc: '2.0', id: 1 });
-            await web3.currentProvider.send({ method: 'evm_mine', params: [], jsonrpc: '2.0', id: 2 });
-            logRes('resTime', `⏩ 已快进 ${days} 天`);
-        } catch(e) { logRes('resTime', `<span class="r">失败: ${e.message}</span>`); }
+            const [t0, t1] = await Promise.all([
+                callContract(LP_PAIR_ADDR, t0Data),
+                callContract(LP_PAIR_ADDR, t1Data)
+            ]);
+            const token0 = web3.eth.abi.decodeParameter('address', t0);
+            const token1 = web3.eth.abi.decodeParameter('address', t1);
+            logRes('resQuery', `🔄 LP Pair: ${truncAddr(LP_PAIR_ADDR)}\nToken0: ${truncAddr(token0)}\nToken1: ${truncAddr(token1)}`);
+        } catch(e) { logRes('resQuery', `LP查询失败`); }
     }
 </script>
 </body>
