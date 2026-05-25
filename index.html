@@ -3,312 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MYK 测试面板</title>
+    <title>MYK 完整测试面板</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #0d0f1a; color: #eaeaea; min-height: 100vh; padding: 16px; display: flex; justify-content: center; }
-        .c { max-width: 680px; width: 100%; }
-        h1 { text-align: center; color: #f0a500; font-size: 20px; margin-bottom: 4px; }
-        .sub { text-align: center; color: #888; font-size: 11px; margin-bottom: 12px; }
-        .card { background: rgba(22,33,62,0.85); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.06); }
-        .card h2 { font-size: 13px; color: #4ecca3; margin-bottom: 6px; }
-        input { width: 100%; padding: 9px; border: 1px solid #2a2f52; border-radius: 8px; background: #0f1422; color: #fff; font-size: 13px; margin-bottom: 5px; }
-        button { width: 100%; padding: 10px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: 4px; }
-        button.g { background: #4ecca3; color: #000; }
-        button.o { background: #f0a500; color: #000; }
-        .res { background: #0b0e1a; padding: 8px; border-radius: 8px; margin-top: 5px; font-size: 11px; font-family: monospace; border: 1px solid #2a2f52; white-space: pre-wrap; max-height: 350px; overflow-y: auto; line-height: 1.4; }
-        .gr { color: #4ecca3; } .rd { color: #e94560; } .yl { color: #f0a500; }
-        .row { display: flex; gap: 5px; } .row button { flex: 1; }
-        .t { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
-        .to { background: #4ecca3; color: #000; } .te { background: #e94560; color: #fff; } .tw { background: #f0a500; color: #000; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0e17; color: #c9d1d9; min-height: 100vh; padding: 12px; display: flex; justify-content: center; }
+        .c { max-width: 720px; width: 100%; }
+        h1 { text-align: center; color: #f0883e; font-size: 18px; margin-bottom: 2px; }
+        .sub { text-align: center; color: #6e7681; font-size: 10px; margin-bottom: 10px; }
+        .card { background: #161b22; border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; border: 1px solid #30363d; }
+        .card h2 { font-size: 12px; color: #7ee787; margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+        .card h2 .badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+        .badge.read { background: #1f6feb; color: #fff; } .badge.write { background: #da3633; color: #fff; } .badge.time { background: #d29922; color: #000; }
+        input, select { width: 100%; padding: 7px 9px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; color: #c9d1d9; font-size: 12px; margin-bottom: 4px; }
+        input:focus { border-color: #58a6ff; outline: none; }
+        button { padding: 7px 12px; background: #238636; color: #fff; border: 1px solid #2ea043; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin: 2px 1px; white-space: nowrap; }
+        button:hover { background: #2ea043; }
+        button.warn { background: #da3633; border-color: #f85149; }
+        button.warn:hover { background: #f85149; }
+        button.time { background: #9e6a03; border-color: #d29922; }
+        button.time:hover { background: #d29922; }
+        button.info { background: #1f6feb; border-color: #388bfd; }
+        .res { background: #0d1117; padding: 7px 9px; border-radius: 6px; margin-top: 4px; font-size: 10px; font-family: 'SF Mono', 'Consolas', monospace; border: 1px solid #30363d; white-space: pre-wrap; max-height: 280px; overflow-y: auto; line-height: 1.35; }
+        .g { color: #7ee787; } .r { color: #f85149; } .y { color: #d29922; } .b { color: #79c0ff; }
+        .row { display: flex; gap: 3px; flex-wrap: wrap; } .row button { flex: 1; min-width: 50px; }
+        .tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700; }
+        .tok { background: #238636; color: #fff; } .terr { background: #da3633; color: #fff; } .twarn { background: #d29922; color: #000; }
     </style>
 </head>
 <body>
 <div class="c">
-    <h1>🔧 MYK 测试面板</h1>
-    <p class="sub">BSC 主网</p>
+    <h1>🛠️ MYK 测试面板</h1>
+    <p class="sub" id="netInfo">连接中...</p>
 
+    <!-- 合约地址配置 -->
     <div class="card">
-        <h2>📋 合约地址</h2>
-        <div class="res">MYK: <span class="gr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span>
-RewardPool: <span class="gr">0x20eC4Ff3bB5e44B828C4f7E13456Fbe2D5434d37</span>
-Governance: <span class="gr">0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72</span>
-FundManager: <span class="gr">0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027</span></div>
+        <h2>📋 合约地址 <span class="badge read">可配置</span></h2>
+        <div class="row">
+            <input id="mykAddr" placeholder="MYK" value="">
+            <input id="rpAddr" placeholder="RewardPool" value="">
+        </div>
+        <div class="row">
+            <input id="gvAddr" placeholder="Governance" value="">
+            <input id="fmAddr" placeholder="FundManager" value="">
+        </div>
+        <button onclick="loadDeployed()">📡 加载已部署地址</button>
+        <button class="info" onclick="checkAllLinks()">🔗 核对关联</button>
+        <div class="res" id="resLink"></div>
     </div>
 
+    <!-- 时间控制 -->
     <div class="card">
-        <h2>🔗 关联核对</h2>
-        <button class="g" onclick="checkLinks()">一键核对全部关联</button>
-        <div class="res" id="r1"></div>
+        <h2>⏱️ 时间控制 <span class="badge time">Hardhat</span></h2>
+        <div class="row">
+            <button class="time" onclick="advanceTime(1)">+1天</button>
+            <button class="time" onclick="advanceTime(7)">+7天</button>
+            <button class="time" onclick="advanceTime(30)">+30天</button>
+            <button class="time" onclick="advanceTime(100)">+100天</button>
+            <button class="time" onclick="advanceTime(365)">+365天</button>
+        </div>
+        <div class="res" id="resTime"></div>
     </div>
 
-    <!-- 新增：管理员价格设置 -->
+    <!-- 执行操作 -->
     <div class="card">
-        <h2>🛠️ 管理员工具</h2>
-        <p style="font-size:11px;color:#888;margin-bottom:6px;">设置 Governance 价格缓存（需 trustedUpdater 权限）</p>
-        <input id="adminPriceInput" type="number" placeholder="价格 (如 0.01 = 1e16)" value="0.01" step="0.001">
-        <button class="o" onclick="adminSetPrice()">🔧 adminUpdatePrice</button>
-        <p style="font-size:11px;color:#888;margin:6px 0;">完成挂起的锁仓</p>
-        <button class="o" onclick="completeLock()">📦 completePendingLock</button>
-        <div class="res" id="r0"></div>
+        <h2>⚡ 执行操作 <span class="badge write">写</span></h2>
+        <select id="actionSelect" style="margin-bottom:4px;">
+            <optgroup label="RewardPool">
+                <option value="activate">activateWithUSDT - 激活(2USDT)</option>
+                <option value="bind">directBind - 绑定下级</option>
+                <option value="claimDaily">claimDailyReward - 领取持币奖励</option>
+            </optgroup>
+            <optgroup label="CommunityGovernance">
+                <option value="upgradeUSDT">upgradeWithUSDT - USDT升级</option>
+                <option value="burnTier">burnForTier - 销毁MYK升级</option>
+                <option value="renew">renewCommunity - 续费</option>
+                <option value="checkExp">checkExpiry - 检查到期</option>
+            </optgroup>
+            <optgroup label="FundManager">
+                <option value="initDaily">initDailyAllocation</option>
+                <option value="execBatch">executeBatchBuy</option>
+                <option value="initMykBuy">initMykBuyAllocation</option>
+                <option value="execMykBuy">executeMykBuyBatch</option>
+                <option value="initMykSell">initMykSellAllocation</option>
+                <option value="execMykSell">executeMykSellBatch</option>
+                <option value="addAccLP">addAccumulatedLP</option>
+                <option value="redeemLP">redeemLpOrder</option>
+            </optgroup>
+            <optgroup label="Governance 维护">
+                <option value="cleanup">executeCleanupBatch</option>
+                <option value="distDiv">manualDistributeDividends</option>
+                <option value="procDist">processDistributionBatch</option>
+            </optgroup>
+        </select>
+        <input id="actionParam" placeholder="参数 (金额/索引/地址)">
+        <button class="warn" onclick="execAction()">▶ 执行</button>
+        <div class="res" id="resAction"></div>
     </div>
 
+    <!-- 批量查询 -->
     <div class="card">
-        <h2>👤 用户状态</h2>
-        <input id="uaddr" placeholder="地址（留空=自己）">
-        <div class="row"><button onclick="checkUser()">身份</button><button onclick="checkBal()">MYK+USDT余额</button></div>
-        <div class="res" id="r2"></div>
-    </div>
-
-    <div class="card">
-        <h2>🎁 上级社区奖励</h2>
-        <button onclick="upRewards()">查6层上级</button>
-        <div class="res" id="r3"></div>
-    </div>
-
-    <div class="card">
-        <h2>🔒 锁仓状态</h2>
-        <input id="laddr" placeholder="地址">
-        <div class="row"><button onclick="lockInfo()">详情</button><button onclick="lockRank()">排名</button></div>
-        <button onclick="releaseInfo()">释放进度</button>
-        <button onclick="commTier()">社区档位</button>
-        <div class="res" id="r4"></div>
-    </div>
-
-    <div class="card">
-        <h2>👑 第六社区席位</h2>
-        <button onclick="sixthSeats()">查看3席位</button>
-        <div class="res" id="r5"></div>
-    </div>
-
-    <div class="card">
-        <h2>💧 分红池 & 全局</h2>
-        <button onclick="divPools()">分红池余额</button>
-        <button onclick="divState()">分配状态</button>
-        <button onclick="price()">当前价格</button>
-        <div class="res" id="r6"></div>
+        <h2>🔍 批量查询 <span class="badge read">读</span></h2>
+        <input id="queryAddr" placeholder="地址 (留空=当前钱包)">
+        <div class="row">
+            <button onclick="queryUser()">👤 用户状态</button>
+            <button onclick="queryTier()">🏆 社区身份</button>
+            <button onclick="queryExpiry()">⏳ 到期信息</button>
+        </div>
+        <div class="row">
+            <button onclick="queryRank()">📊 排名</button>
+            <button onclick="queryBalance()">💰 余额</button>
+            <button onclick="queryPrice()">💵 价格</button>
+        </div>
+        <div class="row">
+            <button onclick="queryDividend()">💧 分红池</button>
+            <button onclick="querySeats()">👑 席位</button>
+            <button onclick="queryUpRewards()">🎁 上级</button>
+        </div>
+        <div class="res" id="resQuery"></div>
     </div>
 </div>
 
 <script>
-const M = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-const RP = '0x20eC4Ff3bB5e44B828C4f7E13456Fbe2D5434d37';
-const GV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
-const FM = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
-const USDT = '0x55d398326f99059fF775485246999027B3197955';
-let w3, ua;
+// ==================== 状态变量 ====================
+let w3, ua, chainId;
+let M, RP, GV, FM, USDT;
+const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
+// ==================== 初始化 ====================
 window.addEventListener('load', async () => {
-    if (window.ethereum) {
-        w3 = new Web3(window.ethereum);
-        try { const a = await window.ethereum.request({method:'eth_requestAccounts'}); if(a.length){ua=a[0];$('uaddr').value=ua;$('laddr').value=ua;} } catch(e) {}
-    }
+    if (!window.ethereum) { document.getElementById('netInfo').innerHTML = '<span class="r">❌ 请安装 MetaMask</span>'; return; }
+    w3 = new Web3(window.ethereum);
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length) ua = accounts[0];
+        chainId = await w3.eth.getChainId();
+        updateNetInfo();
+        loadDeployed();
+    } catch (e) { document.getElementById('netInfo').innerHTML = '<span class="r">❌ 连接失败</span>'; }
 });
 
-function $(id){return document.getElementById(id);}
-function a6(a){return a.slice(0,6)+'...'+a.slice(-4);}
-function n(w){return parseFloat(w3.utils.fromWei(w+'','ether'));}
-function addr(){return $('uaddr').value||ua||'';}
-function laddr(){return $('laddr').value||ua||'';}
-function encAddr(a){return w3.eth.abi.encodeParameter('address',a).slice(2);}
-function encUint(n){return w3.eth.abi.encodeParameter('uint256',n).slice(2);}
-function sig(name){return w3.eth.abi.encodeFunctionSignature(name).slice(2);}
+window.ethereum?.on('chainChanged', () => location.reload());
+window.ethereum?.on('accountsChanged', (a) => { ua = a[0]; });
 
-// ==================== 管理员功能 ====================
-async function adminSetPrice() {
-    if (!ua) { alert('请先连接钱包'); return; }
-    const priceInput = $('adminPriceInput').value;
-    if (!priceInput || parseFloat(priceInput) <= 0) { alert('请输入有效价格'); return; }
-    const r = $('r0'); r.style.display='block'; r.innerHTML='⏳ 设置价格中...';
-    try {
-        const priceWei = w3.utils.toWei(priceInput, 'ether');
-        const data = '0x' + sig('adminUpdatePrice(uint256)') + w3.eth.abi.encodeParameter('uint256', priceWei).slice(2);
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:ua, to:GV, data:data}]});
-        r.innerHTML = '✅ 价格设置成功！当前缓存价格: <span class="yl">' + priceInput + '</span> USDT/MYK';
-    } catch(e) { r.innerHTML='<span class="rd">❌ '+(e.message||'').slice(0,150)+'</span>'; }
+// ==================== 工具函数 ====================
+function $(id) { return document.getElementById(id); }
+function a6(a) { return a ? a.slice(0,6)+'...'+a.slice(-4) : '-'; }
+function n(w) { return parseFloat(w3.utils.fromWei(w+'', 'ether')); }
+function encAddr(a) { return w3.eth.abi.encodeParameter('address', a).slice(2); }
+function encUint(n) { return w3.eth.abi.encodeParameter('uint256', n).slice(2); }
+function sig(n) { return w3.eth.abi.encodeFunctionSignature(n).slice(2); }
+function qAddr() { return $('queryAddr').value || ua || ''; }
+
+function updateNetInfo() {
+    const names = { 56: 'BSC 主网', 97: 'BSC 测试网', 31337: 'Hardhat 本地', 1337: 'Hardhat 本地' };
+    const name = names[chainId] || `Chain ${chainId}`;
+    const isLocal = chainId === 31337 || chainId === 1337;
+    document.getElementById('netInfo').innerHTML = `🟢 ${name} | ${isLocal ? '<span class="y">⏱️ 时间控制可用</span>' : '<span class="r">⏱️ 时间控制不可用(仅本地网)</span>'}`;
 }
 
-async function completeLock() {
-    if (!ua) { alert('请先连接钱包'); return; }
-    const r = $('r0'); r.style.display='block'; r.innerHTML='⏳ 完成锁仓中...';
+function loadDeployed() {
+    if (chainId === 56) {
+        M = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
+        RP = ''; // 待部署
+        GV = '0x67892A30Cb1f5C65a384dA75CD650A4f48aF1B72';
+        FM = '0x683F03Bbf3CD409eA9Ec58829B3BE62B6c5D5027';
+    } else {
+        // 本地测试网使用输入框地址
+        M = $('mykAddr').value || '';
+        RP = $('rpAddr').value || '';
+        GV = $('gvAddr').value || '';
+        FM = $('fmAddr').value || '';
+    }
+    USDT = USDT_ADDR;
+    $('mykAddr').value = M;
+    $('rpAddr').value = RP;
+    $('gvAddr').value = GV;
+    $('fmAddr').value = FM;
+    log('resLink', '✅ 地址已加载\nMYK: <span class="b">' + a6(M) + '</span>\nRP: <span class="b">' + a6(RP) + '</span>\nGV: <span class="b">' + a6(GV) + '</span>\nFM: <span class="b">' + a6(FM) + '</span>');
+}
+
+// ==================== 日志 ====================
+function log(id, msg) { const el = $(id); el.style.display = 'block'; el.innerHTML = msg; }
+function logAppend(id, msg) { const el = $(id); el.style.display = 'block'; el.innerHTML += msg; }
+
+// ==================== 时间控制 ====================
+async function advanceTime(days) {
+    const isLocal = chainId === 31337 || chainId === 1337;
+    if (!isLocal) { log('resTime', '<span class="r">❌ 时间控制仅限 Hardhat 本地网络</span>'); return; }
     try {
-        const data = '0x' + sig('completePendingLock()');
-        await window.ethereum.request({method:'eth_sendTransaction', params:[{from:ua, to:GV, data:data}]});
-        r.innerHTML = '✅ 锁仓完成！请查锁仓详情确认。';
-    } catch(e) { r.innerHTML='<span class="rd">❌ '+(e.message||'').slice(0,150)+'</span>'; }
+        const seconds = days; // 1秒 = 1天
+        const blockBefore = await w3.eth.getBlock('latest');
+        await w3.currentProvider.send({ method: 'evm_increaseTime', params: [seconds], jsonrpc: '2.0', id: 1 });
+        await w3.currentProvider.send({ method: 'evm_mine', params: [], jsonrpc: '2.0', id: 2 });
+        const blockAfter = await w3.eth.getBlock('latest');
+        const elapsed = blockAfter.timestamp - blockBefore.timestamp;
+        log('resTime', `⏩ 快进 ${days} 天 (${seconds}秒)\n🕐 ${new Date(blockBefore.timestamp*1000).toLocaleString()} → ${new Date(blockAfter.timestamp*1000).toLocaleString()}\n实际流逝: ${elapsed}秒`);
+    } catch (e) { log('resTime', '<span class="r">❌ ' + e.message.slice(0,150) + '</span>'); }
 }
 
 // ==================== 关联核对 ====================
-async function checkLinks() {
-    const r = $('r1'); r.style.display='block'; r.innerHTML='⏳ 核对中...';
-    let L=[];
+async function checkAllLinks() {
+    loadDeployed();
+    if (!M || !RP || !GV || !FM) { log('resLink', '<span class="r">❌ 请先设置合约地址</span>'); return; }
+    log('resLink', '⏳ 核对中...');
+    const tests = [
+        ['MYK.rewardPool', M, 'rewardPool()', RP],
+        ['MYK.communityGovernance', M, 'communityGovernance()', GV],
+        ['RP.mykToken', RP, 'mykToken()', M],
+        ['RP.communityGovernance', RP, 'communityGovernance()', GV],
+        ['RP.fundManager', RP, 'fundManager()', FM],
+        ['GV.mykToken', GV, 'mykToken()', M],
+        ['GV.rewardPool', GV, 'rewardPool()', RP],
+        ['GV.fundManager', GV, 'fundManager()', FM],
+        ['FM.myk', FM, 'myk()', M],
+        ['FM.communityGovernance', FM, 'communityGovernance()', GV],
+    ];
+    let lines = [];
+    for (const [name, addr, fn, expected] of tests) {
+        try {
+            const val = await w3.eth.call({ to: addr, data: '0x' + sig(fn) });
+            const decoded = w3.eth.abi.decodeParameter('address', val);
+            const ok = decoded.toLowerCase() === expected.toLowerCase();
+            lines.push((ok ? '<span class="tag tok">✅</span> ' : '<span class="tag terr">❌</span> ') + name + ': ' + a6(decoded) + (ok ? '' : ' 预期' + a6(expected)));
+        } catch (e) { lines.push('<span class="tag terr">❌</span> ' + name + ': 调用失败'); }
+    }
+    log('resLink', lines.join('\n') + '\n\n<span class="g">✅ 核对完成</span>');
+}
+
+// ==================== 执行操作 ====================
+async function execAction() {
+    if (!ua) { alert('请先连接钱包'); return; }
+    loadDeployed();
+    const action = $('actionSelect').value;
+    const param = $('actionParam').value;
+    const r = $('resAction'); r.style.display = 'block'; r.innerHTML = '⏳ 执行中...';
+
     try {
-        const tests = [
-            ['MYK.rewardPool', M, 'rewardPool()', RP],
-            ['MYK.communityGovernance', M, 'communityGovernance()', GV],
-            ['RP.mykToken', RP, 'mykToken()', M],
-            ['RP.communityGovernance', RP, 'communityGovernance()', GV],
-            ['RP.fundManager', RP, 'fundManager()', FM],
-            ['RP.pair', RP, 'pair()', null],
-            ['GV.mykToken', GV, 'mykToken()', M],
-            ['GV.rewardPool', GV, 'rewardPool()', RP],
-            ['GV.usdt', GV, 'usdt()', USDT],
-            ['FM.myk', FM, 'myk()', M],
-            ['FM.communityGovernance', FM, 'communityGovernance()', GV],
-            ['FM.rewardPool', FM, 'rewardPool()', RP],
-            ['FM.pair', FM, 'pair()', null],
-        ];
-        for(const [name, addr, fn, expected] of tests) {
-            try {
-                const val = w3.eth.abi.decodeParameter('address', await w3.eth.call({to:addr, data:'0x'+sig(fn)}));
-                if(expected===null) {
-                    L.push(`${name}: ${val==='0x0000000000000000000000000000000000000000'?'<span class="t tw">⚠️ 未设置</span>':'<span class="t to">✅ '+a6(val)+'</span>'}`);
-                } else {
-                    const ok = val.toLowerCase()===expected.toLowerCase();
-                    L.push((ok?'<span class="t to">✅</span> ':'<span class="t te">❌</span> ')+name+': '+a6(val)+(ok?'':' 预期'+a6(expected)));
-                }
-            } catch(e) { L.push(`<span class="t te">❌</span> ${name}: 调用失败`); }
+        let data, to, value = '0';
+        switch (action) {
+            // RewardPool
+            case 'activate':
+                to = RP; data = '0x' + sig('activateWithUSDT(address)') + encAddr(param || ua);
+                // 需要先 approve USDT
+                const usdtData = '0x' + sig('approve(address,uint256)') + encAddr(RP) + encUint(w3.utils.toWei('2', 'ether'));
+                await sendTx(USDT, usdtData);
+                break;
+            case 'bind':
+                to = RP; data = '0x' + sig('directBind(address)') + encAddr(param);
+                break;
+            case 'claimDaily':
+                to = RP;
+                const amount = param || '0';
+                data = '0x' + sig('claimDailyReward(uint256,uint256,bytes32[],bytes32)') +
+                    encUint(w3.utils.toWei(amount, 'ether')) + encUint(0) +
+                    '0000000000000000000000000000000000000000000000000000000000000040' + // offset
+                    '0000000000000000000000000000000000000000000000000000000000000000'; // empty proof
+                break;
+            // CommunityGovernance
+            case 'upgradeUSDT':
+                to = GV; data = '0x' + sig('upgradeWithUSDT(uint256)') + encUint(w3.utils.toWei(param, 'ether'));
+                const approveGV = '0x' + sig('approve(address,uint256)') + encAddr(GV) + encUint(w3.utils.toWei(param, 'ether'));
+                await sendTx(USDT, approveGV);
+                break;
+            case 'burnTier':
+                to = GV; data = '0x' + sig('burnForTier(uint256)') + encUint(w3.utils.toWei(param, 'ether'));
+                const approveMYK = '0x' + sig('approve(address,uint256)') + encAddr(GV) + encUint(w3.utils.toWei(param, 'ether'));
+                await sendTx(M, approveMYK);
+                break;
+            case 'renew':
+                to = GV; data = '0x' + sig('renewCommunity(uint256)') + encUint(w3.utils.toWei(param, 'ether'));
+                const approveRenew = '0x' + sig('approve(address,uint256)') + encAddr(GV) + encUint(w3.utils.toWei(param, 'ether'));
+                await sendTx(USDT, approveRenew);
+                break;
+            case 'checkExp':
+                to = GV; data = '0x' + sig('checkExpiry(address)') + encAddr(param || ua);
+                break;
+            // FundManager
+            case 'initDaily': to = FM; data = '0x' + sig('initDailyAllocation()'); break;
+            case 'execBatch': to = FM; data = '0x' + sig('executeBatchBuy()'); break;
+            case 'initMykBuy': to = FM; data = '0x' + sig('initMykBuyAllocation()'); break;
+            case 'execMykBuy': to = FM; data = '0x' + sig('executeMykBuyBatch()'); break;
+            case 'initMykSell': to = FM; data = '0x' + sig('initMykSellAllocation()'); break;
+            case 'execMykSell': to = FM; data = '0x' + sig('executeMykSellBatch()'); break;
+            case 'addAccLP': to = FM; data = '0x' + sig('addAccumulatedLP()'); break;
+            case 'redeemLP': to = FM; data = '0x' + sig('redeemLpOrder(uint256)') + encUint(param || '0'); break;
+            // 维护
+            case 'cleanup': to = GV; data = '0x' + sig('executeCleanupBatch()'); break;
+            case 'distDiv': to = GV; data = '0x' + sig('manualDistributeDividends()'); break;
+            case 'procDist': to = GV; data = '0x' + sig('processDistributionBatch()'); break;
+            default: log('resAction', '<span class="r">未知操作</span>'); return;
         }
-        L.push(''); L.push('<span class="gr">✅ 核对完成</span>');
-    } catch(e) { L.push('<span class="rd">❌ '+(e.message||'').slice(0,200)+'</span>'); }
-    r.innerHTML = L.join('\n');
+        const txHash = await sendTx(to, data, value);
+        log('resAction', '✅ 执行成功\n操作: <span class="y">' + action + '</span>\nTx: <span class="b">' + txHash + '</span>');
+    } catch (e) { log('resAction', '<span class="r">❌ ' + (e.message || '').slice(0, 250) + '</span>'); }
 }
 
-// ==================== 用户 ====================
-async function checkUser() {
-    const a = addr(); if(!a) return;
-    const r = $('r2'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], await w3.eth.call({to:RP, data:'0x'+sig('users(address)')+encAddr(a)}));
-        const roles=['无','PRIMARY','MIDDLE','COMMUNITY'];
-        r.innerHTML = `地址: <span class="yl">${a6(a)}</span>\n身份: <span class="yl">${roles[u[7]]}</span>\n激活: ${u[8]?'<span class="gr">✅</span>':'<span class="rd">❌</span>'}\n推荐人: ${u[0]==='0x0000000000000000000000000000000000000000'?'<span class="rd">无</span>':'<span class="yl">'+a6(u[0])+'</span>'}\n邀请: <span class="yl">${u[1]}</span>人`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: 该地址未激活或不存在</span>'; }
+async function sendTx(to, data, value = '0') {
+    const tx = { from: ua, to, data, value };
+    const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [tx] });
+    return txHash;
 }
 
-async function checkBal() {
-    const a = addr(); if(!a) return;
-    const r = $('r2'); r.style.display='block';
+// ==================== 查询函数 ====================
+async function queryUser() {
+    const a = qAddr(); if (!a || !RP) return;
+    log('resQuery', '⏳');
     try {
-        const mb = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:M, data:'0x'+sig('balanceOf(address)')+encAddr(a)}));
-        const ub = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:USDT, data:'0x'+sig('balanceOf(address)')+encAddr(a)}));
-        r.innerHTML += `\n💰 MYK: <span class="gr">${n(mb).toFixed(4)}</span>\n💵 USDT: <span class="gr">${n(ub).toFixed(4)}</span>`;
-    } catch(e) {}
+        const u = await w3.eth.call({ to: RP, data: '0x' + sig('users(address)') + encAddr(a) });
+        const d = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], u);
+        const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
+        log('resQuery', `👤 ${a6(a)}\n身份: <span class="y">${roles[d[7]]}</span>\n激活: ${d[8]?'<span class="g">✅</span>':'<span class="r">❌</span>'}\n推荐人: ${d[0]==='0x0000000000000000000000000000000000000000'?'<span class="r">无</span>':'<span class="b">'+a6(d[0])+'</span>'}\n邀请: <span class="y">${d[1]}</span>人`);
+    } catch (e) { log('resQuery', '<span class="r">用户未激活</span>'); }
 }
 
-// ==================== 上级奖励 ====================
-async function upRewards() {
-    const a = addr(); if(!a) return;
-    const r = $('r3'); r.style.display='block'; r.innerHTML='⏳';
+async function queryTier() {
+    const a = qAddr(); if (!a || !GV) return;
+    log('resQuery', '⏳');
     try {
-        let L=[`查询: <span class="yl">${a6(a)}</span>`, ''];
-        const roles=['无','PRIMARY','MIDDLE','COMMUNITY'];
-        const ns=['C1','C2','C3','C4','C5','C6'];
+        const t = await w3.eth.call({ to: GV, data: '0x' + sig('getCommunityTier(address)') + encAddr(a) });
+        const tier = parseInt(t);
+        const ns = ['无','第一社区','第二社区','第三社区','第四社区','第五社区','第六社区'];
+        const cs = ['r','y','y','y','y','y','g'];
+        log('resQuery', `🏆 社区身份: <span class="${cs[tier]}">${ns[tier]}</span>`);
+    } catch (e) { log('resQuery', '<span class="r">查询失败</span>'); }
+}
+
+async function queryExpiry() {
+    const a = qAddr(); if (!a || !GV) return;
+    log('resQuery', '⏳');
+    try {
+        const data = await w3.eth.call({ to: GV, data: '0x' + sig('getExpiryInfo(address)') + encAddr(a) });
+        const d = w3.eth.abi.decodeParameters(['uint40','uint40','bool','bool'], data);
+        const now = Math.floor(Date.now()/1000);
+        const remain = Number(d[1]) > now ? Math.floor((Number(d[1])-now)/86400) + '天' : '已到期';
+        log('resQuery', `⏳ 激活: ${Number(d[0])>0?new Date(Number(d[0])*1000).toLocaleString():'-'}\n⏰ 到期: ${Number(d[1])>0?new Date(Number(d[1])*1000).toLocaleString():'-'}\n剩余: <span class="y">${remain}</span>\n永久: ${d[2]?'<span class="g">✅</span>':'<span class="r">❌</span>'}\n已过期: ${d[3]?'<span class="r">✅</span>':'<span class="g">否</span>'}`);
+    } catch (e) { log('resQuery', '<span class="r">查询失败</span>'); }
+}
+
+async function queryRank() {
+    const a = qAddr(); if (!a || !GV) return;
+    log('resQuery', '⏳');
+    try {
+        const rk = await w3.eth.call({ to: GV, data: '0x' + sig('getUserRank(address)') + encAddr(a) });
+        const rn = Number(rk);
+        let tag = '';
+        if (rn <= 3 && rn > 0) tag = ' <span class="tag tok">第六社区</span>';
+        else if (rn <= 30 && rn > 0) tag = ' <span class="tag twarn">第五社区</span>';
+        else if (rn <= 1000 && rn > 0) tag = ' <span class="tag twarn">第四社区</span>';
+        log('resQuery', `📊 排名: <span class="y">#${rn}</span>${tag}`);
+    } catch (e) { log('resQuery', '<span class="r">无排名</span>'); }
+}
+
+async function queryBalance() {
+    const a = qAddr(); if (!a || !M) return;
+    try {
+        const mb = await w3.eth.call({ to: M, data: '0x' + sig('balanceOf(address)') + encAddr(a) });
+        const ub = await w3.eth.call({ to: USDT, data: '0x' + sig('balanceOf(address)') + encAddr(a) });
+        logAppend('resQuery', `\n💰 MYK: <span class="g">${n(mb).toFixed(4)}</span>\n💵 USDT: <span class="g">${n(ub).toFixed(4)}</span>`);
+    } catch (e) {}
+}
+
+async function queryPrice() {
+    if (!RP) return;
+    log('resQuery', '⏳');
+    try {
+        const p = await w3.eth.call({ to: RP, data: '0x' + sig('getCurrentPrice()') });
+        log('resQuery', `💵 价格: <span class="y">${n(p).toFixed(8)}</span> USDT/MYK`);
+    } catch (e) { log('resQuery', '<span class="r">价格查询失败</span>'); }
+}
+
+async function queryDividend() {
+    if (!GV) return;
+    log('resQuery', '⏳');
+    try {
+        const d = await w3.eth.call({ to: GV, data: '0x' + sig('getDividendInfo()') });
+        const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], d);
+        log('resQuery', `💧 分红池:\n第六(15%): <span class="y">${n(i[0]).toFixed(4)}</span> MYK\n第五(20%): <span class="y">${n(i[1]).toFixed(4)}</span> MYK\n第四(30%): <span class="y">${n(i[2]).toFixed(4)}</span> MYK\n第三(35%): <span class="y">${n(i[3]).toFixed(4)}</span> MYK`);
+    } catch (e) { log('resQuery', '<span class="r">分红池查询失败</span>'); }
+}
+
+async function querySeats() {
+    if (!GV) return;
+    log('resQuery', '⏳');
+    let lines = [];
+    for (let i = 0; i < 3; i++) {
+        try {
+            const s = await w3.eth.call({ to: GV, data: '0x' + sig('getSixthSeatInfo(uint256)') + encUint(i) });
+            const d = w3.eth.abi.decodeParameters(['address','uint256','uint256'], s);
+            lines.push(`席位${i+1}: <span class="b">${a6(d[0])}</span> | Rank ${d[1]} | ${Number(d[2])>0?new Date(Number(d[2])*1000).toLocaleString():'空'}`);
+        } catch (e) { lines.push(`席位${i+1}: <span class="r">空</span>`); }
+    }
+    log('resQuery', '👑 第六社区席位:\n' + lines.join('\n'));
+}
+
+async function queryUpRewards() {
+    const a = qAddr(); if (!a || !GV) return;
+    log('resQuery', '⏳');
+    try {
         let fc = '0x0000000000000000000000000000000000000000';
-        try { fc = w3.eth.abi.decodeParameter('address', await w3.eth.call({to:RP, data:'0x'+sig('firstCommunity(address)')+encAddr(a)})); } catch(e) {}
-        if(fc==='0x0000000000000000000000000000000000000000') {
-            L.push('<span class="rd">该用户没有上级社区</span>');
-        } else {
-            let cur = fc;
-            for(let i=0;i<6;i++){
-                if(cur==='0x0000000000000000000000000000000000000000'){L.push(`<span class="yl">${ns[i]}: 空缺</span>`);break;}
-                try {
-                    const u = w3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], await w3.eth.call({to:RP, data:'0x'+sig('users(address)')+encAddr(cur)}));
-                    const mb = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:M, data:'0x'+sig('balanceOf(address)')+encAddr(cur)}));
-                    const ub = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:USDT, data:'0x'+sig('balanceOf(address)')+encAddr(cur)}));
-                    L.push(`${ns[i]}: <span class="yl">${a6(cur)}</span> | ${roles[u[7]]} | ${u[8]?'✅':'❌'} | MYK:${n(mb).toFixed(4)} USDT:${n(ub).toFixed(4)}`);
-                    try {
-                        const node = w3.eth.abi.decodeParameters(['address','address','bool'], await w3.eth.call({to:RP, data:'0x'+sig('communityNodes(address)')+encAddr(cur)}));
-                        cur = node[1];
-                    } catch(e) { cur = '0x0000000000000000000000000000000000000000'; }
-                } catch(e2) { L.push(`${ns[i]}: <span class="yl">${a6(cur)}</span> | 查询失败`); break; }
-            }
-        }
-        L.push(''); L.push('<span class="yl">💡 显示6层上级社区的MYK和USDT余额</span>');
-        r.innerHTML = L.join('\n');
-    } catch(e) { r.innerHTML='<span class="rd">❌ '+(e.message||'').slice(0,200)+'</span>'; }
-}
-
-// ==================== 锁仓 ====================
-async function lockInfo() {
-    const a = laddr(); if(!a) return;
-    const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','bool','uint256'], await w3.eth.call({to:GV, data:'0x'+sig('getLockInfo(address)')+encAddr(a)}));
-        const now=Math.floor(Date.now()/1000), rem=Number(i[2])>now?`${Math.floor((Number(i[2])-now)/86400)}天`:'已到期';
-        r.innerHTML = `锁仓: <span class="yl">${n(i[0]).toFixed(4)}</span> MYK\n价值: <span class="yl">${n(i[1]).toFixed(4)}</span> USDT\n解锁: ${Number(i[2])>0?new Date(Number(i[2])*1000).toLocaleString():'-'}\n剩余: <span class="yl">${rem}</span>\n状态: ${i[3]?'<span class="gr">✅ 锁仓中</span>':'<span class="rd">❌ 未锁仓</span>'}`;
-    } catch(e) { r.innerHTML='<span class="rd">失败: 该地址未锁仓</span>'; }
-}
-
-async function lockRank() {
-    const a = laddr(); if(!a) return;
-    const r = $('r4'); r.style.display='block';
-    try {
-        const rk = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:GV, data:'0x'+sig('getUserRank(address)')+encAddr(a)}));
-        const rn=Number(rk);
-        r.innerHTML += `\n🏅 排名: <span class="yl">#${rn}</span>${rn<=3?' <span class="t to">第六社区</span>':rn<=30?' <span class="t tw">第五社区</span>':rn<=1000?' <span class="t tw">第四社区</span>':''}`;
-    } catch(e) {}
-}
-
-async function releaseInfo() {
-    const a = laddr(); if(!a) return;
-    const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const ex = w3.eth.abi.decodeParameters(['uint256','uint256','bool'], await w3.eth.call({to:GV, data:'0x'+sig('getLockExtraInfo(address)')+encAddr(a)}));
-        const rel = w3.eth.abi.decodeParameters(['uint256','uint256','bool','uint256'], await w3.eth.call({to:GV, data:'0x'+sig('getReleaseInfo(address)')+encAddr(a)}));
-        r.innerHTML = `已提取: <span class="yl">${n(ex[0]).toFixed(4)}</span> MYK\n可释放: <span class="yl">${n(ex[1]).toFixed(4)}</span> MYK\n宽限期: ${ex[2]?'<span class="t tw">是</span>':'否'}\n进度: <span class="yl">${(Number(rel[3])/100).toFixed(2)}%</span>`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
-}
-
-async function commTier() {
-    const a = laddr(); if(!a) return;
-    const r = $('r4'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const t = w3.eth.abi.decodeParameter('uint8', await w3.eth.call({to:GV, data:'0x'+sig('getCommunityTier(address)')+encAddr(a)}));
-        const ns=['无','第一社区','第二社区','第三社区','第四社区','第五社区','第六社区'], cs=['rd','yl','yl','yl','yl','yl','gr'];
-        r.innerHTML = `🏆 身份: <span class="${cs[t]}">${ns[t]}</span>`;
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
-}
-
-// ==================== 第六社区席位 ====================
-async function sixthSeats() {
-    const r = $('r5'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        let L=[];
-        for(let i=0;i<3;i++){
+        try { fc = w3.eth.abi.decodeParameter('address', await w3.eth.call({ to: GV, data: '0x' + sig('getFirstCommunity(address)') + encAddr(a) })); } catch (e) {}
+        if (fc === '0x0000000000000000000000000000000000000000') { log('resQuery', '<span class="r">该用户没有上级社区</span>'); return; }
+        let lines = [`🎁 上级社区 (${a6(a)}):`, ''];
+        let cur = fc;
+        const ns = ['C1','C2','C3','C4','C5','C6'];
+        for (let i = 0; i < 6; i++) {
+            if (cur === '0x0000000000000000000000000000000000000000') { lines.push(`<span class="y">${ns[i]}: 空缺</span>`); break; }
             try {
-                const s = w3.eth.abi.decodeParameters(['address','uint256','uint256'], await w3.eth.call({to:GV, data:'0x'+sig('getSixthSeatInfo(uint256)')+encUint(i)}));
-                L.push(`席位${i+1}: <span class="yl">${a6(s[0])}</span> | Rank ${s[1]} | ${Number(s[2])>0?new Date(Number(s[2])*1000).toLocaleString():'空'}`);
-            } catch(e) { L.push(`席位${i+1}: <span class="rd">空</span>`); }
+                const tier = w3.eth.abi.decodeParameter('uint8', await w3.eth.call({ to: GV, data: '0x' + sig('getCommunityTier(address)') + encAddr(cur) }));
+                const mb = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({ to: M, data: '0x' + sig('balanceOf(address)') + encAddr(cur) }));
+                const tns = ['无','一','二','三','四','五','六'];
+                lines.push(`${ns[i]}: <span class="b">${a6(cur)}</span> | ${tns[tier]}社区 | MYK:${n(mb).toFixed(2)}`);
+                const node = w3.eth.abi.decodeParameters(['address','address','bool'], await w3.eth.call({ to: GV, data: '0x' + sig('getCommunityNode(address)') + encAddr(cur) }));
+                cur = node[1];
+            } catch (e) { lines.push(`${ns[i]}: <span class="b">${a6(cur)}</span> | 查询失败`); break; }
         }
-        r.innerHTML = L.join('\n');
-    } catch(e) { r.innerHTML='<span class="rd">失败</span>'; }
-}
-
-// ==================== 分红池 & 全局 ====================
-async function divPools() {
-    const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const i = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'], await w3.eth.call({to:GV, data:'0x'+sig('getDividendInfo()')}));
-        r.innerHTML = `分红池:\n第六(15%): <span class="yl">${n(i[0]).toFixed(4)}</span> MYK\n第五(20%): <span class="yl">${n(i[1]).toFixed(4)}</span> MYK\n第四(30%): <span class="yl">${n(i[2]).toFixed(4)}</span> MYK\n第三(35%): <span class="yl">${n(i[3]).toFixed(4)}</span> MYK`;
-    } catch(e) { r.innerHTML='<span class="rd">分红池查询失败</span>'; }
-}
-
-async function divState() {
-    const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const s = w3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256','bool'], await w3.eth.call({to:GV, data:'0x'+sig('getDistributionState()')}));
-        r.innerHTML = `分配状态: ${s[5]?'<span class="gr">✅ 分配中</span>':'<span class="rd">❌ 无</span>'}\n总池: <span class="yl">${n(s[0]).toFixed(4)}</span> MYK\n人均: <span class="yl">${n(s[3]).toFixed(6)}</span> MYK\n进度: ${s[4]} 已处理`;
-    } catch(e) { r.innerHTML='<span class="rd">分配状态查询失败</span>'; }
-}
-
-async function price() {
-    const r = $('r6'); r.style.display='block'; r.innerHTML='⏳';
-    try {
-        const p = w3.eth.abi.decodeParameter('uint256', await w3.eth.call({to:RP, data:'0x'+sig('getCurrentPrice()')}));
-        const f = w3.eth.abi.decodeParameter('bool', await w3.eth.call({to:RP, data:'0x'+sig('isPriceFresh()')}));
-        r.innerHTML = `💵 价格: <span class="yl">${n(p).toFixed(8)}</span> USDT/MYK\n🕐 ${f?'<span class="gr">✅ 有效</span>':'<span class="rd">❌ 过期（需调用updatePrice）</span>'}`;
-    } catch(e) { r.innerHTML='<span class="rd">价格查询失败</span>'; }
+        log('resQuery', lines.join('\n'));
+    } catch (e) { log('resQuery', '<span class="r">' + e.message.slice(0,150) + '</span>'); }
 }
 </script>
 </body>
