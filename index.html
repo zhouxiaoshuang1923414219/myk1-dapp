@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MYK 测试面板 | 多RPC自动重试</title>
+    <title>MYK 专业测试面板 | 活动奖金池功能</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -70,6 +70,7 @@
         }
         .badge-read { background: #1f6feb20; color: #79c0ff; border: 0.5px solid #1f6feb; }
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
+        .badge-new { background: #d2992220; color: #ffdf6e; border: 0.5px solid #d29922; }
         input, select {
             width: 100%;
             padding: 8px 12px;
@@ -105,6 +106,16 @@
             color: white;
         }
         button.primary:hover { background: #2ea043; }
+        button.warning {
+            background: #9e6a03;
+            border-color: #d29922;
+        }
+        button.new {
+            background: #d29922;
+            border-color: #ffdf6e;
+            color: #0a0c10;
+        }
+        button.new:hover { background: #e3b341; }
         .row {
             display: flex;
             gap: 8px;
@@ -157,6 +168,14 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
         }
+        .badge-new-feature {
+            background: #d29922;
+            color: #0a0c10;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-left: 6px;
+        }
     </style>
 </head>
 <body>
@@ -166,6 +185,7 @@
         <div class="sub">
             <span id="netStatus">🔌 连接中...</span>
             <span>| BSC 主网</span>
+            <span>| 🆕 活动奖金池功能</span>
         </div>
     </div>
 
@@ -209,12 +229,16 @@
     <div class="card">
         <div class="card-title">⚡ 执行合约操作 <span class="badge badge-write">需要钱包签名</span></div>
         <select id="actionSelect">
-            <optgroup label="💰 RewardPool">
+            <optgroup label="💰 RewardPool - 基础功能">
                 <option value="activate">activateWithUSDT (激活 2 USDT)</option>
                 <option value="bind">directBind (绑定上级)</option>
                 <option value="claimDaily">claimDailyReward (领取持币奖励)</option>
             </optgroup>
-            <optgroup label="🏛️ Governance">
+            <optgroup label="🎁 RewardPool - 活动奖金池 🆕">
+                <option value="addBonusMYK">⭐ addBonusMYK (向活动池添加MYK)</option>
+                <option value="queryBonusPool">🔍 queryBonusPool (查询活动池余额)</option>
+            </optgroup>
+            <optgroup label="🏛️ CommunityGovernance">
                 <option value="upgradeUSDT">upgradeWithUSDT (USDT升级)</option>
                 <option value="burnTier">burnForTier (销毁MYK升级)</option>
                 <option value="renew">renewCommunity (续费)</option>
@@ -231,9 +255,12 @@
                 <option value="redeemLP">redeemLpOrder</option>
             </optgroup>
         </select>
-        <input type="text" id="actionParam" placeholder="参数 (地址/金额)">
-        <button class="primary" onclick="execAction()">▶ 执行交易</button>
-        <div class="res" id="resAction">等待执行...</div>
+        <input type="text" id="actionParam" placeholder="参数: 金额(ether单位) 或 地址/订单索引">
+        <div class="row">
+            <button class="primary" onclick="execAction()">▶ 执行交易</button>
+            <button class="new" onclick="queryBonusPool()">🔍 查询活动奖金池</button>
+        </div>
+        <div class="res" id="resAction">等待执行...<br>💡 提示: 添加MYK到活动池前需要先授权(approve)</div>
     </div>
 
     <!-- 批量查询 -->
@@ -357,7 +384,6 @@
         }
         
         if (workingRpcs.length > 0) {
-            // 选择最快的（第一个正常工作的）
             activeRpc = workingRpcs[0];
             activeWeb3 = new Web3(activeRpc.url);
             html += `<div class="g" style="margin-top: 8px;">✅ 已选择 RPC: ${activeRpc.name} (区块 ${activeRpc.block})</div>`;
@@ -391,7 +417,6 @@
                 $('networkBanner').style.display = 'none';
             }
             
-            // 自动测试 RPC
             await testAllRpcs();
         } catch (err) {
             $('netStatus').innerHTML = `<span class="r">连接失败: ${err.message.slice(0,50)}</span>`;
@@ -464,7 +489,6 @@
         return await sendTransaction(tokenAddr, data, '0');
     }
 
-    // 使用 activeWeb3 进行只读调用
     async function callContract(contractAddr, callData, retries = 2) {
         if (!activeWeb3) {
             throw new Error('没有可用的 RPC 连接，请先测试 RPC');
@@ -481,6 +505,82 @@
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
+    }
+
+    // ==================== 新增：查询活动奖金池 ====================
+    async function queryBonusPool() {
+        if (!REWARD_POOL_ADDR) {
+            logRes('resAction', '<span class="r">❌ 请先配置 RewardPool 地址</span>');
+            return;
+        }
+        
+        if (!activeWeb3) {
+            logRes('resAction', '<span class="r">❌ 没有可用的 RPC 连接</span>');
+            return;
+        }
+        
+        try {
+            // 尝试调用 getBonusPool 或 bonusPool 方法
+            let bonusAmount = null;
+            let methodUsed = '';
+            
+            // 尝试 getBonusPool()
+            try {
+                const data = buildCallData('getBonusPool()');
+                const raw = await callContract(REWARD_POOL_ADDR, data);
+                bonusAmount = fromWei(raw);
+                methodUsed = 'getBonusPool()';
+            } catch (e) {
+                // 尝试 bonusPool() 公共变量
+                try {
+                    const data = buildCallData('bonusPool()');
+                    const raw = await callContract(REWARD_POOL_ADDR, data);
+                    bonusAmount = fromWei(raw);
+                    methodUsed = 'bonusPool()';
+                } catch (e2) {
+                    // 尝试 getActivityBonusPool()
+                    try {
+                        const data = buildCallData('getActivityBonusPool()');
+                        const raw = await callContract(REWARD_POOL_ADDR, data);
+                        bonusAmount = fromWei(raw);
+                        methodUsed = 'getActivityBonusPool()';
+                    } catch (e3) {
+                        throw new Error('无法查询奖金池，请确认合约方法名');
+                    }
+                }
+            }
+            
+            logRes('resAction', `🎁 活动奖金池余额\n📊 方法: ${methodUsed}\n💰 MYK: <span class="y">${bonusAmount.toFixed(4)}</span> MYK\n\n💡 使用「addBonusMYK」可以向活动池添加MYK代币`);
+        } catch (e) {
+            logRes('resAction', `<span class="r">❌ 查询失败: ${e.message.slice(0, 100)}</span>\n\n可能的原因:\n1. 合约方法名不是 getBonusPool/bonusPool\n2. 该合约版本不支持此功能`);
+        }
+    }
+
+    // ==================== 新增：向活动池添加 MYK ====================
+    async function addBonusMYK(amount) {
+        if (!REWARD_POOL_ADDR) throw new Error('请先配置 RewardPool 地址');
+        if (!amount || amount <= 0) throw new Error('请输入有效的 MYK 数量');
+        
+        const amountWei = toWei(amount);
+        
+        // 1. 先授权 MYK 给 RewardPool
+        logRes('resAction', `⏳ 步骤 1/2: 授权 ${amount} MYK 给 RewardPool...`);
+        await approveToken(MYK_ADDR, REWARD_POOL_ADDR, amountWei);
+        
+        // 2. 调用 addBonusMYK
+        logRes('resAction', `⏳ 步骤 2/2: 向活动池添加 ${amount} MYK...`);
+        
+        // 尝试不同的方法名
+        let callData;
+        try {
+            // 尝试 addBonusMYK(uint256)
+            callData = buildCallData('addBonusMYK(uint256)', amountWei);
+        } catch (e) {
+            // 尝试 addBonus(address,uint256) 或 addActivityBonus
+            callData = buildCallData('addBonusMYK(uint256)', amountWei);
+        }
+        
+        return await sendTransaction(REWARD_POOL_ADDR, callData, '0');
     }
 
     // ==================== 核对关联 ====================
@@ -527,13 +627,22 @@
             }
         }
         
+        // 测试活动奖金池功能是否存在
+        output += `\n🔍 测试活动奖金池功能...\n`;
+        try {
+            const testData = buildCallData('addBonusMYK(uint256)', toWei(0));
+            output += `✅ addBonusMYK 方法可用\n`;
+        } catch (e) {
+            output += `⚠️ addBonusMYK 方法未找到，请确认合约版本\n`;
+        }
+        
         output += `\n📊 成功率: ${successCount}/${tests.length}`;
         if (successCount === tests.length) {
             output += '\n<span class="g">🎉 所有合约关联正确！可以正常使用。</span>';
         } else if (successCount > 0) {
             output += '\n<span class="y">⚠️ 部分关联失败，请检查合约地址是否正确。</span>';
         } else {
-            output += '\n<span class="r">❌ 所有调用都失败了，请检查：\n1. RPC 连接是否正常\n2. 合约地址是否正确\n3. 网络是否稳定</span>';
+            output += '\n<span class="r">❌ 所有调用都失败了，请检查 RPC 连接</span>';
         }
         logRes('resLink', output);
     }
@@ -553,6 +662,20 @@
             let toAddr = '', callData = '';
             
             switch(action) {
+                // ========== 新增：活动奖金池功能 ==========
+                case 'addBonusMYK':
+                    if (!param) throw new Error('请输入要添加的 MYK 数量');
+                    const amount = parseFloat(param);
+                    if (isNaN(amount) || amount <= 0) throw new Error('请输入有效的 MYK 数量');
+                    const txHash = await addBonusMYK(amount);
+                    logRes('resAction', `✅ 成功添加 ${amount} MYK 到活动奖金池！\n哈希: ${txHash}\nhttps://bscscan.com/tx/${txHash}`);
+                    return;
+                    
+                case 'queryBonusPool':
+                    await queryBonusPool();
+                    return;
+                    
+                // ========== 原有功能 ==========
                 case 'activate':
                     if (!REWARD_POOL_ADDR) throw new Error('缺少RewardPool');
                     const target = param || userAccount;
@@ -566,9 +689,9 @@
                     toAddr = REWARD_POOL_ADDR;
                     break;
                 case 'claimDaily':
-                    let amount = param ? toWei(param) : '0';
+                    let claimAmount = param ? toWei(param) : '0';
                     callData = '0x' + encodeFunctionSig('claimDailyReward(uint256,uint256,bytes32[],bytes32)').slice(2) 
-                        + encodeUint(amount) + encodeUint(0) + '0000000000000000000000000000000000000000000000000000000000000040' + '0000000000000000000000000000000000000000000000000000000000000000';
+                        + encodeUint(claimAmount) + encodeUint(0) + '0000000000000000000000000000000000000000000000000000000000000040' + '0000000000000000000000000000000000000000000000000000000000000000';
                     toAddr = REWARD_POOL_ADDR;
                     break;
                 case 'upgradeUSDT':
@@ -602,8 +725,8 @@
                 case 'redeemLP': toAddr = FUND_MANAGER_ADDR; callData = buildCallData('redeemLpOrder(uint256)', param || '0'); break;
                 default: throw new Error('未知操作');
             }
-            const txHash = await sendTransaction(toAddr, callData, '0');
-            logRes('resAction', `✅ 交易发送成功\n哈希: ${txHash}\nhttps://bscscan.com/tx/${txHash}`);
+            const txHashResult = await sendTransaction(toAddr, callData, '0');
+            logRes('resAction', `✅ 交易发送成功\n哈希: ${txHashResult}\nhttps://bscscan.com/tx/${txHashResult}`);
         } catch(e) {
             logRes('resAction', `<span class="r">❌ ${e.message.slice(0, 200)}</span>`);
         }
