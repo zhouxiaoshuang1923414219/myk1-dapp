@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MYK 专业测试面板 | 多RPC支持</title>
+    <title>MYK 测试面板 | 多RPC自动重试</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -13,7 +13,7 @@
         }
         body {
             background: #0a0c10;
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             padding: 16px 12px;
             display: flex;
             justify-content: center;
@@ -105,10 +105,6 @@
             color: white;
         }
         button.primary:hover { background: #2ea043; }
-        button.warning {
-            background: #9e6a03;
-            border-color: #d29922;
-        }
         .row {
             display: flex;
             gap: 8px;
@@ -147,17 +143,19 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        .rpc-config {
-            background: #0d1117;
-            border-radius: 12px;
-            padding: 8px;
-            margin-top: 8px;
-            font-size: 11px;
+        .rpc-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
         }
-        .rpc-config input {
-            font-size: 11px;
-            padding: 6px 8px;
-            margin-bottom: 0;
+        .status-ok { background: #7ee787; box-shadow: 0 0 4px #7ee787; }
+        .status-bad { background: #ff7b72; }
+        .status-checking { background: #ffdf6e; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
     </style>
 </head>
@@ -172,30 +170,21 @@
     </div>
 
     <div id="networkBanner" class="network-banner" style="display: none;">
-        <span>⚠️ 当前网络不是 BSC 主网</span>
-        <button class="switch-btn" onclick="switchToBSC()" style="background:#1f6feb;border:none;padding:4px 12px;">🔄 切换到 BSC</button>
+        <span>⚠️ 当前网络不是 BSC 主网 (需要 Chain ID 56)</span>
+        <button onclick="switchToBSC()" style="background:#1f6feb;border:none;padding:4px 12px;">🔄 切换到 BSC</button>
     </div>
 
-    <!-- RPC 配置区 -->
+    <!-- RPC 状态和配置 -->
     <div class="card">
-        <div class="card-title">🌐 RPC 节点配置 <span class="badge badge-read">解决超时问题</span></div>
+        <div class="card-title">🌐 RPC 节点状态 <span class="badge badge-read">自动重试</span></div>
+        <div id="rpcStatusList" style="font-size: 11px; margin-bottom: 10px;">
+            <div>🔍 正在测试 RPC 节点...</div>
+        </div>
         <div class="row">
-            <select id="rpcSelect" style="flex:2">
-                <option value="https://bsc-dataseed1.binance.org/">Binance 官方节点 1</option>
-                <option value="https://bsc-dataseed2.binance.org/">Binance 官方节点 2</option>
-                <option value="https://bsc-dataseed3.binance.org/">Binance 官方节点 3</option>
-                <option value="https://bsc-dataseed4.binance.org/">Binance 官方节点 4</option>
-                <option value="https://rpc.ankr.com/bsc">Ankr RPC</option>
-                <option value="https://bsc.publicnode.com">PublicNode</option>
-                <option value="https://1rpc.io/bsc">1RPC</option>
-            </select>
-            <button onclick="switchRPC()" class="primary">切换 RPC</button>
+            <button onclick="testAllRpcs()" class="primary">🔄 重新测试所有 RPC</button>
+            <button onclick="checkAllLinks()">🔗 核对合约关联</button>
         </div>
-        <div class="rpc-config">
-            <span style="color:#8b949e;">💡 如果超时，请尝试切换不同的 RPC 节点。当前: </span>
-            <span id="currentRpc" class="b">默认</span>
-        </div>
-        <div class="res" id="resRpc">⚡ 选择响应快的 RPC 节点可解决超时问题</div>
+        <div class="res" id="resRpc">💡 点击上方按钮测试 RPC 连接</div>
     </div>
 
     <!-- 合约地址配置区 -->
@@ -211,16 +200,14 @@
         </div>
         <div class="row">
             <input type="text" id="pairAddr" placeholder="LP Pair" value="0x471D5AC981d728f1D214ffcF6E73d6f24562c16D">
-            <button class="primary" onclick="loadDeployed()">📡 加载配置</button>
-            <button onclick="checkAllLinks()">🔗 核对合约关联</button>
-            <button onclick="testRpcConnection()">⚡ 测试 RPC 连接</button>
+            <button onclick="loadDeployed()">📡 加载配置</button>
         </div>
-        <div class="res" id="resLink">✅ 已加载 BSC 主网合约地址<br>点击「核对合约关联」前请确保 RPC 正常</div>
+        <div class="res" id="resLink">✅ 已加载 BSC 主网合约地址<br>请先测试 RPC 连接</div>
     </div>
 
     <!-- 执行操作 -->
     <div class="card">
-        <div class="card-title">⚡ 执行合约操作 <span class="badge badge-write">Write</span></div>
+        <div class="card-title">⚡ 执行合约操作 <span class="badge badge-write">需要钱包签名</span></div>
         <select id="actionSelect">
             <optgroup label="💰 RewardPool">
                 <option value="activate">activateWithUSDT (激活 2 USDT)</option>
@@ -244,7 +231,7 @@
                 <option value="redeemLP">redeemLpOrder</option>
             </optgroup>
         </select>
-        <input type="text" id="actionParam" placeholder="参数">
+        <input type="text" id="actionParam" placeholder="参数 (地址/金额)">
         <button class="primary" onclick="execAction()">▶ 执行交易</button>
         <div class="res" id="resAction">等待执行...</div>
     </div>
@@ -272,9 +259,23 @@
 </div>
 
 <script>
-    // ==================== 配置 ====================
+    // ==================== RPC 列表 ====================
+    const RPC_LIST = [
+        { name: "Binance 官方 1", url: "https://bsc-dataseed1.binance.org/", timeout: 5000 },
+        { name: "Binance 官方 2", url: "https://bsc-dataseed2.binance.org/", timeout: 5000 },
+        { name: "Binance 官方 3", url: "https://bsc-dataseed3.binance.org/", timeout: 5000 },
+        { name: "Binance 官方 4", url: "https://bsc-dataseed4.binance.org/", timeout: 5000 },
+        { name: "Ankr", url: "https://rpc.ankr.com/bsc", timeout: 5000 },
+        { name: "PublicNode", url: "https://bsc.publicnode.com", timeout: 5000 },
+        { name: "1RPC", url: "https://1rpc.io/bsc", timeout: 5000 },
+        { name: "Blast", url: "https://bsc.blockpi.network/v1/rpc/public", timeout: 5000 },
+        { name: "Chainstack", url: "https://bsc-mainnet.public.blastapi.io", timeout: 5000 }
+    ];
+    
     let web3, userAccount, chainId;
-    let currentRpc = 'https://bsc-dataseed1.binance.org/';
+    let activeRpc = null;
+    let activeWeb3 = null;
+    
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
     let REWARD_POOL_ADDR = '0x05e5E0b8158C6cB938201e6a247b2b80D83CfB3B';
     let GOV_ADDR = '0x555C5bB763dd72F8f0c2584cC1F62F13320c6215';
@@ -311,47 +312,63 @@
         return input === '' ? (userAccount || '') : input;
     }
 
-    // ==================== RPC 切换 ====================
-    async function switchRPC() {
-        const selected = $('rpcSelect').value;
-        currentRpc = selected;
-        $('currentRpc').innerHTML = currentRpc.split('/')[2] || currentRpc;
-        
-        try {
-            // 创建新的 Web3 实例用于只读查询
-            const testWeb3 = new Web3(currentRpc);
-            const blockNum = await testWeb3.eth.getBlockNumber();
-            logRes('resRpc', `✅ RPC 切换成功！当前区块: ${blockNum}\n使用节点: ${currentRpc}`);
+    // ==================== RPC 测试 ====================
+    async function testSingleRpc(rpc) {
+        return new Promise((resolve) => {
+            const timeoutId = setTimeout(() => {
+                resolve({ ...rpc, working: false, error: '超时', block: null });
+            }, rpc.timeout);
             
-            // 重新连接 MetaMask 写入功能保留，但只读查询使用新 RPC
-            if (web3 && web3.currentProvider !== window.ethereum) {
-                // 保留 MetaMask 用于写入
+            try {
+                const testWeb3 = new Web3(rpc.url);
+                testWeb3.eth.getBlockNumber()
+                    .then(block => {
+                        clearTimeout(timeoutId);
+                        resolve({ ...rpc, working: true, error: null, block: block });
+                    })
+                    .catch(err => {
+                        clearTimeout(timeoutId);
+                        resolve({ ...rpc, working: false, error: err.message.slice(0, 50), block: null });
+                    });
+            } catch (err) {
+                clearTimeout(timeoutId);
+                resolve({ ...rpc, working: false, error: '连接失败', block: null });
             }
-            return true;
-        } catch (e) {
-            logRes('resRpc', `<span class="r">❌ RPC 连接失败: ${e.message.slice(0,100)}</span>`);
-            return false;
-        }
+        });
     }
 
-    async function testRpcConnection() {
-        const selected = $('rpcSelect').value;
-        try {
-            const testWeb3 = new Web3(selected);
-            const block = await testWeb3.eth.getBlockNumber();
-            const gasPrice = await testWeb3.eth.getGasPrice();
-            logRes('resRpc', `✅ RPC 可用\n区块: ${block}\nGas价格: ${web3.utils.fromWei(gasPrice, 'gwei')} Gwei\n节点: ${selected}`);
-        } catch (e) {
-            logRes('resRpc', `<span class="r">❌ RPC 不可用: ${e.message.slice(0,100)}</span>`);
+    async function testAllRpcs() {
+        const statusDiv = document.getElementById('rpcStatusList');
+        statusDiv.innerHTML = '<div><span class="rpc-status status-checking"></span> 正在测试所有 RPC 节点...</div>';
+        
+        const results = await Promise.all(RPC_LIST.map(rpc => testSingleRpc(rpc)));
+        
+        const workingRpcs = results.filter(r => r.working);
+        
+        let html = '';
+        for (const r of results) {
+            const status = r.working ? 'status-ok' : 'status-bad';
+            const statusText = r.working ? `✅ 区块 ${r.block}` : `❌ ${r.error || '失败'}`;
+            html += `<div style="margin-bottom: 4px;">
+                <span class="rpc-status ${status}"></span>
+                <strong>${r.name}</strong>: ${r.url.substring(0, 50)}... 
+                <span class="${r.working ? 'g' : 'r'}">${statusText}</span>
+            </div>`;
         }
-    }
-
-    // 获取用于只读查询的 Web3 实例
-    function getReadWeb3() {
-        if (currentRpc && currentRpc !== 'metamask') {
-            return new Web3(currentRpc);
+        
+        if (workingRpcs.length > 0) {
+            // 选择最快的（第一个正常工作的）
+            activeRpc = workingRpcs[0];
+            activeWeb3 = new Web3(activeRpc.url);
+            html += `<div class="g" style="margin-top: 8px;">✅ 已选择 RPC: ${activeRpc.name} (区块 ${activeRpc.block})</div>`;
+            logRes('resRpc', `✅ RPC 连接成功！\n使用节点: ${activeRpc.name}\n当前区块: ${activeRpc.block}\n\n现在可以点击「核对合约关联」`);
+        } else {
+            html += `<div class="r" style="margin-top: 8px;">❌ 所有 RPC 节点均无法连接！请检查网络或防火墙设置。</div>`;
+            logRes('resRpc', '<span class="r">❌ 无法连接到任何 BSC RPC 节点。请检查：\n1. 网络连接是否正常\n2. 防火墙是否阻止了请求\n3. 尝试使用 VPN 或更换网络环境</span>');
         }
-        return web3;
+        
+        statusDiv.innerHTML = html;
+        return workingRpcs.length > 0;
     }
 
     // ==================== 初始化 ====================
@@ -372,11 +389,12 @@
                 $('networkBanner').style.display = 'flex';
             } else {
                 $('networkBanner').style.display = 'none';
-                // 测试默认 RPC
-                await switchRPC();
             }
+            
+            // 自动测试 RPC
+            await testAllRpcs();
         } catch (err) {
-            $('netStatus').innerHTML = `<span class="r">连接失败</span>`;
+            $('netStatus').innerHTML = `<span class="r">连接失败: ${err.message.slice(0,50)}</span>`;
         }
         
         window.ethereum.on('accountsChanged', (accs) => { userAccount = accs[0]; });
@@ -394,7 +412,7 @@
     function updateNetworkDisplay() {
         if (chainId === 56) $('netStatus').innerHTML = '✅ BSC Mainnet (正确)';
         else if (chainId === 97) $('netStatus').innerHTML = '⚠️ BSC Testnet';
-        else $('netStatus').innerHTML = `⚠️ 当前网络: ${chainId} (需要 56)`;
+        else $('netStatus').innerHTML = `⚠️ 当前网络: ${chainId} (需要切换到 56)`;
     }
 
     async function switchToBSC() {
@@ -446,13 +464,15 @@
         return await sendTransaction(tokenAddr, data, '0');
     }
 
-    // ==================== 带重试的合约调用 ====================
+    // 使用 activeWeb3 进行只读调用
     async function callContract(contractAddr, callData, retries = 2) {
-        const readWeb3 = getReadWeb3();
+        if (!activeWeb3) {
+            throw new Error('没有可用的 RPC 连接，请先测试 RPC');
+        }
         for (let i = 0; i <= retries; i++) {
             try {
                 const result = await Promise.race([
-                    readWeb3.eth.call({ to: contractAddr, data: callData }),
+                    activeWeb3.eth.call({ to: contractAddr, data: callData }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('超时(8s)')), 8000))
                 ]);
                 return result;
@@ -466,19 +486,17 @@
     // ==================== 核对关联 ====================
     async function checkAllLinks() {
         if (chainId !== EXPECTED_CHAIN_ID) {
-            logRes('resLink', '<span class="r">❌ 请先切换到 BSC 主网</span>');
+            logRes('resLink', '<span class="r">❌ 请先切换到 BSC 主网 (Chain ID 56)</span>');
             return;
         }
         
-        // 先测试 RPC
-        const rpcOk = await switchRPC();
-        if (!rpcOk) {
-            logRes('resLink', '<span class="r">❌ RPC 连接失败，请选择其他节点后重试</span>');
+        if (!activeWeb3) {
+            logRes('resLink', '<span class="r">❌ 没有可用的 RPC 连接，请先点击「重新测试所有 RPC」</span>');
             return;
         }
         
         loadDeployed();
-        logRes('resLink', '⏳ 核对中... (使用独立 RPC，超时 8 秒)');
+        logRes('resLink', '⏳ 核对合约关联中... (使用独立 RPC)');
         
         const tests = [
             ['MYK.rewardPool', MYK_ADDR, 'rewardPool()', REWARD_POOL_ADDR],
@@ -500,7 +518,7 @@
             try {
                 const callData = buildCallData(method);
                 const raw = await callContract(contract, callData);
-                const returnedAddr = web3.eth.abi.decodeParameter('address', raw);
+                const returnedAddr = activeWeb3.eth.abi.decodeParameter('address', raw);
                 const match = returnedAddr.toLowerCase() === expected.toLowerCase();
                 if (match) successCount++;
                 output += `${match ? '✅' : '❌'} ${name}: ${truncAddr(returnedAddr)}\n`;
@@ -510,10 +528,12 @@
         }
         
         output += `\n📊 成功率: ${successCount}/${tests.length}`;
-        if (successCount < tests.length) {
-            output += '\n<span class="y">💡 提示: 部分合约方法可能不存在或 RPC 不稳定，请尝试切换 RPC 节点</span>';
+        if (successCount === tests.length) {
+            output += '\n<span class="g">🎉 所有合约关联正确！可以正常使用。</span>';
+        } else if (successCount > 0) {
+            output += '\n<span class="y">⚠️ 部分关联失败，请检查合约地址是否正确。</span>';
         } else {
-            output += '\n<span class="g">✅ 所有合约关联正确！</span>';
+            output += '\n<span class="r">❌ 所有调用都失败了，请检查：\n1. RPC 连接是否正常\n2. 合约地址是否正确\n3. 网络是否稳定</span>';
         }
         logRes('resLink', output);
     }
@@ -568,7 +588,7 @@
                     break;
                 case 'checkExp':
                     callData = buildCallData('checkExpiry(address)', param || userAccount);
-                    const result = await web3.eth.call({ to: GOV_ADDR, data: callData });
+                    const result = await callContract(GOV_ADDR, callData);
                     const dec = web3.eth.abi.decodeParameters(['uint40','uint40','bool','bool'], result);
                     logRes('resAction', `⏰ 到期: ${Number(dec[1])>0?new Date(Number(dec[1])*1000).toLocaleString():'无'}`);
                     return;
@@ -583,7 +603,7 @@
                 default: throw new Error('未知操作');
             }
             const txHash = await sendTransaction(toAddr, callData, '0');
-            logRes('resAction', `✅ 交易发送成功\n哈希: ${txHash}`);
+            logRes('resAction', `✅ 交易发送成功\n哈希: ${txHash}\nhttps://bscscan.com/tx/${txHash}`);
         } catch(e) {
             logRes('resAction', `<span class="r">❌ ${e.message.slice(0, 200)}</span>`);
         }
