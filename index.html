@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MYK 测试面板 | 管理功能增强版</title>
+    <title>MYK 测试面板 | 完整管理功能</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
             color: #e6edf3;
         }
         .container {
-            max-width: 860px;
+            max-width: 900px;
             width: 100%;
         }
         .header {
@@ -135,7 +135,7 @@
             border: 1px solid #2d333b;
             white-space: pre-wrap;
             word-break: break-word;
-            max-height: 320px;
+            max-height: 400px;
             overflow-y: auto;
             line-height: 1.45;
         }
@@ -175,7 +175,7 @@
             font-size: 11px;
         }
         .addr-label {
-            width: 100px;
+            width: 130px;
             color: #8b949e;
         }
         .addr-value {
@@ -203,16 +203,22 @@
             flex: 1;
             min-width: 200px;
         }
+        .check-result {
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .check-pass { color: #7ee787; }
+        .check-fail { color: #ff7b72; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>⚙️ MYK · 管理面板</h1>
+        <h1>⚙️ MYK · 完整管理面板</h1>
         <div class="sub">
             <span id="netStatus">🔌 连接中...</span>
             <span>| BSC 主网</span>
-            <span>| 含管理功能</span>
+            <span>| 含关联验证</span>
         </div>
     </div>
 
@@ -252,7 +258,26 @@
         </div>
     </div>
 
-    <!-- ==================== 新增管理功能区域 ==================== -->
+    <!-- ==================== 关联核对（新增） ==================== -->
+    <div class="card">
+        <div class="card-title">🔗 关联核对 <span class="badge badge-read">验证所有关联</span></div>
+        <div class="row">
+            <button class="primary" onclick="runFullVerification()">✅ 运行完整关联核对</button>
+            <button onclick="quickCheck()">⚡ 快速检查关键关联</button>
+            <button onclick="exportCheckReport()">📄 导出核对报告</button>
+        </div>
+        <div class="res" id="resVerification">
+            💡 点击「运行完整关联核对」验证以下关联：<br>
+            • MYK ↔ RewardPool 关联<br>
+            • RewardPool ↔ Governance 关联<br>
+            • RewardPool ↔ FundManager 关联<br>
+            • Governance ↔ MYK/RewardPool/FundManager 关联<br>
+            • FundManager ↔ MYK/Governance 关联<br>
+            • PancakeSwap Pair 验证
+        </div>
+    </div>
+
+    <!-- ==================== 管理功能区域 ==================== -->
     <div class="card">
         <div class="card-title">🔐 管理功能 <span class="badge badge-admin">仅限 Owner</span></div>
         
@@ -438,10 +463,6 @@
     const encodeFunctionSig = (signature) => web3.eth.abi.encodeFunctionSignature(signature);
     const encodeAddress = (addr) => web3.eth.abi.encodeParameter('address', addr).slice(2);
     const encodeUint = (num) => web3.eth.abi.encodeParameter('uint256', num).slice(2);
-    const encodeBytes32 = (str) => {
-        if (str.startsWith('0x')) return str.slice(2);
-        return web3.utils.asciiToHex(str).slice(2);
-    };
     
     const buildCallData = (signature, ...params) => {
         let sig = encodeFunctionSig(signature);
@@ -450,7 +471,6 @@
             if (typeof p === 'string' && p.startsWith('0x') && p.length === 42) {
                 encoded += encodeAddress(p);
             } else if (typeof p === 'string' && p.length === 66 && p.startsWith('0x')) {
-                // bytes32
                 encoded += p.slice(2);
             } else {
                 encoded += encodeUint(p.toString());
@@ -536,17 +556,201 @@
         } catch (e) { return null; }
     }
 
+    // ==================== 关联核对（核心新增功能） ====================
+    async function callView(contract, method, ...params) {
+        if (!activeWeb3) await initRpc();
+        try {
+            const data = buildCallData(method, ...params);
+            const result = await activeWeb3.eth.call({ to: contract, data });
+            return result;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function decodeAddress(raw) {
+        if (!raw || raw === '0x') return '0x0000000000000000000000000000000000000000';
+        try {
+            return web3.eth.abi.decodeParameter('address', raw);
+        } catch (e) {
+            return raw;
+        }
+    }
+
+    async function runFullVerification() {
+        if (!activeWeb3) await initRpc();
+        if (!activeWeb3) {
+            logRes('resVerification', '<span class="r">❌ RPC 连接失败，请检查网络</span>');
+            return;
+        }
+        
+        let report = '';
+        let passedCount = 0;
+        let totalCount = 0;
+        
+        const addCheck = (name, expected, actual, isPass) => {
+            totalCount++;
+            if (isPass) passedCount++;
+            const status = isPass ? '✅' : '❌';
+            const colorClass = isPass ? 'check-pass' : 'check-fail';
+            report += `${status} <span class="${colorClass}">${name}</span>: ${truncAddr(actual)} ${isPass ? '' : '(期望 ' + truncAddr(expected) + ')'}\n`;
+        };
+        
+        // 1. MYK Token 关联
+        report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        report += '📌 MYK Token 合约关联\n';
+        report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        
+        let rpFromMYK = await callView(MYK_ADDR, 'rewardPool()');
+        rpFromMYK = await decodeAddress(rpFromMYK);
+        addCheck('MYK.rewardPool', REWARD_POOL_ADDR, rpFromMYK, rpFromMYK.toLowerCase() === REWARD_POOL_ADDR.toLowerCase());
+        
+        let govFromMYK = await callView(MYK_ADDR, 'communityGovernance()');
+        govFromMYK = await decodeAddress(govFromMYK);
+        addCheck('MYK.communityGovernance', GOV_ADDR, govFromMYK, govFromMYK.toLowerCase() === GOV_ADDR.toLowerCase());
+        
+        // 2. RewardPool 关联
+        report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        report += '📌 RewardPool 合约关联\n';
+        report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        
+        let mykFromRP = await callView(REWARD_POOL_ADDR, 'mykToken()');
+        mykFromRP = await decodeAddress(mykFromRP);
+        addCheck('RP.mykToken', MYK_ADDR, mykFromRP, mykFromRP.toLowerCase() === MYK_ADDR.toLowerCase());
+        
+        let govFromRP = await callView(REWARD_POOL_ADDR, 'communityGovernance()');
+        govFromRP = await decodeAddress(govFromRP);
+        addCheck('RP.communityGovernance', GOV_ADDR, govFromRP, govFromRP.toLowerCase() === GOV_ADDR.toLowerCase());
+        
+        let fmFromRP = await callView(REWARD_POOL_ADDR, 'fundManager()');
+        fmFromRP = await decodeAddress(fmFromRP);
+        addCheck('RP.fundManager', FUND_MANAGER_ADDR, fmFromRP, fmFromRP.toLowerCase() === FUND_MANAGER_ADDR.toLowerCase());
+        
+        // 3. Governance 关联
+        report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        report += '📌 CommunityGovernance 合约关联\n';
+        report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        
+        let mykFromGov = await callView(GOV_ADDR, 'mykToken()');
+        mykFromGov = await decodeAddress(mykFromGov);
+        addCheck('GV.mykToken', MYK_ADDR, mykFromGov, mykFromGov.toLowerCase() === MYK_ADDR.toLowerCase());
+        
+        let rpFromGov = await callView(GOV_ADDR, 'rewardPool()');
+        rpFromGov = await decodeAddress(rpFromGov);
+        addCheck('GV.rewardPool', REWARD_POOL_ADDR, rpFromGov, rpFromGov.toLowerCase() === REWARD_POOL_ADDR.toLowerCase());
+        
+        let fmFromGov = await callView(GOV_ADDR, 'fundManager()');
+        fmFromGov = await decodeAddress(fmFromGov);
+        addCheck('GV.fundManager', FUND_MANAGER_ADDR, fmFromGov, fmFromGov.toLowerCase() === FUND_MANAGER_ADDR.toLowerCase());
+        
+        // 4. FundManager 关联
+        report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        report += '📌 FundManager 合约关联\n';
+        report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        
+        let mykFromFM = await callView(FUND_MANAGER_ADDR, 'myk()');
+        mykFromFM = await decodeAddress(mykFromFM);
+        addCheck('FM.myk', MYK_ADDR, mykFromFM, mykFromFM.toLowerCase() === MYK_ADDR.toLowerCase());
+        
+        let govFromFM = await callView(FUND_MANAGER_ADDR, 'communityGovernance()');
+        govFromFM = await decodeAddress(govFromFM);
+        addCheck('FM.communityGovernance', GOV_ADDR, govFromFM, govFromFM.toLowerCase() === GOV_ADDR.toLowerCase());
+        
+        // 5. PancakeSwap Pair 验证
+        report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        report += '📌 PancakeSwap Pair 验证\n';
+        report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        
+        try {
+            let token0 = await callView(LP_PAIR_ADDR, 'token0()');
+            let token1 = await callView(LP_PAIR_ADDR, 'token1()');
+            token0 = await decodeAddress(token0);
+            token1 = await decodeAddress(token1);
+            
+            const hasMYK = token0.toLowerCase() === MYK_ADDR.toLowerCase() || token1.toLowerCase() === MYK_ADDR.toLowerCase();
+            const hasUSDT = token0.toLowerCase() === USDT_ADDR.toLowerCase() || token1.toLowerCase() === USDT_ADDR.toLowerCase();
+            
+            report += `🔗 Pair Token0: ${truncAddr(token0)}\n`;
+            report += `🔗 Pair Token1: ${truncAddr(token1)}\n`;
+            report += `✅ MYK 在 Pair 中: ${hasMYK ? '是' : '否'}\n`;
+            report += `✅ USDT 在 Pair 中: ${hasUSDT ? '是' : '否'}\n`;
+            if (hasMYK && hasUSDT) {
+                report += `<span class="check-pass">✅ Pair 配置正确 (MYK-USDT)</span>\n`;
+                passedCount += 2;
+                totalCount += 2;
+            } else {
+                report += `<span class="check-fail">⚠️ Pair 可能不是 MYK-USDT 交易对</span>\n`;
+                totalCount += 2;
+            }
+        } catch (e) {
+            report += `<span class="check-fail">❌ Pair 查询失败: ${e.message.slice(0,80)}</span>\n`;
+        }
+        
+        // 总结
+        report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        report += `📊 核对结果: ${passedCount}/${totalCount} 通过\n`;
+        if (passedCount === totalCount) {
+            report += '<span class="check-pass">🎉 所有关联验证通过！合约配置正确。</span>\n';
+        } else if (passedCount >= totalCount - 2) {
+            report += '<span class="y">⚠️ 大部分关联正确，请检查失败的项。</span>\n';
+        } else {
+            report += '<span class="check-fail">❌ 多个关联验证失败，请检查合约地址配置！</span>\n';
+        }
+        
+        logRes('resVerification', report);
+        return report;
+    }
+
+    async function quickCheck() {
+        if (!activeWeb3) await initRpc();
+        let result = '⚡ 快速检查结果:\n';
+        
+        try {
+            let mykFromRP = await callView(REWARD_POOL_ADDR, 'mykToken()');
+            mykFromRP = await decodeAddress(mykFromRP);
+            const rpOk = mykFromRP.toLowerCase() === MYK_ADDR.toLowerCase();
+            result += `${rpOk ? '✅' : '❌'} RP → MYK: ${rpOk ? '正确' : '地址不匹配'}\n`;
+        } catch(e) { result += `❌ RP → MYK: 查询失败\n`; }
+        
+        try {
+            let rpFromGov = await callView(GOV_ADDR, 'rewardPool()');
+            rpFromGov = await decodeAddress(rpFromGov);
+            const govOk = rpFromGov.toLowerCase() === REWARD_POOL_ADDR.toLowerCase();
+            result += `${govOk ? '✅' : '❌'} GV → RP: ${govOk ? '正确' : '地址不匹配'}\n`;
+        } catch(e) { result += `❌ GV → RP: 查询失败\n`; }
+        
+        try {
+            let mykFromFM = await callView(FUND_MANAGER_ADDR, 'myk()');
+            mykFromFM = await decodeAddress(mykFromFM);
+            const fmOk = mykFromFM.toLowerCase() === MYK_ADDR.toLowerCase();
+            result += `${fmOk ? '✅' : '❌'} FM → MYK: ${fmOk ? '正确' : '地址不匹配'}\n`;
+        } catch(e) { result += `❌ FM → MYK: 查询失败\n`; }
+        
+        logRes('resVerification', result);
+    }
+
+    function exportCheckReport() {
+        const reportDiv = document.getElementById('resVerification');
+        const reportText = reportDiv.innerText;
+        const blob = new Blob([reportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `MYK_verification_${new Date().toISOString().slice(0,19)}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('报告已导出');
+    }
+
     // ==================== 管理功能 ====================
-    
-    // 1. Merkle 节点授权
     async function setMerkleRoot() {
         const root = $('merkleRoot').value.trim();
-        if (!root) { alert('请输入 Merkle Root (32字节 hex)'); return; }
+        if (!root) { alert('请输入 Merkle Root'); return; }
         try {
             const data = buildCallData('setMerkleRoot(bytes32)', root);
             const tx = await sendTransaction(GOV_ADDR, data);
-            logRes('resAdmin', `✅ setMerkleRoot 交易已发送\n哈希: ${tx}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">❌ 失败: ${e.message.slice(0,150)}</span>`); }
+            logRes('resAdmin', `✅ setMerkleRoot 已发送\n哈希: ${tx}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">❌ ${e.message.slice(0,150)}</span>`); }
     }
     
     async function setSubmitNode() {
@@ -555,8 +759,8 @@
         try {
             const data = buildCallData('setSubmitNode(address)', node);
             const tx = await sendTransaction(GOV_ADDR, data);
-            logRes('resAdmin', `✅ setSubmitNode 交易已发送\n哈希: ${tx}\n节点: ${node}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">❌ 失败: ${e.message.slice(0,150)}</span>`); }
+            logRes('resAdmin', `✅ setSubmitNode 已发送\n哈希: ${tx}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">❌ ${e.message.slice(0,150)}</span>`); }
     }
     
     async function getMerkleRoot() {
@@ -564,7 +768,7 @@
         try {
             const data = buildCallData('merkleRoot()');
             const raw = await activeWeb3.eth.call({ to: GOV_ADDR, data });
-            logRes('resAdmin', `🌲 当前 Merkle Root: ${raw}`);
+            logRes('resAdmin', `🌲 Merkle Root: ${raw}`);
         } catch(e) { logRes('resAdmin', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`); }
     }
     
@@ -574,20 +778,18 @@
             const data = buildCallData('submitNode()');
             const raw = await activeWeb3.eth.call({ to: GOV_ADDR, data });
             const node = web3.eth.abi.decodeParameter('address', raw);
-            logRes('resAdmin', `👤 当前提交节点: ${node} ${node === '0x0000000000000000000000000000000000000000' ? '(未设置)' : ''}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`); }
+            logRes('resAdmin', `👤 提交节点: ${node}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">查询失败</span>`); }
     }
     
-    // 2. 初始价格设置
     async function setInitPrice() {
         const price = parseFloat($('initPrice').value);
-        if (isNaN(price) || price <= 0) { alert('请输入有效的价格 (USDT)'); return; }
-        const priceWei = toWei(price);
+        if (isNaN(price)) { alert('请输入有效价格'); return; }
         try {
-            const data = buildCallData('setInitPrice(uint256)', priceWei);
+            const data = buildCallData('setInitPrice(uint256)', toWei(price));
             const tx = await sendTransaction(GOV_ADDR, data);
-            logRes('resAdmin', `✅ setInitPrice 交易已发送\n哈希: ${tx}\n价格: ${price} USDT`);
-        } catch(e) { logRes('resAdmin', `<span class="r">❌ 失败: ${e.message.slice(0,150)}</span>`); }
+            logRes('resAdmin', `✅ setInitPrice 已发送\n哈希: ${tx}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">❌ ${e.message.slice(0,150)}</span>`); }
     }
     
     async function getInitPrice() {
@@ -595,50 +797,48 @@
         try {
             const data = buildCallData('initPrice()');
             const raw = await activeWeb3.eth.call({ to: GOV_ADDR, data });
-            const price = fromWei(raw);
-            logRes('resAdmin', `💰 当前初始价格: ${price.toFixed(8)} USDT`);
-        } catch(e) { logRes('resAdmin', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`); }
+            logRes('resAdmin', `💰 初始价格: ${fromWei(raw).toFixed(8)} USDT`);
+        } catch(e) { logRes('resAdmin', `<span class="r">查询失败</span>`); }
     }
     
     async function syncPriceFromOracle() {
         try {
             const data = buildCallData('syncPriceFromOracle()');
             const tx = await sendTransaction(GOV_ADDR, data);
-            logRes('resAdmin', `✅ syncPriceFromOracle 交易已发送\n哈希: ${tx}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">❌ 失败: ${e.message.slice(0,150)}</span>`); }
+            logRes('resAdmin', `✅ syncPriceFromOracle 已发送\n哈希: ${tx}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">❌ ${e.message.slice(0,150)}</span>`); }
     }
     
-    // 3. 白名单设置 (FundManager)
     async function addToWhitelist() {
         const asset = $('whitelistAsset').value.trim();
-        if (!asset || !asset.startsWith('0x')) { alert('请输入有效的资产地址'); return; }
+        if (!asset) { alert('请输入资产地址'); return; }
         try {
             const data = buildCallData('addToWhitelist(address)', asset);
             const tx = await sendTransaction(FUND_MANAGER_ADDR, data);
-            logRes('resAdmin', `✅ addToWhitelist 交易已发送\n哈希: ${tx}\n资产: ${asset}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">❌ 失败: ${e.message.slice(0,150)}</span>`); }
+            logRes('resAdmin', `✅ addToWhitelist 已发送\n哈希: ${tx}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">❌ ${e.message.slice(0,150)}</span>`); }
     }
     
     async function removeFromWhitelist() {
         const asset = $('removeAsset').value.trim();
-        if (!asset || !asset.startsWith('0x')) { alert('请输入有效的资产地址'); return; }
+        if (!asset) { alert('请输入资产地址'); return; }
         try {
             const data = buildCallData('removeFromWhitelist(address)', asset);
             const tx = await sendTransaction(FUND_MANAGER_ADDR, data);
-            logRes('resAdmin', `✅ removeFromWhitelist 交易已发送\n哈希: ${tx}\n资产: ${asset}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">❌ 失败: ${e.message.slice(0,150)}</span>`); }
+            logRes('resAdmin', `✅ removeFromWhitelist 已发送\n哈希: ${tx}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">❌ ${e.message.slice(0,150)}</span>`); }
     }
     
     async function checkWhitelist() {
         const asset = $('whitelistAsset').value.trim() || $('removeAsset').value.trim();
-        if (!asset || !asset.startsWith('0x')) { alert('请输入资产地址'); return; }
+        if (!asset) { alert('请输入资产地址'); return; }
         if (!activeWeb3) await initRpc();
         try {
             const data = buildCallData('isWhitelisted(address)', asset);
             const raw = await activeWeb3.eth.call({ to: FUND_MANAGER_ADDR, data });
-            const isWhitelisted = web3.eth.abi.decodeParameter('bool', raw);
-            logRes('resAdmin', `🔍 资产 ${truncAddr(asset)} ${isWhitelisted ? '<span class="g">✅ 已在白名单</span>' : '<span class="r">❌ 不在白名单</span>'}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`); }
+            const isWhite = web3.eth.abi.decodeParameter('bool', raw);
+            logRes('resAdmin', `🔍 ${truncAddr(asset)} ${isWhite ? '<span class="g">✅ 已在白名单</span>' : '<span class="r">❌ 不在白名单</span>'}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">查询失败</span>`); }
     }
     
     async function getWhitelistLength() {
@@ -646,21 +846,20 @@
         try {
             const data = buildCallData('getWhitelistLength()');
             const raw = await activeWeb3.eth.call({ to: FUND_MANAGER_ADDR, data });
-            const length = parseInt(raw);
-            logRes('resAdmin', `📋 白名单长度: ${length}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`); }
+            logRes('resAdmin', `📋 白名单长度: ${parseInt(raw)}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">查询失败</span>`); }
     }
     
     async function getWhitelistByIndex() {
         const idx = parseInt($('whitelistIndex').value);
-        if (isNaN(idx) || idx < 0) { alert('请输入有效索引'); return; }
+        if (isNaN(idx)) { alert('请输入有效索引'); return; }
         if (!activeWeb3) await initRpc();
         try {
             const data = buildCallData('whitelist(uint256)', idx);
             const raw = await activeWeb3.eth.call({ to: FUND_MANAGER_ADDR, data });
             const asset = web3.eth.abi.decodeParameter('address', raw);
-            logRes('resAdmin', `📄 索引 ${idx}: ${asset} ${asset === '0x0000000000000000000000000000000000000000' ? '(空)' : ''}`);
-        } catch(e) { logRes('resAdmin', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`); }
+            logRes('resAdmin', `📄 索引 ${idx}: ${asset}`);
+        } catch(e) { logRes('resAdmin', `<span class="r">查询失败</span>`); }
     }
 
     // 存入 MYK 到活动奖金池
@@ -706,9 +905,9 @@
         if (!userAccount) { alert('请连接钱包'); return; }
         if (!activeWeb3) await initRpc();
         try {
-            const balanceData = buildCallData('balanceOf(address)', userAccount);
-            const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data: balanceData });
-            logRes('resDeposit', `💰 你的 MYK 余额: ${fromWei(raw).toFixed(4)} MYK`);
+            const data = buildCallData('balanceOf(address)', userAccount);
+            const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data });
+            logRes('resDeposit', `💰 MYK 余额: ${fromWei(raw).toFixed(4)}`);
         } catch(e) { logRes('resDeposit', `<span class="r">查询失败</span>`); }
     }
 
@@ -716,20 +915,19 @@
         if (!userAccount) { alert('请连接钱包'); return; }
         if (!activeWeb3) await initRpc();
         try {
-            const allowanceData = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
-            const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data: allowanceData });
-            logRes('resDeposit', `🔓 已授权额度: ${fromWei(raw).toFixed(4)} MYK`);
+            const data = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
+            const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data });
+            logRes('resDeposit', `🔓 授权额度: ${fromWei(raw).toFixed(4)} MYK`);
         } catch(e) { logRes('resDeposit', `<span class="r">查询失败</span>`); }
     }
 
     async function getActivityPoolInfo() {
-        const poolBalance = await getActivityPoolBalance();
-        const paidAmount = await getActivityPoolPaid();
+        const balance = await getActivityPoolBalance();
+        const paid = await getActivityPoolPaid();
         const price = await getCurrentPrice();
-        if (poolBalance !== null && paidAmount !== null) {
-            const rewardPerActivation = price ? (2 / price).toFixed(4) : '--';
-            const maxActivations = price ? Math.floor(poolBalance / (2 / price)) : 0;
-            logRes('resDeposit', `📋 活动奖金池:\n余额: ${poolBalance.toFixed(2)} MYK\n已发放: ${paidAmount.toFixed(2)} MYK\n每激活: ${rewardPerActivation} MYK\n剩余可激活: ~${maxActivations} 人`);
+        if (balance !== null) {
+            const rewardPer = price ? (2 / price).toFixed(4) : '--';
+            logRes('resDeposit', `📋 活动奖金池:\n余额: ${balance.toFixed(2)} MYK\n已发放: ${paid?.toFixed(2) || '--'} MYK\n每激活: ${rewardPer} MYK`);
         }
     }
 
@@ -770,8 +968,7 @@
             let toAddr = '', callData = '';
             switch(action) {
                 case 'activate':
-                    const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(2));
-                    await sendTransaction(USDT_ADDR, approveData);
+                    await sendTransaction(USDT_ADDR, buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(2)));
                     callData = buildCallData('activateWithUSDT(address)', param || userAccount);
                     toAddr = REWARD_POOL_ADDR;
                     break;
@@ -807,7 +1004,7 @@
         } catch(e) { logRes('resAction', `<span class="r">❌ ${e.message.slice(0,200)}</span>`); }
     }
 
-    // 查询函数（简化版）
+    // 查询函数
     async function queryUser() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const data=buildCallData('users(address)',addr); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); const d=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],raw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; logRes('resQuery',`👤 ${truncAddr(addr)}\n身份: ${roles[d[7]]}\n激活: ${d[8]?'✅':'❌'}\n邀请: ${d[1]}人`); }catch(e){ logRes('resQuery','查询失败'); } }
     async function queryTier() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const data=buildCallData('getCommunityTier(address)',addr); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const tier=parseInt(raw); const names=['无','第一','第二','第三','第四','第五','第六']; logRes('resQuery',`🏆 等级: ${names[tier]||'未知'}`); }catch(e){ logRes('resQuery','失败'); } }
     async function queryExpiry() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const data=buildCallData('getExpiryInfo(address)',addr); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const d=web3.eth.abi.decodeParameters(['uint40','uint40','bool','bool'],raw); logRes('resQuery',`⏳ 到期: ${Number(d[1])>0?new Date(Number(d[1])*1000).toLocaleDateString():'无'}`); }catch(e){ logRes('resQuery','失败'); } }
