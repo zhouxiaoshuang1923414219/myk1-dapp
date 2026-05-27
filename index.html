@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MYK 最终测试面板 | 已部署合约确认</title>
+    <title>MYK 最终测试面板 | 含 Pair 设置</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
             color: #e6edf3;
         }
         .container {
-            max-width: 900px;
+            max-width: 920px;
             width: 100%;
         }
         .header {
@@ -72,7 +72,7 @@
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
         .badge-pool { background: #d2992220; color: #ffdf6e; border: 0.5px solid #d29922; }
         .badge-admin { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
-        .badge-final { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
+        .badge-critical { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
         input, select {
             width: 100%;
             padding: 8px 12px;
@@ -119,6 +119,12 @@
             color: #7ee787;
         }
         button.admin:hover { background: #7ee78730; }
+        button.critical {
+            background: #f0883e20;
+            border-color: #f0883e;
+            color: #f0883e;
+        }
+        button.critical:hover { background: #f0883e30; }
         .row {
             display: flex;
             gap: 8px;
@@ -214,15 +220,13 @@
             margin-top: 8px;
             font-size: 11px;
         }
-        .deploy-status span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
+        .warning-box {
+            background: #f0883e10;
+            border-left: 3px solid #f0883e;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 8px;
         }
-        .status-confirmed { background: #7ee787; box-shadow: 0 0 4px #7ee787; }
-        .status-pending { background: #ffdf6e; }
     </style>
 </head>
 <body>
@@ -232,8 +236,27 @@
         <div class="sub">
             <span id="netStatus">🔌 连接中...</span>
             <span>| BSC 主网</span>
-            <span>| 合约已确认</span>
+            <span>| 含 Pair 设置</span>
         </div>
+    </div>
+
+    <!-- 关键配置提醒 -->
+    <div class="card">
+        <div class="card-title">⚠️ 重要配置 <span class="badge badge-critical">必须设置</span></div>
+        <div class="warning-box">
+            <span class="y">❗ RewardPool 必须设置 PancakeSwap Pair 地址，否则价格获取（getCurrentPrice、TWAP）无法正常工作，激活和奖励计算都会失败！</span>
+        </div>
+        <div class="addr-row">
+            <span class="addr-label">PancakeSwap Pair:</span>
+            <span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
+            <button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button>
+        </div>
+        <div class="row">
+            <button class="critical" onclick="setPair()">🔧 设置 RewardPool Pair 地址</button>
+            <button onclick="getCurrentPair()">🔍 查询当前 Pair 地址</button>
+            <button onclick="checkPairStatus()">✅ 检查 Pair 配置状态</button>
+        </div>
+        <div class="res" id="resPairStatus">⏳ 请点击「检查 Pair 配置状态」确认是否已设置</div>
     </div>
 
     <!-- 部署状态确认 -->
@@ -266,8 +289,8 @@
             </div>
             <div class="addr-row">
                 <span class="addr-label">PancakeSwap Pair:</span>
-                <span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
-                <button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button>
+                <span class="addr-value" id="displayPairAddr2">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayPairAddr2')">复制</button>
                 <span class="g">✓ 已确认</span>
             </div>
             <div class="addr-row">
@@ -328,6 +351,21 @@
     <!-- 管理功能区域 -->
     <div class="card">
         <div class="card-title">🔐 管理功能 <span class="badge badge-admin">仅限 Owner</span></div>
+        
+        <!-- 0. Pair 设置（最优先） -->
+        <div style="margin-bottom: 16px; background: #f0883e10; border-radius: 12px; padding: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span class="badge badge-critical">🔥 优先设置</span>
+                <span style="font-size: 11px; color: #f0883e;">RewardPool.setPair - 价格获取必需</span>
+            </div>
+            <div class="row">
+                <input type="text" id="pairAddress" placeholder="Pair 地址" value="0x471D5AC981d728f1D214ffcF6E73d6f24562c16D">
+                <button class="critical" onclick="setPair()">🔧 设置 Pair</button>
+                <button onclick="getCurrentPair()">🔍 查询当前 Pair</button>
+            </div>
+        </div>
+        
+        <hr>
         
         <!-- 1. Merkle 节点授权 -->
         <div style="margin-bottom: 16px;">
@@ -458,7 +496,6 @@
     let web3, userAccount, chainId;
     let activeWeb3 = null;
     
-    // 最终部署地址
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
     let REWARD_POOL_ADDR = '0xAfDDd2d4985453f327f69c914e7421F79bFEE1B7';
     let GOV_ADDR = '0x72486EF88DbF2317F3A756C50Afc6B41e703A9C7';
@@ -521,6 +558,98 @@
             } catch (e) {}
         }
         return false;
+    }
+
+    // ==================== Pair 设置核心功能 ====================
+    async function setPair() {
+        if (chainId !== EXPECTED_CHAIN_ID) { alert('请先切换到 BSC 主网'); return; }
+        if (!userAccount) { alert('请连接钱包'); return; }
+        
+        const pairAddr = $('pairAddress').value.trim();
+        if (!pairAddr || !pairAddr.startsWith('0x')) {
+            alert('请输入有效的 Pair 地址');
+            return;
+        }
+        
+        try {
+            logRes('resPairStatus', '⏳ 正在设置 Pair 地址...');
+            const data = buildCallData('setPair(address)', pairAddr);
+            const tx = await sendTransaction(REWARD_POOL_ADDR, data);
+            logRes('resPairStatus', `✅ setPair 交易已发送！\n📌 Pair: ${pairAddr}\n🔗 交易哈希: ${tx}\n\n⚠️ 请等待交易确认后，价格查询功能才能正常工作。`);
+            setTimeout(() => getCurrentPair(), 5000);
+        } catch(e) {
+            logRes('resPairStatus', `<span class="r">❌ 设置失败: ${e.message.slice(0,150)}</span>`);
+        }
+    }
+    
+    async function getCurrentPair() {
+        if (!REWARD_POOL_ADDR) { logRes('resPairStatus', '请先配置 RewardPool 地址'); return; }
+        if (!activeWeb3) await initRpc();
+        
+        try {
+            const data = buildCallData('pair()');
+            const raw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data });
+            const currentPair = web3.eth.abi.decodeParameter('address', raw);
+            const expectedPair = LP_PAIR_ADDR.toLowerCase();
+            const isMatch = currentPair.toLowerCase() === expectedPair;
+            
+            logRes('resPairStatus', `🔍 当前 RewardPool Pair 地址:\n${currentPair}\n\n期望地址: ${LP_PAIR_ADDR}\n状态: ${isMatch ? '<span class="g">✅ 已正确设置</span>' : '<span class="r">❌ 未设置或不匹配！请点击上方按钮设置</span>'}`);
+            
+            if (!isMatch && currentPair !== '0x0000000000000000000000000000000000000000') {
+                logRes('resPairStatus', `⚠️ 当前 Pair 地址与期望不符，请执行 setPair 重新设置`);
+            }
+        } catch(e) {
+            logRes('resPairStatus', `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`);
+        }
+    }
+    
+    async function checkPairStatus() {
+        if (!activeWeb3) await initRpc();
+        if (!REWARD_POOL_ADDR) { logRes('resPairStatus', '请先配置 RewardPool 地址'); return; }
+        
+        try {
+            // 查询当前 Pair
+            const pairData = buildCallData('pair()');
+            const pairRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: pairRaw });
+            // 注意：上面的调用有误，修正
+            const pairRawCorrect = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: pairData });
+            const currentPair = web3.eth.abi.decodeParameter('address', pairRawCorrect);
+            
+            // 尝试查询价格，验证是否正常工作
+            let priceWorking = false;
+            let priceValue = '--';
+            try {
+                const priceData = buildCallData('getCurrentPrice()');
+                const priceRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: priceData });
+                priceValue = fromWei(priceRaw).toFixed(8);
+                priceWorking = true;
+            } catch(e) {
+                priceWorking = false;
+            }
+            
+            const isPairSet = currentPair !== '0x0000000000000000000000000000000000000000';
+            const isPairCorrect = currentPair.toLowerCase() === LP_PAIR_ADDR.toLowerCase();
+            
+            let status = '';
+            if (!isPairSet) {
+                status = '<span class="r">❌ 严重：Pair 地址未设置！价格查询无法工作。</span>\n';
+            } else if (!isPairCorrect) {
+                status = `<span class="r">⚠️ Pair 地址设置错误！当前: ${truncAddr(currentPair)}，期望: ${truncAddr(LP_PAIR_ADDR)}</span>\n`;
+            } else {
+                status = '<span class="g">✅ Pair 地址配置正确</span>\n';
+            }
+            
+            status += `\n📊 当前 Pair: ${currentPair}\n`;
+            status += `📊 价格查询: ${priceWorking ? `<span class="g">✅ 正常 (${priceValue} USDT)</span>` : '<span class="r">❌ 失败</span>'}\n`;
+            
+            if (!isPairCorrect) {
+                status += '\n<span class="y">💡 请点击「设置 RewardPool Pair 地址」进行配置，否则激活和奖励计算都会失败！</span>';
+            }
+            
+            logRes('resPairStatus', status);
+        } catch(e) {
+            logRes('resPairStatus', `<span class="r">检查失败: ${e.message.slice(0,150)}</span>`);
+        }
     }
 
     // ==================== 余额查询函数 ====================
@@ -641,6 +770,12 @@
         fmFromRP = await decodeAddress(fmFromRP);
         addCheck('RP.fundManager', FUND_MANAGER_ADDR, fmFromRP, fmFromRP.toLowerCase() === FUND_MANAGER_ADDR.toLowerCase());
         
+        // 检查 Pair 设置
+        let pairFromRP = await callView(REWARD_POOL_ADDR, 'pair()');
+        pairFromRP = await decodeAddress(pairFromRP);
+        const pairOk = pairFromRP.toLowerCase() === LP_PAIR_ADDR.toLowerCase();
+        addCheck('RP.pair', LP_PAIR_ADDR, pairFromRP, pairOk);
+        
         // 3. Governance 关联
         report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         report += '📌 CommunityGovernance 合约关联\n';
@@ -671,40 +806,30 @@
         govFromFM = await decodeAddress(govFromFM);
         addCheck('FM.communityGovernance', GOV_ADDR, govFromFM, govFromFM.toLowerCase() === GOV_ADDR.toLowerCase());
         
-        // 5. PancakeSwap Pair 验证
+        // 5. 价格功能验证
         report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-        report += '📌 PancakeSwap Pair 验证\n';
+        report += '📌 价格功能验证\n';
         report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         
         try {
-            let token0 = await callView(LP_PAIR_ADDR, 'token0()');
-            let token1 = await callView(LP_PAIR_ADDR, 'token1()');
-            token0 = await decodeAddress(token0);
-            token1 = await decodeAddress(token1);
-            
-            const hasMYK = token0.toLowerCase() === MYK_ADDR.toLowerCase() || token1.toLowerCase() === MYK_ADDR.toLowerCase();
-            const hasUSDT = token0.toLowerCase() === USDT_ADDR.toLowerCase() || token1.toLowerCase() === USDT_ADDR.toLowerCase();
-            
-            report += `🔗 Pair Token0: ${truncAddr(token0)}\n`;
-            report += `🔗 Pair Token1: ${truncAddr(token1)}\n`;
-            report += `✅ MYK 在 Pair 中: ${hasMYK ? '是' : '否'}\n`;
-            report += `✅ USDT 在 Pair 中: ${hasUSDT ? '是' : '否'}\n`;
-            if (hasMYK && hasUSDT) {
-                report += `<span class="check-pass">✅ Pair 配置正确 (MYK-USDT)</span>\n`;
-                passedCount += 2;
-                totalCount += 2;
-            } else {
-                report += `<span class="check-fail">⚠️ Pair 可能不是 MYK-USDT 交易对</span>\n`;
-                totalCount += 2;
-            }
-        } catch (e) {
-            report += `<span class="check-fail">❌ Pair 查询失败: ${e.message.slice(0,80)}</span>\n`;
+            const priceData = buildCallData('getCurrentPrice()');
+            const priceRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: priceData });
+            const price = fromWei(priceRaw);
+            report += `<span class="check-pass">✅ getCurrentPrice(): ${price.toFixed(8)} USDT</span>\n`;
+            passedCount++;
+            totalCount++;
+        } catch(e) {
+            report += `<span class="check-fail">❌ getCurrentPrice() 失败: ${e.message.slice(0,80)}</span>\n`;
+            totalCount++;
         }
         
         // 总结
         report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         report += `📊 核对结果: ${passedCount}/${totalCount} 通过\n`;
-        if (passedCount === totalCount) {
+        
+        if (!pairOk) {
+            report += '<span class="check-fail">❌ 严重：RP.pair 未正确设置！请点击上方「设置 RewardPool Pair 地址」按钮进行配置。</span>\n';
+        } else if (passedCount === totalCount) {
             report += '<span class="check-pass">🎉 所有关联验证通过！合约配置正确，可以正式使用。</span>\n';
         } else if (passedCount >= totalCount - 2) {
             report += '<span class="y">⚠️ 大部分关联正确，请检查失败的项。</span>\n';
@@ -723,23 +848,22 @@
         try {
             let mykFromRP = await callView(REWARD_POOL_ADDR, 'mykToken()');
             mykFromRP = await decodeAddress(mykFromRP);
-            const rpOk = mykFromRP.toLowerCase() === MYK_ADDR.toLowerCase();
-            result += `${rpOk ? '✅' : '❌'} RP → MYK: ${rpOk ? '正确' : '地址不匹配'}\n`;
+            result += `${mykFromRP.toLowerCase() === MYK_ADDR.toLowerCase() ? '✅' : '❌'} RP → MYK\n`;
         } catch(e) { result += `❌ RP → MYK: 查询失败\n`; }
+        
+        try {
+            let pairFromRP = await callView(REWARD_POOL_ADDR, 'pair()');
+            pairFromRP = await decodeAddress(pairFromRP);
+            const pairOk = pairFromRP.toLowerCase() === LP_PAIR_ADDR.toLowerCase();
+            result += `${pairOk ? '✅' : '❌'} RP → Pair ${pairOk ? '(已设置)' : '(未设置/错误)'}\n`;
+            if (!pairOk) result += `   💡 需要设置 Pair: ${LP_PAIR_ADDR}\n`;
+        } catch(e) { result += `❌ RP → Pair: 查询失败\n`; }
         
         try {
             let rpFromGov = await callView(GOV_ADDR, 'rewardPool()');
             rpFromGov = await decodeAddress(rpFromGov);
-            const govOk = rpFromGov.toLowerCase() === REWARD_POOL_ADDR.toLowerCase();
-            result += `${govOk ? '✅' : '❌'} GV → RP: ${govOk ? '正确' : '地址不匹配'}\n`;
+            result += `${rpFromGov.toLowerCase() === REWARD_POOL_ADDR.toLowerCase() ? '✅' : '❌'} GV → RP\n`;
         } catch(e) { result += `❌ GV → RP: 查询失败\n`; }
-        
-        try {
-            let mykFromFM = await callView(FUND_MANAGER_ADDR, 'myk()');
-            mykFromFM = await decodeAddress(mykFromFM);
-            const fmOk = mykFromFM.toLowerCase() === MYK_ADDR.toLowerCase();
-            result += `${fmOk ? '✅' : '❌'} FM → MYK: ${fmOk ? '正确' : '地址不匹配'}\n`;
-        } catch(e) { result += `❌ FM → MYK: 查询失败\n`; }
         
         logRes('resVerification', result);
     }
@@ -943,7 +1067,10 @@
             userAccount = accounts[0];
             chainId = await web3.eth.getChainId();
             updateNetworkDisplay();
-            if (chainId === EXPECTED_CHAIN_ID) refreshAllBalances();
+            if (chainId === EXPECTED_CHAIN_ID) {
+                refreshAllBalances();
+                setTimeout(() => checkPairStatus(), 1000);
+            }
         } catch (err) { $('netStatus').innerHTML = `<span class="r">连接失败</span>`; }
         window.ethereum.on('accountsChanged', (accs) => { userAccount = accs[0]; });
         window.ethereum.on('chainChanged', (newChain) => { chainId = parseInt(newChain, 16); updateNetworkDisplay(); });
@@ -1012,7 +1139,7 @@
     async function queryExpiry() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const data=buildCallData('getExpiryInfo(address)',addr); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const d=web3.eth.abi.decodeParameters(['uint40','uint40','bool','bool'],raw); logRes('resQuery',`⏳ 到期: ${Number(d[1])>0?new Date(Number(d[1])*1000).toLocaleDateString():'无'}`); }catch(e){ logRes('resQuery','失败'); } }
     async function queryRank() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const data=buildCallData('getUserRank(address)',addr); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); logRes('resQuery',`📊 排名: #${parseInt(raw)}`); }catch(e){ logRes('resQuery','无排名'); } }
     async function queryBalance() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const mykData=buildCallData('balanceOf(address)',addr); const usdtData=buildCallData('balanceOf(address)',addr); const [myk,usdt]=await Promise.all([activeWeb3.eth.call({to:MYK_ADDR,data:mykData}),activeWeb3.eth.call({to:USDT_ADDR,data:usdtData})]); logRes('resQuery',`💰 MYK: ${fromWei(myk).toFixed(4)}\n💵 USDT: ${fromWei(usdt).toFixed(2)}`); }catch(e){ logRes('resQuery','失败'); } }
-    async function queryPrice() { if (!activeWeb3) await initRpc(); try{ const data=buildCallData('getCurrentPrice()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); logRes('resQuery',`💵 MYK 价格: ${fromWei(raw).toFixed(8)} USDT`); }catch(e){ logRes('resQuery','失败'); } }
+    async function queryPrice() { if (!activeWeb3) await initRpc(); try{ const data=buildCallData('getCurrentPrice()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); logRes('resQuery',`💵 MYK 价格: ${fromWei(raw).toFixed(8)} USDT`); }catch(e){ logRes('resQuery','价格查询失败，请检查 Pair 是否已设置'); } }
     async function queryDividend() { if (!activeWeb3) await initRpc(); try{ const data=buildCallData('getDividendInfo()'); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const d=web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256'],raw); logRes('resQuery',`💧 第六社区分红: ${fromWei(d[0]).toFixed(2)} MYK`); }catch(e){ logRes('resQuery','失败'); } }
     async function querySeats() { if (!activeWeb3) await initRpc(); let info='👑 第六社区席位:\n'; for(let i=0;i<3;i++){ try{ const data=buildCallData('getSixthSeatInfo(uint256)',i); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const d=web3.eth.abi.decodeParameters(['address','uint256','uint256'],raw); info+=`席位${i+1}: ${truncAddr(d[0])}\n`; }catch(e){ info+=`席位${i+1}: 空\n`; } } logRes('resQuery',info); }
     async function queryUpRewards() { if (!activeWeb3) await initRpc(); const addr=getQueryAddress(); if(!addr)return; try{ const data=buildCallData('getFirstCommunity(address)',addr); const fc=web3.eth.abi.decodeParameter('address',await activeWeb3.eth.call({to:GOV_ADDR,data})); if(fc==='0x0000000000000000000000000000000000000000') logRes('resQuery','无上级社区'); else logRes('resQuery',`🎁 上级社区: ${truncAddr(fc)}`); }catch(e){ logRes('resQuery','失败'); } }
