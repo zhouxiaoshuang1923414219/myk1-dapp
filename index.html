@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MYK 测试面板 | 完整管理功能</title>
+    <title>MYK 最终测试面板 | 已部署合约确认</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -72,6 +72,7 @@
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
         .badge-pool { background: #d2992220; color: #ffdf6e; border: 0.5px solid #d29922; }
         .badge-admin { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
+        .badge-final { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
         input, select {
             width: 100%;
             padding: 8px 12px;
@@ -171,7 +172,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-size: 11px;
         }
         .addr-label {
@@ -183,6 +184,7 @@
             font-family: monospace;
             color: #79c0ff;
             word-break: break-all;
+            font-size: 11px;
         }
         .copy-btn {
             background: #21262d;
@@ -203,28 +205,90 @@
             flex: 1;
             min-width: 200px;
         }
-        .check-result {
-            font-family: monospace;
-            font-size: 11px;
-        }
         .check-pass { color: #7ee787; }
         .check-fail { color: #ff7b72; }
+        .deploy-status {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+        .deploy-status span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-confirmed { background: #7ee787; box-shadow: 0 0 4px #7ee787; }
+        .status-pending { background: #ffdf6e; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>⚙️ MYK · 完整管理面板</h1>
+        <h1>⚙️ MYK · 最终测试面板</h1>
         <div class="sub">
             <span id="netStatus">🔌 连接中...</span>
             <span>| BSC 主网</span>
-            <span>| 含关联验证</span>
+            <span>| 合约已确认</span>
+        </div>
+    </div>
+
+    <!-- 部署状态确认 -->
+    <div class="card">
+        <div class="card-title">✅ 已部署合约最终确认 <span class="badge badge-final">Final</span></div>
+        <div class="deploy-status">
+            <div class="addr-row">
+                <span class="addr-label">MYK Token:</span>
+                <span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button>
+                <span class="g">✓ 已确认</span>
+            </div>
+            <div class="addr-row">
+                <span class="addr-label">RewardPool:</span>
+                <span class="addr-value" id="displayRpAddr">0xAfDDd2d4985453f327f69c914e7421F79bFEE1B7</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button>
+                <span class="g">✓ 已确认</span>
+            </div>
+            <div class="addr-row">
+                <span class="addr-label">CommunityGovernance:</span>
+                <span class="addr-value" id="displayGvAddr">0x72486EF88DbF2317F3A756C50Afc6B41e703A9C7</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button>
+                <span class="g">✓ 已确认</span>
+            </div>
+            <div class="addr-row">
+                <span class="addr-label">FundManager:</span>
+                <span class="addr-value" id="displayFmAddr">0xD6fADfc666767f337BD38B7d72B422cB295eca56</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button>
+                <span class="g">✓ 已确认</span>
+            </div>
+            <div class="addr-row">
+                <span class="addr-label">PancakeSwap Pair:</span>
+                <span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button>
+                <span class="g">✓ 已确认</span>
+            </div>
+            <div class="addr-row">
+                <span class="addr-label">PancakeSwap Router:</span>
+                <span class="addr-value" id="displayRouterAddr">0x10ED43C718714eb63d5aA57B78B54704E256024E</span>
+                <button class="copy-btn" onclick="copyToClipboard('displayRouterAddr')">复制</button>
+                <span class="g">✓ 已确认</span>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 8px;">
+            <button class="primary" onclick="runFullVerification()">✅ 运行完整关联核对</button>
+            <button onclick="quickCheck()">⚡ 快速检查</button>
+        </div>
+        <div class="res" id="resVerification">
+            💡 点击「运行完整关联核对」验证所有合约关联配置是否正确
         </div>
     </div>
 
     <!-- RewardPool 合约余额总览 -->
     <div class="card">
-        <div class="card-title">📊 RewardPool 合约余额 <span class="badge badge-read">BSC 主网</span></div>
+        <div class="card-title">📊 RewardPool 合约余额 <span class="badge badge-read">实时查询</span></div>
         <div class="pool-stats" id="contractStats">
             <div class="pool-stat">
                 <div class="value" id="contractTotalBalance">--</div>
@@ -256,28 +320,12 @@
             <button onclick="checkAllowance()">🔓 查询授权额度</button>
             <button onclick="getActivityPoolInfo()">📋 获取奖金池详情</button>
         </div>
-    </div>
-
-    <!-- ==================== 关联核对（新增） ==================== -->
-    <div class="card">
-        <div class="card-title">🔗 关联核对 <span class="badge badge-read">验证所有关联</span></div>
-        <div class="row">
-            <button class="primary" onclick="runFullVerification()">✅ 运行完整关联核对</button>
-            <button onclick="quickCheck()">⚡ 快速检查关键关联</button>
-            <button onclick="exportCheckReport()">📄 导出核对报告</button>
-        </div>
-        <div class="res" id="resVerification">
-            💡 点击「运行完整关联核对」验证以下关联：<br>
-            • MYK ↔ RewardPool 关联<br>
-            • RewardPool ↔ Governance 关联<br>
-            • RewardPool ↔ FundManager 关联<br>
-            • Governance ↔ MYK/RewardPool/FundManager 关联<br>
-            • FundManager ↔ MYK/Governance 关联<br>
-            • PancakeSwap Pair 验证
+        <div class="res" id="resDeposit">
+            ⚡ 操作说明：存入的 MYK 将自动加入活动奖金池，用于新用户激活奖励
         </div>
     </div>
 
-    <!-- ==================== 管理功能区域 ==================== -->
+    <!-- 管理功能区域 -->
     <div class="card">
         <div class="card-title">🔐 管理功能 <span class="badge badge-admin">仅限 Owner</span></div>
         
@@ -352,41 +400,6 @@
         <div class="res" id="resAdmin">⚡ 管理功能操作结果将显示在此处</div>
     </div>
 
-    <!-- 合约地址配置 -->
-    <div class="card">
-        <div class="card-title">📋 合约地址配置 <span class="badge badge-read">最新 BSC 主网</span></div>
-        <div class="addr-row">
-            <span class="addr-label">MYK Token:</span>
-            <span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span>
-            <button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button>
-        </div>
-        <div class="addr-row">
-            <span class="addr-label">RewardPool:</span>
-            <span class="addr-value" id="displayRpAddr">0x5bf63478f6655B6dd0643Ab2d0eb0BA35Ad12f23</span>
-            <button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button>
-        </div>
-        <div class="addr-row">
-            <span class="addr-label">Governance:</span>
-            <span class="addr-value" id="displayGvAddr">0x72486EF88DbF2317F3A756C50Afc6B41e703A9C7</span>
-            <button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button>
-        </div>
-        <div class="addr-row">
-            <span class="addr-label">FundManager:</span>
-            <span class="addr-value" id="displayFmAddr">0xD6fADfc666767f337BD38B7d72B422cB295eca56</span>
-            <button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button>
-        </div>
-        <div class="addr-row">
-            <span class="addr-label">PancakeSwap Pair:</span>
-            <span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
-            <button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button>
-        </div>
-        <div class="addr-row">
-            <span class="addr-label">Router:</span>
-            <span class="addr-value" id="displayRouterAddr">0x10ED43C718714eb63d5aA57B78B54704E256024E</span>
-            <button class="copy-btn" onclick="copyToClipboard('displayRouterAddr')">复制</button>
-        </div>
-    </div>
-
     <!-- 执行操作 -->
     <div class="card">
         <div class="card-title">⚡ 合约操作 <span class="badge badge-write">需要钱包签名</span></div>
@@ -396,7 +409,7 @@
                 <option value="bind">directBind (绑定上级)</option>
                 <option value="claimDaily">claimDailyReward (领取持币奖励)</option>
             </optgroup>
-            <optgroup label="🏛️ Governance">
+            <optgroup label="🏛️ CommunityGovernance">
                 <option value="upgradeUSDT">upgradeWithUSDT (USDT升级)</option>
                 <option value="burnTier">burnForTier (销毁MYK升级)</option>
                 <option value="renew">renewCommunity (续费)</option>
@@ -441,15 +454,17 @@
 </div>
 
 <script>
-    // ==================== 最新合约地址配置 ====================
+    // ==================== 最终确认的合约地址 ====================
     let web3, userAccount, chainId;
     let activeWeb3 = null;
     
+    // 最终部署地址
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0x5bf63478f6655B6dd0643Ab2d0eb0BA35Ad12f23';
+    let REWARD_POOL_ADDR = '0xAfDDd2d4985453f327f69c914e7421F79bFEE1B7';
     let GOV_ADDR = '0x72486EF88DbF2317F3A756C50Afc6B41e703A9C7';
     let FUND_MANAGER_ADDR = '0xD6fADfc666767f337BD38B7d72B422cB295eca56';
     let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
+    let ROUTER_ADDR = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
     
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
     const EXPECTED_CHAIN_ID = 56;
@@ -556,7 +571,7 @@
         } catch (e) { return null; }
     }
 
-    // ==================== 关联核对（核心新增功能） ====================
+    // ==================== 关联核对 ====================
     async function callView(contract, method, ...params) {
         if (!activeWeb3) await initRpc();
         try {
@@ -690,7 +705,7 @@
         report += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         report += `📊 核对结果: ${passedCount}/${totalCount} 通过\n`;
         if (passedCount === totalCount) {
-            report += '<span class="check-pass">🎉 所有关联验证通过！合约配置正确。</span>\n';
+            report += '<span class="check-pass">🎉 所有关联验证通过！合约配置正确，可以正式使用。</span>\n';
         } else if (passedCount >= totalCount - 2) {
             report += '<span class="y">⚠️ 大部分关联正确，请检查失败的项。</span>\n';
         } else {
@@ -727,19 +742,6 @@
         } catch(e) { result += `❌ FM → MYK: 查询失败\n`; }
         
         logRes('resVerification', result);
-    }
-
-    function exportCheckReport() {
-        const reportDiv = document.getElementById('resVerification');
-        const reportText = reportDiv.innerText;
-        const blob = new Blob([reportText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `MYK_verification_${new Date().toISOString().slice(0,19)}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-        alert('报告已导出');
     }
 
     // ==================== 管理功能 ====================
