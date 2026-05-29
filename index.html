@@ -4,77 +4,309 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MYK 测试面板 | 完整功能版</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>MYK 测试面板 | 手机优化版</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: #0a0c10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; padding: 12px; color: #e6edf3; min-height: 100vh; }
-        .container { max-width: 100%; width: 100%; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 16px; }
-        .header h1 { font-size: 1.5rem; background: linear-gradient(135deg, #f0883e, #ffb347); background-clip: text; -webkit-background-clip: text; color: transparent; }
-        .sub { font-size: 10px; color: #8b949e; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-        .card { background: #161b22; border: 1px solid #2d333b; border-radius: 20px; padding: 14px; margin-bottom: 12px; }
-        .card-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #58a6ff; border-left: 3px solid #f0883e; padding-left: 10px; }
-        .badge { font-size: 8px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: #0a0c10;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, sans-serif;
+            padding: 10px;
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+        }
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 14px;
+            padding: 0 4px;
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #f0883e, #ffb347);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .sub {
+            font-size: 9px;
+            color: #8b949e;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        /* 卡片 - 移动端优化 */
+        .card {
+            background: #161b22;
+            border: 1px solid #2d333b;
+            border-radius: 18px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #58a6ff;
+            border-left: 3px solid #f0883e;
+            padding-left: 8px;
+        }
+        /* 徽章 */
+        .badge {
+            font-size: 7px;
+            padding: 2px 6px;
+            border-radius: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
         .badge-read { background: #1f6feb20; color: #79c0ff; border: 0.5px solid #1f6feb; }
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
         .badge-time { background: #d2992220; color: #e3b341; border: 0.5px solid #d29922; }
         .badge-config { background: #58a6ff20; color: #58a6ff; border: 0.5px solid #58a6ff; }
         .badge-test { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
         .badge-reward { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
-        input, select { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 14px; color: #f0f6fc; font-size: 14px; margin-bottom: 8px; -webkit-appearance: none; }
-        input:focus, select:focus { border-color: #f0883e; outline: none; }
-        button { background: #21262d; border: 1px solid #3c444e; padding: 10px 14px; border-radius: 40px; font-weight: 500; font-size: 13px; color: #c9d1d9; cursor: pointer; margin: 2px; transition: all 0.15s; touch-action: manipulation; }
-        button:active { transform: scale(0.97); background: #2d333b; }
+        /* 输入框 */
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 14px;
+            color: #f0f6fc;
+            font-size: 13px;
+            margin-bottom: 8px;
+            -webkit-appearance: none;
+        }
+        input:focus, select:focus {
+            border-color: #f0883e;
+            outline: none;
+        }
+        /* 按钮 - 移动端触摸优化 */
+        button {
+            background: #21262d;
+            border: 1px solid #3c444e;
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 12px;
+            color: #c9d1d9;
+            cursor: pointer;
+            margin: 2px;
+            transition: all 0.15s;
+            touch-action: manipulation;
+        }
+        button:active {
+            transform: scale(0.97);
+            background: #2d333b;
+        }
         button.primary { background: #238636; border-color: #2ea043; color: white; }
         button.warning { background: #9e6a03; border-color: #d29922; }
         button.pool { background: #1f6feb; border-color: #388bfd; }
         button.reward { background: #f0883e20; border-color: #f0883e; color: #f0883e; }
-        .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
-        .row button { flex: 1; min-width: calc(33% - 8px); text-align: center; }
-        .res { background: #0a0c10; border-radius: 16px; padding: 12px; margin-top: 12px; font-size: 11px; font-family: 'SF Mono', monospace; border: 1px solid #2d333b; white-space: pre-wrap; word-break: break-word; max-height: 500px; overflow-y: auto; line-height: 1.45; }
-        .addr-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-        .addr-label { width: 100px; color: #8b949e; font-size: 11px; }
-        .addr-value { flex: 1; font-family: monospace; color: #79c0ff; word-break: break-all; font-size: 10px; background: #0d1117; padding: 6px 8px; border-radius: 10px; }
-        .copy-btn { padding: 4px 10px; font-size: 10px; margin: 0; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
-        .stat-card { background: #0d1117; border-radius: 14px; padding: 10px; text-align: center; cursor: pointer; }
-        .stat-card.clickable:hover { background: #1f6feb20; }
-        .stat-value { font-size: 20px; font-weight: bold; color: #ffdf6e; }
-        .stat-label { font-size: 9px; color: #8b949e; margin-top: 4px; }
-        .progress-bar { height: 6px; background: #2d333b; border-radius: 3px; overflow: hidden; margin: 8px 0; }
-        .progress-fill { height: 100%; background: #7ee787; border-radius: 3px; transition: width 0.3s; }
-        .phase-header { background: #1f6feb20; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; border-radius: 16px 16px 0 0; margin-top: 8px; }
-        .test-table { width: 100%; font-size: 10px; border-collapse: collapse; }
-        .test-table td { padding: 8px 6px; border-bottom: 0.5px solid #2d333b; }
-        .pass-btn { background: #23863620; border-color: #238636; color: #7ee787; padding: 4px 8px; border-radius: 16px; margin: 0 2px; border: none; }
-        .fail-btn { background: #da363320; border-color: #da3633; color: #ff7b72; padding: 4px 8px; border-radius: 16px; margin: 0 2px; border: none; }
-        .check-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #2d333b; font-size: 11px; }
+        /* 行布局 */
+        .row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .row button {
+            flex: 1;
+            min-width: calc(33% - 6px);
+            text-align: center;
+            justify-content: center;
+        }
+        /* 结果区域 */
+        .res {
+            background: #0a0c10;
+            border-radius: 14px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 10px;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+            border: 1px solid #2d333b;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 350px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+        /* 地址行 */
+        .addr-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .addr-label {
+            width: 85px;
+            color: #8b949e;
+            font-size: 10px;
+        }
+        .addr-value {
+            flex: 1;
+            font-family: monospace;
+            color: #79c0ff;
+            word-break: break-all;
+            font-size: 9px;
+            background: #0d1117;
+            padding: 4px 6px;
+            border-radius: 8px;
+        }
+        .copy-btn {
+            padding: 3px 8px;
+            font-size: 9px;
+            margin: 0;
+        }
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .stat-card {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffdf6e;
+        }
+        .stat-label {
+            font-size: 8px;
+            color: #8b949e;
+            margin-top: 2px;
+        }
+        /* 进度条 */
+        .progress-bar {
+            height: 4px;
+            background: #2d333b;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #7ee787;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        /* 测试表格 - 移动端优化 */
+        .phase-header {
+            background: #1f6feb20;
+            padding: 8px 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            border-radius: 14px 14px 0 0;
+            margin-top: 6px;
+            font-size: 11px;
+        }
+        .test-table {
+            width: 100%;
+            font-size: 9px;
+            border-collapse: collapse;
+        }
+        .test-table td {
+            padding: 5px 4px;
+            border-bottom: 0.5px solid #2d333b;
+        }
+        .pass-btn, .fail-btn {
+            padding: 3px 6px;
+            font-size: 8px;
+            border-radius: 12px;
+            margin: 0 1px;
+            border: none;
+        }
+        .pass-btn { background: #23863620; color: #7ee787; }
+        .fail-btn { background: #da363320; color: #ff7b72; }
+        /* 其他 */
+        .check-item, .balance-row, .reward-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 0.5px solid #2d333b;
+            font-size: 10px;
+        }
         .check-pass { color: #7ee787; }
         .check-fail { color: #ff7b72; }
-        .reward-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid #2d333b; font-size: 10px; }
         .g { color: #7ee787; }
         .r { color: #ff7b72; }
         .y { color: #ffdf6e; }
         .b { color: #79c0ff; }
-        .account-tab { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2d333b; }
-        .account-btn { padding: 6px 12px; border-radius: 30px; font-size: 11px; background: #21262d; border: none; }
-        .account-btn.active { background: #1f6feb; color: white; }
-        .balance-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 11px; border-bottom: 0.5px solid #2d333b; }
-        .safe-bottom { margin-bottom: env(safe-area-inset-bottom, 0); padding-bottom: env(safe-area-inset-bottom, 0); }
-        .approve-warning { background: #da363320; padding: 8px; border-radius: 12px; margin-bottom: 8px; font-size: 10px; }
+        /* 账户标签 */
+        .account-tab {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #2d333b;
+        }
+        .account-btn {
+            padding: 5px 10px;
+            border-radius: 25px;
+            font-size: 10px;
+            background: #21262d;
+            border: none;
+        }
+        .account-btn.active {
+            background: #1f6feb;
+            color: white;
+        }
+        .approve-warning {
+            background: #da363320;
+            padding: 6px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 9px;
+        }
+        .safe-bottom {
+            margin-bottom: env(safe-area-inset-bottom, 0);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        /* 隐藏滚动条但保留功能 */
+        .res::-webkit-scrollbar { width: 3px; }
+        .res::-webkit-scrollbar-track { background: #1a1f2e; border-radius: 3px; }
+        .res::-webkit-scrollbar-thumb { background: #3c444e; border-radius: 3px; }
     </style>
 </head>
 <body>
 <div class="container safe-bottom">
     <div class="header">
-        <h1>🧪 MYK 完整测试面板</h1>
-        <div class="sub"><span id="netStatus">🔌 连接中...</span><span>| 完整功能版</span><span id="testProgress">📊 0%</span></div>
+        <h1>🧪 MYK 测试面板</h1>
+        <div class="sub"><span id="netStatus">🔌 连接中...</span><span>| 手机优化版</span><span id="testProgress">📊 0%</span></div>
     </div>
 
-    <!-- 测试进度总览 -->
+    <!-- 测试进度 -->
     <div class="card">
-        <div class="card-title">📊 测试进度 <span class="badge badge-test">74项测试</span></div>
+        <div class="card-title">📊 测试进度 <span class="badge badge-test">74项</span></div>
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-value" id="statPassed">0</div><div class="stat-label">✅ 通过</div></div>
             <div class="stat-card"><div class="stat-value" id="statFailed">0</div><div class="stat-label">❌ 失败</div></div>
@@ -84,85 +316,85 @@
         <div class="row">
             <button class="primary" onclick="exportTestReport()">📄 导出报告</button>
             <button onclick="resetAllTests()">🔄 重置</button>
-            <button onclick="markAllPassed()">✅ 全部通过</button>
+            <button onclick="markAllPassed()">✅ 全通</button>
         </div>
     </div>
 
-    <!-- 多账户管理 -->
+    <!-- 多账户 -->
     <div class="card">
-        <div class="card-title">👥 多账户管理 <span class="badge badge-config">测试账户</span></div>
+        <div class="card-title">👥 多账户 <span class="badge badge-config">测试</span></div>
         <div class="account-tab" id="accountTabs">
-            <button class="account-btn active" onclick="switchAccount(0)">👤 账户A</button>
-            <button class="account-btn" onclick="switchAccount(1)">👤 账户B</button>
-            <button class="account-btn" onclick="switchAccount(2)">👤 账户C</button>
-            <button class="account-btn" onclick="switchAccount(3)">➕ 自定义</button>
+            <button class="account-btn active" onclick="switchAccount(0)">A</button>
+            <button class="account-btn" onclick="switchAccount(1)">B</button>
+            <button class="account-btn" onclick="switchAccount(2)">C</button>
+            <button class="account-btn" onclick="switchAccount(3)">+</button>
         </div>
-        <div id="customAccountInput" style="display:none;"><div class="row"><input type="text" id="customAddress" placeholder="输入钱包地址"><button onclick="setCustomAccount()">切换</button></div></div>
-        <div class="res" id="resAccountInfo">📋 当前账户信息将显示在此处</div>
+        <div id="customAccountInput" style="display:none;"><div class="row"><input type="text" id="customAddress" placeholder="地址" style="flex:2"><button onclick="setCustomAccount()">切换</button></div></div>
+        <div class="res" id="resAccountInfo">📋 账户信息</div>
     </div>
 
-    <!-- 合约余额管理 -->
+    <!-- 合约余额与充值 -->
     <div class="card">
-        <div class="card-title">💰 合约余额管理 <span class="badge badge-write">充值</span></div>
+        <div class="card-title">💰 合约余额 <span class="badge badge-write">充值</span></div>
         <div class="stats-grid">
-            <div class="stat-card clickable" onclick="refreshAllBalances()"><div class="stat-value" id="contractTotalBalance">--</div><div class="stat-label">合约 MYK 总余额</div></div>
-            <div class="stat-card clickable" onclick="refreshAllBalances()"><div class="stat-value" id="activityPoolBalance">--</div><div class="stat-label">活动奖金池余额</div></div>
-            <div class="stat-card clickable" onclick="getActivityPoolInfo()"><div class="stat-value" id="activityPoolPaid">--</div><div class="stat-label">累计已发放</div></div>
+            <div class="stat-card" onclick="refreshAllBalances()"><div class="stat-value" id="contractTotalBalance">--</div><div class="stat-label">总余额</div></div>
+            <div class="stat-card" onclick="refreshAllBalances()"><div class="stat-value" id="activityPoolBalance">--</div><div class="stat-label">活动池</div></div>
+            <div class="stat-card" onclick="getActivityPoolInfo()"><div class="stat-value" id="activityPoolPaid">--</div><div class="stat-label">已发放</div></div>
         </div>
-        <div class="approve-warning" id="approveStatus">⚠️ 充值前需要先授权 MYK 代币给 RewardPool 合约</div>
+        <div class="approve-warning" id="approveStatus">⚠️ 充值需先授权</div>
         <div class="row">
-            <input type="text" id="rechargeAmount" placeholder="MYK 数量" value="1000" style="flex:2">
-            <button class="pool" onclick="approveAndRechargeActivityPool()">🎁 授权并充值活动奖金池</button>
+            <input type="text" id="rechargeAmount" placeholder="MYK数量" value="1000" style="flex:2">
+            <button class="pool" onclick="approveAndRechargeActivityPool()">🎁 授权+充值</button>
         </div>
         <div class="row">
-            <button onclick="approveMYK()">🔓 单独授权 MYK</button>
-            <button onclick="checkAllowance()">🔍 查询授权额度</button>
-            <button onclick="refreshAllBalances()">🔄 刷新余额</button>
+            <button onclick="approveMYK()">🔓 单独授权</button>
+            <button onclick="checkAllowance()">🔍 查询授权</button>
+            <button onclick="refreshAllBalances()">🔄 刷新</button>
         </div>
-        <div class="res" id="resRecharge">💡 充值说明：点击「授权并充值」会先完成授权，再充值到活动奖金池</div>
+        <div class="res" id="resRecharge">💡 充值说明</div>
     </div>
 
-    <!-- 用户上级奖励到账状态 -->
+    <!-- 奖励查询 -->
     <div class="card">
-        <div class="card-title">🎁 上级奖励到账状态 <span class="badge badge-reward">链上查询</span></div>
+        <div class="card-title">🎁 奖励到账 <span class="badge badge-reward">查询</span></div>
         <div class="row">
-            <input type="text" id="rewardUserAddr" placeholder="输入用户地址" style="flex:2">
-            <button class="reward" onclick="queryUserRewards()">🔍 查询奖励记录</button>
+            <input type="text" id="rewardUserAddr" placeholder="用户地址" style="flex:2">
+            <button class="reward" onclick="queryUserRewards()">🔍 查询</button>
         </div>
         <div class="row">
-            <button onclick="queryUpRewardsDetail()">📊 查询上级社区奖励</button>
-            <button onclick="queryDividendRewards()">💧 查询分红池收益</button>
+            <button onclick="queryUpRewardsDetail()">📊 上级链路</button>
+            <button onclick="queryDividendRewards()">💧 分红池</button>
         </div>
-        <div class="res" id="resRewards">📋 点击查询用户获得的上级奖励和分红状态</div>
+        <div class="res" id="resRewards">📋 点击查询</div>
     </div>
 
-    <!-- 一键关联检验 -->
+    <!-- 一键关联 -->
     <div class="card">
-        <div class="card-title">🔗 一键关联检验 <span class="badge badge-config">阶段一</span></div>
+        <div class="card-title">🔗 关联检验 <span class="badge badge-config">一键</span></div>
         <div class="row">
-            <button class="primary" onclick="runOneKeyVerification()">✅ 一键检验所有关联</button>
-            <button class="warning" onclick="runOneKeySetup()">⚡ 一键执行所有关联设置</button>
+            <button class="primary" onclick="runOneKeyVerification()">✅ 检验关联</button>
+            <button class="warning" onclick="runOneKeySetup()">⚡ 一键设置</button>
         </div>
-        <div class="res" id="resVerification">💡 点击「一键检验所有关联」验证合约关联配置</div>
+        <div class="res" id="resVerification">💡 点击检验</div>
     </div>
 
     <!-- 时间控制 -->
     <div class="card">
-        <div class="card-title">⏱️ 时间控制 <span class="badge badge-time">加速版 (5秒=1天)</span></div>
+        <div class="card-title">⏱️ 时间控制 <span class="badge badge-time">5秒=1天</span></div>
         <div class="row">
             <button class="warning" onclick="advanceTime(1)">+1天</button>
             <button class="warning" onclick="advanceTime(7)">+7天</button>
             <button class="warning" onclick="advanceTime(30)">+30天</button>
             <button class="warning" onclick="advanceTime(90)">+90天</button>
         </div>
-        <div class="res" id="resTime">🕒 点击快进时间</div>
+        <div class="res" id="resTime">🕒 点击快进</div>
     </div>
 
     <!-- 快速操作 -->
     <div class="card">
         <div class="card-title">⚡ 快速操作</div>
-        <select id="quickAction" style="width: 100%;">
-            <option value="">-- 选择操作 --</option>
+        <select id="quickAction" style="width:100%">
+            <option value="">-- 选择 --</option>
             <option value="activate">activateWithUSDT (激活)</option>
             <option value="bind">directBind (绑定上级)</option>
             <option value="claimDaily">claimDailyReward (领取奖励)</option>
@@ -170,17 +402,17 @@
             <option value="burnTier">burnForTier (销毁升级)</option>
             <option value="renew">renewCommunity (续费)</option>
         </select>
-        <input type="text" id="quickParam" placeholder="参数 (地址/金额)" style="margin-top: 6px;">
-        <button class="primary" onclick="executeQuickAction()" style="width: 100%; margin-top: 6px;">▶ 执行</button>
-        <div class="res" id="resQuickAction">等待操作...</div>
+        <input type="text" id="quickParam" placeholder="参数" style="margin-top:4px">
+        <button class="primary" onclick="executeQuickAction()" style="width:100%;margin-top:4px">▶ 执行</button>
+        <div class="res" id="resQuickAction">等待操作</div>
     </div>
 
-    <!-- 查询面板 -->
+    <!-- 查询 -->
     <div class="card">
         <div class="card-title">🔍 查询</div>
         <div class="row">
-            <button onclick="queryCurrentUser()">👤 当前账户</button>
-            <button onclick="queryTier()">🏆 社区等级</button>
+            <button onclick="queryCurrentUser()">👤 当前</button>
+            <button onclick="queryTier()">🏆 等级</button>
             <button onclick="queryRank()">📊 排名</button>
             <button onclick="queryBalance()">💰 余额</button>
             <button onclick="queryPrice()">💵 价格</button>
@@ -188,15 +420,13 @@
         <div class="res" id="resQuery">📡 点击查询</div>
     </div>
 
-    <!-- 合约地址（最新配置） -->
+    <!-- 合约地址 -->
     <div class="card">
-        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
-        <div class="addr-row"><span class="addr-label">MYK Token:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0x7F9283da106d448A4f4fEd2b15838526C6946c51</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x0A50cF6D697933cb26d39E115f26D087cb3b7760</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">Router:</span><span class="addr-value" id="displayRouterAddr">0x10ED43C718714eb63d5aA57B78B54704E256024E</span><button class="copy-btn" onclick="copyToClipboard('displayRouterAddr')">复制</button><span class="g">✓</span></div>
+        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终</span></div>
+        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button></div>
+        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xEBAB07aBD29114Fb4E548f91ce192b3EF8db38cF</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
+        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button></div>
+        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button></div>
     </div>
 
     <!-- 测试清单容器 -->
@@ -211,308 +441,160 @@
     let testAccounts = [];
 
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0x7F9283da106d448A4f4fEd2b15838526C6946c51';
-    let GOV_ADDR = '0x0A50cF6D697933cb26d39E115f26D087cb3b7760';
+    let REWARD_POOL_ADDR = '0xEBAB07aBD29114Fb4E548f91ce192b3EF8db38cF';
+    let GOV_ADDR = '0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
-    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
-    // ==================== 测试清单数据 ====================
+    // ==================== 测试数据 ====================
     let testResults = {};
     const testPhases = [
-        { id: "deploy", name: "📦 阶段一：部署与关联 (19项)", items: [
-            { id: "1.1", name: "部署 MYK", desc: "总供应 2100万 MYK" },{ id: "1.2", name: "部署 RewardPool", desc: "constructor(admin)" },
-            { id: "1.3", name: "部署 Governance", desc: "constructor()" },{ id: "1.4", name: "部署 FundManager", desc: "constructor(USDT, Router, admin)" },
-            { id: "1.5", name: "MYK.setRewardPool", desc: "设置 RP" },{ id: "1.6", name: "MYK.setGovernance", desc: "设置 GV" },
-            { id: "1.7", name: "RP.setMykToken", desc: "设置 MYK" },{ id: "1.8", name: "RP.setGovernance", desc: "设置 GV" },
-            { id: "1.9", name: "RP.setFundManager", desc: "设置 FM" },{ id: "1.10", name: "GV.setMykToken", desc: "设置 MYK" },
-            { id: "1.11", name: "GV.setRewardPool", desc: "设置 RP" },{ id: "1.12", name: "GV.setFundManager", desc: "设置 FM" },
-            { id: "1.13", name: "GV.setPair", desc: "设置 Pair" },{ id: "1.14", name: "FM.setMyk", desc: "设置 MYK" },
-            { id: "1.15", name: "FM.setRewardPool", desc: "设置 RP" },{ id: "1.16", name: "FM.setGovernance", desc: "设置 GV" },
-            { id: "1.17", name: "FM.setPair", desc: "设置 Pair" },{ id: "1.18", name: "RP.setPair", desc: "设置 Pair" },
-            { id: "1.19", name: "关联核对", desc: "12/12 通过" }
+        { id: "deploy", name: "📦 部署与关联 (19项)", items: [
+            { id: "1.1", name: "部署 MYK", desc: "2100万" },{ id: "1.2", name: "部署 RewardPool", desc: "admin" },
+            { id: "1.3", name: "部署 Governance", desc: "constructor" },{ id: "1.4", name: "部署 FundManager", desc: "USDT,Router" },
+            { id: "1.5", name: "MYK.setRewardPool", desc: "RP" },{ id: "1.6", name: "MYK.setGovernance", desc: "GV" },
+            { id: "1.7", name: "RP.setMykToken", desc: "MYK" },{ id: "1.8", name: "RP.setGovernance", desc: "GV" },
+            { id: "1.9", name: "RP.setFundManager", desc: "FM" },{ id: "1.10", name: "GV.setMykToken", desc: "MYK" },
+            { id: "1.11", name: "GV.setRewardPool", desc: "RP" },{ id: "1.12", name: "GV.setFundManager", desc: "FM" },
+            { id: "1.13", name: "GV.setPair", desc: "Pair" },{ id: "1.14", name: "FM.setMyk", desc: "MYK" },
+            { id: "1.15", name: "FM.setRewardPool", desc: "RP" },{ id: "1.16", name: "FM.setGovernance", desc: "GV" },
+            { id: "1.17", name: "FM.setPair", desc: "Pair" },{ id: "1.18", name: "RP.setPair", desc: "Pair" },
+            { id: "1.19", name: "关联核对", desc: "12/12" }
         ] },
-        { id: "bind", name: "🔗 阶段二：激活与绑定 (6项)", items: [
-            { id: "2.1", name: "首个用户 USDT 激活", desc: "PRIMARY 身份" },{ id: "2.2", name: "查询用户状态", desc: "isActive=true" },
-            { id: "2.3", name: "用户B 转账绑定", desc: "A 转 MYK 给 B" },{ id: "2.4", name: "用户B USDT 激活", desc: "有推荐人" },
-            { id: "2.5", name: "用户C 无推荐人激活", desc: "❌ 拒绝" },{ id: "2.6", name: "用户C 先绑定再激活", desc: "✅ 成功" }
+        { id: "bind", name: "🔗 激活与绑定 (6项)", items: [
+            { id: "2.1", name: "USDT激活", desc: "PRIMARY" },{ id: "2.2", name: "查询状态", desc: "active" },
+            { id: "2.3", name: "转账绑定", desc: "A→B" },{ id: "2.4", name: "B激活", desc: "有推荐人" },
+            { id: "2.5", name: "C无推荐人", desc: "拒绝" },{ id: "2.6", name: "C绑定后激活", desc: "成功" }
         ] },
-        { id: "middle", name: "⬆️ 阶段三：MIDDLE 升级 (4项)", items: [
-            { id: "3.1", name: "邀请第 1 人", desc: "D 激活" },{ id: "3.2", name: "邀请第 2 人", desc: "E 激活, invited=3" },
-            { id: "3.3", name: "验证 MIDDLE 事件", desc: "升级" },{ id: "3.4", name: "自费率验证", desc: "1.3%" }
+        { id: "middle", name: "⬆️ MIDDLE升级 (4项)", items: [
+            { id: "3.1", name: "邀请第1人", desc: "D激活" },{ id: "3.2", name: "邀请第2人", desc: "invited=3" },
+            { id: "3.3", name: "MIDDLE事件", desc: "升级" },{ id: "3.4", name: "自费率", desc: "1.3%" }
         ] },
-        { id: "usdtUpgrade", name: "💵 阶段四：USDT 升级 (7项)", items: [
-            { id: "4.1", name: "升级 FIRST", desc: "50 USDT" },{ id: "4.2", name: "上级 USDT 奖励", desc: "25%" },
-            { id: "4.3", name: "RP 角色更新", desc: "1.6%" },{ id: "4.4", name: "每日奖励初始化", desc: "principal=50" },
-            { id: "4.5", name: "升级 SECOND", desc: "100 USDT" },{ id: "4.6", name: "升级 THIRD", desc: "200 USDT" },
-            { id: "4.7", name: "无法升级 FOURTH", desc: "❌" }
+        { id: "usdtUpgrade", name: "💵 USDT升级 (7项)", items: [
+            { id: "4.1", name: "FIRST", desc: "50U" },{ id: "4.2", name: "上级奖励", desc: "25%" },
+            { id: "4.3", name: "角色更新", desc: "1.6%" },{ id: "4.4", name: "每日奖励", desc: "principal" },
+            { id: "4.5", name: "SECOND", desc: "100U" },{ id: "4.6", name: "THIRD", desc: "200U" },
+            { id: "4.7", name: "FOURTH", desc: "不支持" }
         ] },
-        { id: "mykBurn", name: "🔥 阶段五：MYK 销毁升级 (6项)", items: [
-            { id: "5.1", name: "销毁 <500U", desc: "仅销毁" },{ id: "5.2", name: "累计 ≥500U", desc: "升级 FOURTH" },
-            { id: "5.3", name: "累计 ≥1000U", desc: "升级 FIFTH" },{ id: "5.4", name: "累计 ≥2000U", desc: "升级 SIXTH" },
-            { id: "5.5", name: "查询累计", desc: "getUserBurnedStats" },{ id: "5.6", name: "上级 MYK 奖励", desc: "C1~C5" }
+        { id: "mykBurn", name: "🔥 MYK销毁 (6项)", items: [
+            { id: "5.1", name: "<500U", desc: "仅销毁" },{ id: "5.2", name: "≥500U", desc: "FOURTH" },
+            { id: "5.3", name: "≥1000U", desc: "FIFTH" },{ id: "5.4", name: "≥2000U", desc: "SIXTH" },
+            { id: "5.5", name: "查询累计", desc: "stats" },{ id: "5.6", name: "上级奖励", desc: "MYK" }
         ] },
-        { id: "daily16", name: "📅 阶段六：每日 1.6% 奖励 (4项)", items: [
-            { id: "6.1", name: "第 1 天领取", desc: "5分钟后" },{ id: "6.2", name: "累积 3 天", desc: "15分钟" },
-            { id: "6.3", name: "90 天到期", desc: "7.5小时" },{ id: "6.4", name: "上级不参与", desc: "无奖励" }
+        { id: "daily16", name: "📅 每日1.6% (4项)", items: [
+            { id: "6.1", name: "第1天", desc: "5秒" },{ id: "6.2", name: "累积3天", desc: "15秒" },
+            { id: "6.3", name: "90天到期", desc: "450秒" },{ id: "6.4", name: "上级", desc: "无" }
         ] },
-        { id: "dailyReward", name: "🎁 阶段七：每日持币奖励 (8项)", items: [
-            { id: "7.1", name: "Merkle 根提交", desc: "submitMerkleRoot" },{ id: "7.2", name: "通道1 领取", desc: "claimDailyReward" },
-            { id: "7.3", name: "通道2 快照", desc: "claimDailyRewardAuto" },{ id: "7.4", name: "通道2 领取", desc: "等5分钟" },
-            { id: "7.5", name: "余额上限", desc: ">50U" },{ id: "7.6", name: "7天上级奖励", desc: "✅" },
-            { id: "7.7", name: "7天内第二次", desc: "❌" },{ id: "7.8", name: "新周期", desc: "35分钟" }
+        { id: "dailyReward", name: "🎁 持币奖励 (8项)", items: [
+            { id: "7.1", name: "Merkle根", desc: "提交" },{ id: "7.2", name: "通道1", desc: "领取" },
+            { id: "7.3", name: "通道2快照", desc: "auto" },{ id: "7.4", name: "通道2领取", desc: "5秒" },
+            { id: "7.5", name: "上限", desc: "50U" },{ id: "7.6", name: "7天上级", desc: "✅" },
+            { id: "7.7", name: "7天内第二次", desc: "❌" },{ id: "7.8", name: "新周期", desc: "35秒" }
         ] },
-        { id: "weekly", name: "🏆 阶段八：周排行 (4项)", items: [
-            { id: "8.1", name: "业绩累计", desc: "激活产生" },{ id: "8.2", name: "查询业绩", desc: "非零" },
-            { id: "8.3", name: "发放周排行", desc: "35分钟" },{ id: "8.4", name: "业绩清零", desc: "新周期" }
+        { id: "weekly", name: "🏆 周排行 (4项)", items: [
+            { id: "8.1", name: "业绩累计", desc: "增加" },{ id: "8.2", name: "查询业绩", desc: "非零" },
+            { id: "8.3", name: "发放", desc: "35秒" },{ id: "8.4", name: "清零", desc: "新周期" }
         ] },
-        { id: "fundManager", name: "💹 阶段九：FundManager (6项)", items: [
-            { id: "9.1", name: "转入 USDT", desc: "到 FM" },{ id: "9.2", name: "每日分配", desc: "10%" },
-            { id: "9.3", name: "分批买入", desc: "5分钟" },{ id: "9.4", name: "12单完成", desc: "_addLP" },
-            { id: "9.5", name: "跌破买入", desc: "跌10%" },{ id: "9.6", name: "涨回停止", desc: "停止" }
+        { id: "fundManager", name: "💹 FundManager (6项)", items: [
+            { id: "9.1", name: "转入USDT", desc: "to FM" },{ id: "9.2", name: "每日分配", desc: "10%" },
+            { id: "9.3", name: "分批买入", desc: "5秒" },{ id: "9.4", name: "12单", desc: "_addLP" },
+            { id: "9.5", name: "跌破", desc: "10%" },{ id: "9.6", name: "涨回", desc: "停止" }
         ] },
-        { id: "lpRedeem", name: "🔄 阶段十：LP 赎回 (3项)", items: [
-            { id: "10.1", name: "锁仓期内", desc: "still locked" },{ id: "10.2", name: "到期赎回", desc: "30小时" },
-            { id: "10.3", name: "收益不足", desc: "below 5x" }
+        { id: "lpRedeem", name: "🔄 LP赎回 (3项)", items: [
+            { id: "10.1", name: "锁仓期", desc: "拒绝" },{ id: "10.2", name: "到期", desc: "30小时" },
+            { id: "10.3", name: "收益不足", desc: "<5倍" }
         ] },
-        { id: "dividend", name: "💧 阶段十一：分红池 (3项)", items: [
-            { id: "11.1", name: "分红池累计", desc: "增加" },{ id: "11.2", name: "手动分红", desc: "distribute" },
-            { id: "11.3", name: "分批处理", desc: "process" }
+        { id: "dividend", name: "💧 分红池 (3项)", items: [
+            { id: "11.1", name: "累计", desc: "增加" },{ id: "11.2", name: "手动分红", desc: "distribute" },
+            { id: "11.3", name: "分批", desc: "process" }
         ] },
-        { id: "admin", name: "👑 阶段十二：管理员权限 (4项)", items: [
-            { id: "12.1", name: "提名管理员", desc: "propose" },{ id: "12.2", name: "接受", desc: "accept" },
+        { id: "admin", name: "👑 管理员 (4项)", items: [
+            { id: "12.1", name: "提名", desc: "propose" },{ id: "12.2", name: "接受", desc: "accept" },
             { id: "12.3", name: "丢弃", desc: "renounce" },{ id: "12.4", name: "无法设置", desc: "!updater" }
         ] }
     ];
 
-    // 初始化测试数据
-    function initTestResults() { for (const phase of testPhases) { for (const item of phase.items) { const key = `${phase.id}_${item.id}`; if (!testResults[key]) testResults[key] = { status: "pending", note: "" }; } } loadFromStorage(); updateStats(); renderTestTable(); }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_full"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_full", JSON.stringify(testResults)); }
-    function setTestStatus(phaseId, itemId, status, note) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; if (note) testResults[key].note = note; saveToStorage(); updateStats(); renderTestTable(); } }
-    function updateStats() { let total = 0, passed = 0, failed = 0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total > 0 ? Math.round((passed / total) * 100) : 0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
-    function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed = 0, phaseTotal = 0; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; if (testResults[key]) { phaseTotal++; if (testResults[key].status === "pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; const result = testResults[key] || { status: "pending" }; const statusIcon = result.status === "pass" ? "✅" : (result.status === "fail" ? "❌" : "⏳"); html += `<tr><td style="width:45px;">${item.id}</td><td style="width:100px;">${item.name}</td><td style="width:100px;font-size:9px;color:#8b949e;">${item.desc}</td><td style="width:40px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass','')">通过</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail','')">失败</button></td></tr>`; } html += `</tbody></td></div></div>`; } container.innerHTML = html; }
-    function exportTestReport() { let report = "MYK 测试报告\n时间: " + new Date().toLocaleString() + "\n"; let total = 0, passed = 0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; } report += `通过率: ${passed}/${total} (${Math.round(passed/total*100)}%)\n\n`; for (const phase of testPhases) { report += `\n${phase.name}\n`; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; const status = testResults[key]?.status === "pass" ? "✅" : (testResults[key]?.status === "fail" ? "❌" : "⏳"); report += `${status} ${item.id} ${item.name}\n`; } } const blob = new Blob([report], { type: "text/plain" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
-    function resetAllTests() { if (confirm("确定重置所有测试？")) { for (const k in testResults) testResults[k] = { status: "pending", note: "" }; saveToStorage(); updateStats(); renderTestTable(); } }
-    function markAllPassed() { for (const k in testResults) testResults[k] = { status: "pass", note: "" }; saveToStorage(); updateStats(); renderTestTable(); }
+    function initTestResults() { for (const p of testPhases) for (const i of p.items) { const k = `${p.id}_${i.id}`; if (!testResults[k]) testResults[k] = { status: "pending", note: "" }; } loadStorage(); updateStats(); renderTests(); }
+    function loadStorage() { try { const s = localStorage.getItem("myk_test_mobile"); if (s) { const p = JSON.parse(s); for (const k in p) if (testResults[k]) testResults[k] = p[k]; } } catch(e) {} }
+    function saveStorage() { localStorage.setItem("myk_test_mobile", JSON.stringify(testResults)); }
+    function setStatus(pId, iId, s) { const k = `${pId}_${iId}`; if (testResults[k]) { testResults[k].status = s; saveStorage(); updateStats(); renderTests(); } }
+    function updateStats() { let t=0,pass=0,fail=0; for(const k in testResults){t++;if(testResults[k].status==="pass")pass++;else if(testResults[k].status==="fail")fail++;} document.getElementById("statPassed").innerHTML=pass; document.getElementById("statFailed").innerHTML=fail; document.getElementById("statTotal").innerHTML=t; const p=t>0?Math.round(pass/t*100):0; document.getElementById("progressFill").style.width=`${p}%`; document.getElementById("testProgress").innerHTML=`📊 ${p}% (${pass}/${t})`; }
+    function togglePhase(id) { const el = document.getElementById(`phase-${id}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
+    function renderTests() { const c = document.getElementById("testContainer"); if (!c) return; let html = ''; for (const p of testPhases) { let pp=0,pt=0; for (const i of p.items) { const k=`${p.id}_${i.id}`; if(testResults[k]){pt++;if(testResults[k].status==="pass")pp++;} } html += `<div><div class="phase-header" onclick="togglePhase('${p.id}')"><span>${p.name}</span><div><span class="g">${pp}</span>/<span>${pt}</span> ▼</div></div><div id="phase-${p.id}" style="display:block;"><table class="test-table"><tbody>`; for (const i of p.items) { const k=`${p.id}_${i.id}`; const r=testResults[k]||{status:"pending"}; const icon=r.status==="pass"?"✅":(r.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${i.id}</td><td style="width:80px;">${i.name}</td><td style="width:40px;">${icon}</td><td><button class="pass-btn" onclick="setStatus('${p.id}','${i.id}','pass')">通过</button><button class="fail-btn" onclick="setStatus('${p.id}','${i.id}','fail')">失败</button></td></tr>`; } html += `</tbody></table></div></div>`; } c.innerHTML = html; }
+    function exportTestReport() { let r = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let t=0,pass=0; for(const k in testResults){t++;if(testResults[k].status==="pass")pass++;} r+=`通过:${pass}/${t} (${Math.round(pass/t*100)}%)\n\n`; for(const p of testPhases){ r+=`\n${p.name}\n`; for(const i of p.items){ const k=`${p.id}_${i.id}`; const s=testResults[k]?.status==="pass"?"✅":(testResults[k]?.status==="fail"?"❌":"⏳"); r+=`${s} ${i.id} ${i.name}\n`; } } const b=new Blob([r],{type:"text/plain"}); const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(u); }
+    function resetAllTests() { if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveStorage(); updateStats(); renderTests(); } }
+    function markAllPassed() { for(const k in testResults) testResults[k]={status:"pass",note:""}; saveStorage(); updateStats(); renderTests(); }
 
-    // ==================== 充值功能 ====================
-    async function checkAllowance() {
-        if (!userAccount) { alert('请连接钱包'); return; }
-        if (!activeWeb3) await initRpc();
-        try {
-            const data = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
-            const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data });
-            const allowance = fromWei(raw);
-            document.getElementById('approveStatus').innerHTML = `🔓 当前授权额度: ${allowance.toFixed(4)} MYK\n💰 需要充值 ${parseFloat(document.getElementById('rechargeAmount').value) || 0} MYK`;
-            if (allowance < (parseFloat(document.getElementById('rechargeAmount').value) || 0)) {
-                document.getElementById('approveStatus').innerHTML += '\n⚠️ 授权额度不足，请点击「授权并充值」或「单独授权」';
-            }
-        } catch(e) { document.getElementById('approveStatus').innerHTML = `<span class="r">查询失败: ${e.message.slice(0,50)}</span>`; }
-    }
-
-    async function approveMYK() {
-        if (!userAccount) { alert('请连接钱包'); return; }
-        const amount = parseFloat(document.getElementById('rechargeAmount').value);
-        if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
-        const amountWei = toWei(amount * 2);
-        try {
-            document.getElementById('resRecharge').innerHTML = '⏳ 正在授权 MYK 给 RewardPool...';
-            const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, amountWei);
-            const tx = await sendTransaction(MYK_ADDR, approveData);
-            document.getElementById('resRecharge').innerHTML = `✅ 授权成功！\n哈希: ${tx.slice(0,10)}...\n授权额度: ${amount * 2} MYK`;
-            setTimeout(() => checkAllowance(), 3000);
-        } catch(e) { document.getElementById('resRecharge').innerHTML = `<span class="r">❌ 授权失败: ${e.message.slice(0,100)}</span>`; }
-    }
-
-    async function approveAndRechargeActivityPool() {
-        if (!userAccount) { alert('请连接钱包'); return; }
-        const amount = parseFloat(document.getElementById('rechargeAmount').value);
-        if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
-        const amountWei = toWei(amount);
-        try {
-            document.getElementById('resRecharge').innerHTML = '⏳ 步骤1/3: 检查授权...';
-            const allowanceData = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
-            const allowanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: allowanceData });
-            const currentAllowance = fromWei(allowanceRaw);
-            if (currentAllowance < amount) {
-                document.getElementById('resRecharge').innerHTML = '⏳ 步骤1/3: 授权 MYK...';
-                const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(amount * 2));
-                await sendTransaction(MYK_ADDR, approveData);
-                await new Promise(r => setTimeout(r, 2000));
-            }
-            document.getElementById('resRecharge').innerHTML = '⏳ 步骤2/3: 检查 MYK 余额...';
-            const balanceData = buildCallData('balanceOf(address)', userAccount);
-            const balanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: balanceData });
-            const mykBalance = fromWei(balanceRaw);
-            if (mykBalance < amount) {
-                document.getElementById('resRecharge').innerHTML = `<span class="r">❌ MYK 余额不足！当前余额: ${mykBalance.toFixed(4)} MYK，需要: ${amount} MYK</span>`;
-                return;
-            }
-            document.getElementById('resRecharge').innerHTML = '⏳ 步骤3/3: 充值到活动奖金池...';
-            const depositData = buildCallData('depositActivityPool(uint256)', amountWei);
-            const tx = await sendTransaction(REWARD_POOL_ADDR, depositData);
-            document.getElementById('resRecharge').innerHTML = `<span class="g">✅ 充值成功！存入 ${amount} MYK 到活动奖金池\n哈希: ${tx.slice(0,10)}...</span>`;
-            setTimeout(() => { refreshAllBalances(); checkAllowance(); }, 3000);
-        } catch(e) { document.getElementById('resRecharge').innerHTML = `<span class="r">❌ 充值失败: ${e.message.slice(0,150)}</span>`; }
-    }
-
-    // ==================== 用户奖励查询 ====================
-    async function queryUserRewards() {
-        let addr = document.getElementById('rewardUserAddr').value.trim();
-        if (!addr) addr = userAccount;
-        if (!addr) { alert('请输入用户地址'); return; }
-        if (!activeWeb3) await initRpc();
-        let html = `📋 用户 ${addr.slice(0,10)}... 奖励记录\n`;
-        html += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
-        try {
-            const userData = buildCallData('users(address)', addr);
-            const userRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: userData });
-            const userInfo = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], userRaw);
-            const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
-            html += `👤 用户状态: ${roles[userInfo[7]]} | 激活: ${userInfo[8]?'✅':'❌'} | 邀请: ${userInfo[1]}人\n`;
-            const rankData = buildCallData('getUserRank(address)', addr);
-            const rankRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: rankData });
-            const rank = parseInt(rankRaw);
-            html += `📊 全球排名: #${rank || '无'}\n`;
-            const fcData = buildCallData('getFirstCommunity(address)', addr);
-            let fc = '0x0';
-            try { fc = web3.eth.abi.decodeParameter('address', await activeWeb3.eth.call({ to: GOV_ADDR, data: fcData })); } catch(e) {}
-            if (fc !== '0x0000000000000000000000000000000000000000') {
-                html += `🎯 上级社区: ${fc.slice(0,10)}...\n`;
-            }
-            html += "\n💧 分红池收益:\n";
-            for (let tier = 3; tier <= 6; tier++) {
-                try {
-                    const claimData = buildCallData('getClaimableDividend(address,uint8)', addr, tier);
-                    const claimRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: claimData });
-                    const claimable = fromWei(claimRaw);
-                    if (claimable > 0) html += `  🏆 社区${tier}: ${claimable.toFixed(4)} MYK (可领取)\n`;
-                } catch(e) {}
-            }
-            document.getElementById('resRewards').innerHTML = html;
-        } catch(e) { document.getElementById('resRewards').innerHTML = `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`; }
-    }
-
-    async function queryUpRewardsDetail() {
-        let addr = document.getElementById('rewardUserAddr').value.trim();
-        if (!addr) addr = userAccount;
-        if (!addr) { alert('请输入用户地址'); return; }
-        if (!activeWeb3) await initRpc();
-        let html = `📊 用户 ${addr.slice(0,10)}... 上级奖励详情\n`;
-        html += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
-        try {
-            let fc = '0x0';
-            const fcData = buildCallData('getFirstCommunity(address)', addr);
-            try { fc = web3.eth.abi.decodeParameter('address', await activeWeb3.eth.call({ to: GOV_ADDR, data: fcData })); } catch(e) {}
-            if (fc === '0x0000000000000000000000000000000000000000') {
-                html += '<span class="r">该用户没有上级社区</span>';
-                document.getElementById('resRewards').innerHTML = html;
-                return;
-            }
-            let cur = fc;
-            const tierNames = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
-            for (let i = 0; i < 6; i++) {
-                if (cur === '0x0000000000000000000000000000000000000000') { html += `${tierNames[i]}: 空缺\n`; break; }
-                try {
-                    const tierData = buildCallData('getCommunityTier(address)', cur);
-                    const tierRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: tierData });
-                    const tier = parseInt(tierRaw);
-                    const mykData = buildCallData('balanceOf(address)', cur);
-                    const mykRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: mykData });
-                    html += `${tierNames[i]}: ${cur.slice(0,10)}... | 等级${tier} | MYK:${fromWei(mykRaw).toFixed(2)}\n`;
-                    const nodeData = buildCallData('getCommunityNode(address)', cur);
-                    const nodeRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: nodeData });
-                    const node = web3.eth.abi.decodeParameters(['address','address','bool'], nodeRaw);
-                    cur = node[1];
-                } catch(e) { html += `${tierNames[i]}: 查询失败\n`; break; }
-            }
-            document.getElementById('resRewards').innerHTML = html;
-        } catch(e) { document.getElementById('resRewards').innerHTML = `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`; }
-    }
-
-    async function queryDividendRewards() {
-        let addr = document.getElementById('rewardUserAddr').value.trim();
-        if (!addr) addr = userAccount;
-        if (!addr) { alert('请输入用户地址'); return; }
-        if (!activeWeb3) await initRpc();
-        let html = `💧 用户 ${addr.slice(0,10)}... 分红池收益\n`;
-        html += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
-        let totalClaimable = 0;
-        for (let tier = 3; tier <= 6; tier++) {
-            try {
-                const claimData = buildCallData('getClaimableDividend(address,uint8)', addr, tier);
-                const claimRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: claimData });
-                const claimable = fromWei(claimRaw);
-                totalClaimable += claimable;
-                html += `🏆 社区${tier}: ${claimable.toFixed(4)} MYK ${claimable > 0 ? '<span class="g">✅ 可领取</span>' : '<span class="y">⏳ 待累计</span>'}\n`;
-            } catch(e) { html += `🏆 社区${tier}: 查询失败\n`; }
-        }
-        html += `\n📊 总计可领取: ${totalClaimable.toFixed(4)} MYK\n`;
-        document.getElementById('resRewards').innerHTML = html;
-    }
+    // ==================== 充值 ====================
+    async function checkAllowance() { if(!userAccount){alert('请连接钱包');return;} if(!activeWeb3)await initRpc(); try{ const data=buildCallData('allowance(address,address)',userAccount,REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); const allow=fromWei(raw); document.getElementById('approveStatus').innerHTML=`🔓 授权: ${allow.toFixed(4)} MYK`; }catch(e){ document.getElementById('approveStatus').innerHTML=`<span class="r">查询失败</span>`; } }
+    async function approveMYK() { if(!userAccount){alert('请连接钱包');return;} const amt=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amt)||amt<=0){alert('输入有效数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const data=buildCallData('approve(address,uint256)',REWARD_POOL_ADDR,toWei(amt*2)); await sendTransaction(MYK_ADDR,data); document.getElementById('resRecharge').innerHTML=`✅ 授权成功 ${amt*2} MYK`; setTimeout(()=>checkAllowance(),2000); }catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">授权失败: ${e.message.slice(0,100)}</span>`; } }
+    async function approveAndRechargeActivityPool() { if(!userAccount){alert('请连接钱包');return;} const amt=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amt)||amt<=0){alert('输入有效数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 检查授权...'; const allowData=buildCallData('allowance(address,address)',userAccount,REWARD_POOL_ADDR); const allowRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:allowData}); const curAllow=fromWei(allowRaw); if(curAllow<amt){ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const appData=buildCallData('approve(address,uint256)',REWARD_POOL_ADDR,toWei(amt*2)); await sendTransaction(MYK_ADDR,appData); await new Promise(r=>setTimeout(r,2000)); } document.getElementById('resRecharge').innerHTML='⏳ 充值中...'; const depData=buildCallData('depositActivityPool(uint256)',toWei(amt)); const tx=await sendTransaction(REWARD_POOL_ADDR,depData); document.getElementById('resRecharge').innerHTML=`<span class="g">✅ 充值 ${amt} MYK 成功<br>${tx.slice(0,10)}...</span>`; setTimeout(()=>{refreshAllBalances();checkAllowance();},3000); }catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">❌ 失败: ${e.message.slice(0,100)}</span>`; } }
 
     // ==================== 余额查询 ====================
-    async function getContractBalance() { if (!activeWeb3) return null; try { const data = buildCallData('balanceOf(address)', REWARD_POOL_ADDR); const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data }); return fromWei(raw); } catch(e) { return null; } }
-    async function getActivityPoolBalance() { if (!activeWeb3) return null; try { const data = buildCallData('activityPool()'); const raw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data }); return fromWei(raw); } catch(e) { return null; } }
-    async function getActivityPoolPaid() { if (!activeWeb3) return null; try { const data = buildCallData('activityPoolTotalPaid()'); const raw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data }); return fromWei(raw); } catch(e) { return null; } }
-    async function refreshAllBalances() { if (!activeWeb3) await initRpc(); const total = await getContractBalance(); const pool = await getActivityPoolBalance(); const paid = await getActivityPoolPaid(); if (total !== null) document.getElementById('contractTotalBalance').innerHTML = total.toFixed(2); if (pool !== null) document.getElementById('activityPoolBalance').innerHTML = pool.toFixed(2); if (paid !== null) document.getElementById('activityPoolPaid').innerHTML = paid.toFixed(2); }
-    async function getActivityPoolInfo() { const pool = await getActivityPoolBalance(); const paid = await getActivityPoolPaid(); const price = await getCurrentPrice(); if (pool !== null) { const rewardPer = price ? (2 / price).toFixed(4) : '--'; document.getElementById('resRecharge').innerHTML = `📋 活动奖金池:\n余额: ${pool.toFixed(2)} MYK\n已发放: ${paid?.toFixed(2) || '--'} MYK\n每激活奖励: ${rewardPer} MYK`; } }
+    async function getContractBalance() { if(!activeWeb3)return null; try{ const data=buildCallData('balanceOf(address)',REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function getActivityPoolBalance() { if(!activeWeb3)return null; try{ const data=buildCallData('activityPool()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function getActivityPoolPaid() { if(!activeWeb3)return null; try{ const data=buildCallData('activityPoolTotalPaid()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function refreshAllBalances() { if(!activeWeb3)await initRpc(); const t=await getContractBalance(); const p=await getActivityPoolBalance(); const pd=await getActivityPoolPaid(); if(t!==null)document.getElementById('contractTotalBalance').innerHTML=t.toFixed(2); if(p!==null)document.getElementById('activityPoolBalance').innerHTML=p.toFixed(2); if(pd!==null)document.getElementById('activityPoolPaid').innerHTML=pd.toFixed(2); }
+    async function getActivityPoolInfo() { const p=await getActivityPoolBalance(); const pd=await getActivityPoolPaid(); const price=await getCurrentPrice(); if(p!==null){ const rp=price?(2/price).toFixed(4):'--'; document.getElementById('resRecharge').innerHTML=`📋 活动池: ${p.toFixed(2)} MYK\n已发放: ${pd?.toFixed(2)||'--'}\n每激活: ${rp} MYK`; } }
 
-    // ==================== 多账户管理 ====================
-    async function initAccounts() { if (!window.ethereum) return; const accounts = await window.ethereum.request({ method: 'eth_accounts' }); if (accounts.length > 0) { testAccounts = accounts.slice(0, Math.min(accounts.length, 3)); while (testAccounts.length < 3) testAccounts.push(''); } if (testAccounts.length === 0 && userAccount) testAccounts = [userAccount, '', '']; updateAccountDisplay(); }
-    function switchAccount(index) { currentAccountIndex = index; document.querySelectorAll('.account-btn').forEach((btn, i) => { btn.classList.toggle('active', i === index); }); document.getElementById('customAccountInput').style.display = index === 3 ? 'flex' : 'none'; if (index < 3 && testAccounts[index]) { userAccount = testAccounts[index]; updateAccountInfo(); } if (index === 3 && testAccounts[3]) { userAccount = testAccounts[3]; updateAccountInfo(); } }
-    function setCustomAccount() { const addr = document.getElementById('customAddress').value.trim(); if (addr && addr.startsWith('0x')) { testAccounts[3] = addr; userAccount = addr; updateAccountInfo(); alert('已切换到自定义账户'); } else alert('请输入有效的钱包地址'); }
-    async function updateAccountInfo() { if (!userAccount || !activeWeb3) return; try { const balanceData = buildCallData('balanceOf(address)', userAccount); const mykBal = await activeWeb3.eth.call({ to: MYK_ADDR, data: balanceData }); const mykAmount = fromWei(mykBal); const userData = buildCallData('users(address)', userAccount); const userRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: userData }); const userInfo = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], userRaw); const roles = ['无','PRIMARY','MIDDLE','COMMUNITY']; const rankData = buildCallData('getUserRank(address)', userAccount); const rankRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: rankData }); const rank = parseInt(rankRaw); document.getElementById('resAccountInfo').innerHTML = `📋 当前账户: ${userAccount.slice(0,10)}...${userAccount.slice(-6)}\n💰 MYK: ${mykAmount.toFixed(4)} | 🏆 ${roles[userInfo[7]]} | 📊 #${rank || '无'} | 👥 邀请:${userInfo[1]} | ✅ ${userInfo[8]?'已激活':'未激活'}`; } catch(e) { document.getElementById('resAccountInfo').innerHTML = `📋 当前账户: ${userAccount?.slice(0,10)}...\n<span class="r">查询失败</span>`; } }
-    function updateAccountDisplay() { const container = document.getElementById('accountTabs'); if (!container) return; container.innerHTML = `<button class="account-btn ${currentAccountIndex === 0 ? 'active' : ''}" onclick="switchAccount(0)">👤 账户A</button><button class="account-btn ${currentAccountIndex === 1 ? 'active' : ''}" onclick="switchAccount(1)">👤 账户B</button><button class="account-btn ${currentAccountIndex === 2 ? 'active' : ''}" onclick="switchAccount(2)">👤 账户C</button><button class="account-btn ${currentAccountIndex === 3 ? 'active' : ''}" onclick="switchAccount(3)">➕ 自定义</button>`; }
+    // ==================== 奖励查询 ====================
+    async function queryUserRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr)addr=userAccount; if(!addr){alert('输入地址');return;} if(!activeWeb3)await initRpc(); let html=`📋 用户 ${addr.slice(0,10)}...\n`; try{ const userData=buildCallData('users(address)',addr); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const ui=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; html+=`身份:${roles[ui[7]]} | 激活:${ui[8]?'✅':'❌'} | 邀请:${ui[1]}\n`; const rankData=buildCallData('getUserRank(address)',addr); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); html+=`排名: #${parseInt(rankRaw)||'无'}\n`; document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">查询失败</span>`; } }
+    async function queryUpRewardsDetail() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr)addr=userAccount; if(!addr){alert('输入地址');return;} if(!activeWeb3)await initRpc(); let html=`📊 上级链路\n`; try{ let fc='0x0'; const fcData=buildCallData('getFirstCommunity(address)',addr); try{ fc=web3.eth.abi.decodeParameter('address',await activeWeb3.eth.call({to:GOV_ADDR,data:fcData})); }catch(e){} if(fc==='0x0000000000000000000000000000000000000000'){ html+='<span class="r">无上级社区</span>'; document.getElementById('resRewards').innerHTML=html; return; } let cur=fc; const names=['C1','C2','C3','C4','C5','C6']; for(let i=0;i<6;i++){ if(cur==='0x0000000000000000000000000000000000000000'){ html+=`${names[i]}: 空缺\n`; break; } try{ const tierRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:buildCallData('getCommunityTier(address)',cur)}); const tier=parseInt(tierRaw); const mykRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:buildCallData('balanceOf(address)',cur)}); html+=`${names[i]}: ${cur.slice(0,10)}... | 等级${tier} | MYK:${fromWei(mykRaw).toFixed(2)}\n`; const nodeRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:buildCallData('getCommunityNode(address)',cur)}); const node=web3.eth.abi.decodeParameters(['address','address','bool'],nodeRaw); cur=node[1]; }catch(e){ html+=`${names[i]}: 查询失败\n`; break; } } document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">失败: ${e.message.slice(0,80)}</span>`; } }
+    async function queryDividendRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr)addr=userAccount; if(!addr){alert('输入地址');return;} if(!activeWeb3)await initRpc(); let html=`💧 分红池收益\n`; let total=0; for(let t=3;t<=6;t++){ try{ const data=buildCallData('getClaimableDividend(address,uint8)',addr,t); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const claim=fromWei(raw); total+=claim; html+=`社区${t}: ${claim.toFixed(4)} MYK ${claim>0?'✅':'⏳'}\n`; }catch(e){ html+=`社区${t}: 查询失败\n`; } } html+=`\n总计: ${total.toFixed(4)} MYK`; document.getElementById('resRewards').innerHTML=html; }
 
-    // ==================== 一键关联检验 ====================
-    async function callView(contract, method, ...params) { if (!activeWeb3) await initRpc(); try { const data = buildCallData(method, ...params); return await activeWeb3.eth.call({ to: contract, data }); } catch(e) { return null; } }
-    async function decodeAddress(raw) { if (!raw || raw === '0x') return '0x0000000000000000000000000000000000000000'; try { return web3.eth.abi.decodeParameter('address', raw); } catch(e) { return raw; } }
-    async function runOneKeyVerification() { if (!activeWeb3) await initRpc(); if (!activeWeb3) { document.getElementById('resVerification').innerHTML = '<span class="r">❌ RPC 连接失败</span>'; return; } let html = '<div style="font-weight:bold;margin-bottom:10px;">🔍 关联检验结果</div>'; let allPass = true, checks = []; const pairs = [ { name: "MYK.rewardPool", contract: MYK_ADDR, method: 'rewardPool()', expected: REWARD_POOL_ADDR }, { name: "MYK.communityGovernance", contract: MYK_ADDR, method: 'communityGovernance()', expected: GOV_ADDR }, { name: "RP.mykToken", contract: REWARD_POOL_ADDR, method: 'mykToken()', expected: MYK_ADDR }, { name: "RP.communityGovernance", contract: REWARD_POOL_ADDR, method: 'communityGovernance()', expected: GOV_ADDR }, { name: "RP.fundManager", contract: REWARD_POOL_ADDR, method: 'fundManager()', expected: FUND_MANAGER_ADDR }, { name: "GV.mykToken", contract: GOV_ADDR, method: 'mykToken()', expected: MYK_ADDR }, { name: "GV.rewardPool", contract: GOV_ADDR, method: 'rewardPool()', expected: REWARD_POOL_ADDR }, { name: "GV.fundManager", contract: GOV_ADDR, method: 'fundManager()', expected: FUND_MANAGER_ADDR }, { name: "FM.myk", contract: FUND_MANAGER_ADDR, method: 'myk()', expected: MYK_ADDR }, { name: "FM.communityGovernance", contract: FUND_MANAGER_ADDR, method: 'communityGovernance()', expected: GOV_ADDR } ]; for (const p of pairs) { let val = await callView(p.contract, p.method); val = await decodeAddress(val); let pass = val.toLowerCase() === p.expected.toLowerCase(); html += `<div class="check-item"><span>${p.name}</span><span class="${pass ? 'check-pass' : 'check-fail'}">${pass ? '✅ ' + val.slice(0,10)+'...' : '❌ ' + val.slice(0,10)+'...'}</span></div>`; allPass = allPass && pass; checks.push(pass); } let passedCount = checks.filter(v => v === true).length; html += `<div style="margin-top:12px;padding-top:8px;border-top:1px solid #2d333b;"><div class="check-item"><span>📊 检验结果</span><span>${passedCount}/10 通过</span></div>`; if (allPass) { html += `<div class="check-pass" style="margin-top:8px;">🎉 所有关联验证通过！</div>`; for (const item of testPhases[0].items) setTestStatus('deploy', item.id, 'pass', ''); } else html += `<div class="check-fail" style="margin-top:8px;">⚠️ 部分关联失败，请执行「一键关联设置」</div>`; html += `</div>`; document.getElementById('resVerification').innerHTML = html; }
-    async function runOneKeySetup() { if (!userAccount) { alert('请先连接钱包'); return; } document.getElementById('resVerification').innerHTML = '⏳ 正在执行一键关联设置...'; const steps = [ { name: "MYK.setRewardPool", to: MYK_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR }, { name: "MYK.setCommunityGovernance", to: MYK_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR }, { name: "RP.setMykToken", to: REWARD_POOL_ADDR, method: 'setMykToken(address)', param: MYK_ADDR }, { name: "RP.setCommunityGovernance", to: REWARD_POOL_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR }, { name: "RP.setFundManager", to: REWARD_POOL_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR }, { name: "GV.setMykToken", to: GOV_ADDR, method: 'setMykToken(address)', param: MYK_ADDR }, { name: "GV.setRewardPool", to: GOV_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR }, { name: "GV.setFundManager", to: GOV_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR }, { name: "FM.setMyk", to: FUND_MANAGER_ADDR, method: 'setMyk(address)', param: MYK_ADDR }, { name: "FM.setCommunityGovernance", to: FUND_MANAGER_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR } ]; for (let i = 0; i < steps.length; i++) { try { const data = buildCallData(steps[i].method, steps[i].param); await sendTransaction(steps[i].to, data); document.getElementById('resVerification').innerHTML = `✅ [${i+1}/10] ${steps[i].name}`; } catch(e) { document.getElementById('resVerification').innerHTML = `<span class="r">❌ [${i+1}/10] ${steps[i].name} 失败</span>`; return; } } document.getElementById('resVerification').innerHTML = `<span class="g">🎉 一键关联设置完成！10/10 成功</span>`; setTimeout(() => runOneKeyVerification(), 2000); }
+    // ==================== 多账户 ====================
+    async function initAccounts() { if(!window.ethereum)return; const accs=await window.ethereum.request({method:'eth_accounts'}); if(accs.length>0){ testAccounts=accs.slice(0,3); while(testAccounts.length<3)testAccounts.push(''); } if(testAccounts.length===0&&userAccount)testAccounts=[userAccount,'','']; updateAccountDisplay(); }
+    function switchAccount(idx) { currentAccountIndex=idx; document.querySelectorAll('.account-btn').forEach((btn,i)=>{btn.classList.toggle('active',i===idx);}); document.getElementById('customAccountInput').style.display=idx===3?'flex':'none'; if(idx<3&&testAccounts[idx]){ userAccount=testAccounts[idx]; updateAccountInfo(); } if(idx===3&&testAccounts[3]){ userAccount=testAccounts[3]; updateAccountInfo(); } }
+    function setCustomAccount() { const addr=document.getElementById('customAddress').value.trim(); if(addr&&addr.startsWith('0x')){ testAccounts[3]=addr; userAccount=addr; updateAccountInfo(); alert('已切换'); } else alert('地址无效'); }
+    async function updateAccountInfo() { if(!userAccount||!activeWeb3)return; try{ const balData=buildCallData('balanceOf(address)',userAccount); const mykBal=await activeWeb3.eth.call({to:MYK_ADDR,data:balData}); const myk=fromWei(mykBal); const userData=buildCallData('users(address)',userAccount); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const ui=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; const rankData=buildCallData('getUserRank(address)',userAccount); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); const rank=parseInt(rankRaw); document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount.slice(0,10)}...\n💰 ${myk.toFixed(2)} | 🏆 ${roles[ui[7]]} | #${rank||'无'} | 邀请:${ui[1]}`; }catch(e){ document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount?.slice(0,10)}...\n<span class="r">查询失败</span>`; } }
+    function updateAccountDisplay() { const c=document.getElementById('accountTabs'); if(!c)return; c.innerHTML=`<button class="account-btn ${currentAccountIndex===0?'active':''}" onclick="switchAccount(0)">A</button><button class="account-btn ${currentAccountIndex===1?'active':''}" onclick="switchAccount(1)">B</button><button class="account-btn ${currentAccountIndex===2?'active':''}" onclick="switchAccount(2)">C</button><button class="account-btn ${currentAccountIndex===3?'active':''}" onclick="switchAccount(3)">+</button>`; }
 
-    // ==================== Web3 基础函数 ====================
-    const $ = id => document.getElementById(id);
-    const truncAddr = (addr) => addr ? `${addr.slice(0,6)}...${addr.slice(-4)}` : 'null';
-    const toWei = (val) => web3.utils.toWei(val.toString(), 'ether');
-    const fromWei = (wei) => parseFloat(web3.utils.fromWei(wei, 'ether'));
-    const encodeFunctionSig = (sig) => web3.eth.abi.encodeFunctionSignature(sig);
-    const encodeAddress = (addr) => web3.eth.abi.encodeParameter('address', addr).slice(2);
-    const encodeUint = (num) => web3.eth.abi.encodeParameter('uint256', num).slice(2);
-    const buildCallData = (signature, ...params) => { let sig = encodeFunctionSig(signature); let encoded = ''; for (let p of params) { if (typeof p === 'string' && p.startsWith('0x') && p.length === 42) encoded += encodeAddress(p); else encoded += encodeUint(p.toString()); } return '0x' + sig.slice(2) + encoded; };
-    async function sendTransaction(to, data, value = '0') { if (!userAccount) throw new Error('钱包未连接'); return await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAccount, to, data, value }] }); }
-    async function initRpc() { const rpcs = ["https://bsc-dataseed1.binance.org/", "https://bsc-dataseed2.binance.org/"]; for (const rpc of rpcs) { try { const tw = new Web3(rpc); await tw.eth.getBlockNumber(); activeWeb3 = tw; return true; } catch(e) {} } return false; }
-    async function advanceTime(days) { const isLocal = (chainId === 31337 || chainId === 1337); if (!isLocal) { document.getElementById('resTime').innerHTML = '<span class="r">❌ 仅 Hardhat 支持</span>'; return; } try { const seconds = days * 5; await web3.currentProvider.send({ method: 'evm_increaseTime', params: [seconds], jsonrpc: '2.0', id: 1 }); await web3.currentProvider.send({ method: 'evm_mine', params: [], jsonrpc: '2.0', id: 2 }); document.getElementById('resTime').innerHTML = `⏩ 快进 ${days} 天 (${seconds}秒)`; } catch(e) { document.getElementById('resTime').innerHTML = `<span class="r">失败: ${e.message}</span>`; } }
-    async function executeQuickAction() { if (!userAccount) { alert('请连接钱包'); return; } const action = document.getElementById('quickAction').value; const param = document.getElementById('quickParam').value.trim(); if (!action) { alert('请选择操作'); return; } try { let to = '', data = ''; switch(action) { case 'activate': data = buildCallData('activateWithUSDT(address)', param || userAccount); to = REWARD_POOL_ADDR; break; case 'bind': if(!param) { alert('需要上级地址'); return; } data = buildCallData('directBind(address)', param); to = REWARD_POOL_ADDR; break; case 'claimDaily': data = buildCallData('claimDailyReward(uint256,uint256,bytes32[],bytes32)', 0, 0); to = REWARD_POOL_ADDR; break; case 'upgradeUSDT': data = buildCallData('upgradeWithUSDT(uint256)', toWei(param || '100')); to = GOV_ADDR; break; case 'burnTier': data = buildCallData('burnForTier(uint256)', toWei(param || '1000')); to = GOV_ADDR; break; case 'renew': data = buildCallData('renewCommunity(uint256)', toWei(param || '10')); to = GOV_ADDR; break; default: alert('未知操作'); return; } const tx = await sendTransaction(to, data); document.getElementById('resQuickAction').innerHTML = `✅ 已发送: ${tx.slice(0,10)}...`; setTimeout(() => updateAccountInfo(), 3000); } catch(e) { document.getElementById('resQuickAction').innerHTML = `<span class="r">❌ ${e.message.slice(0,100)}</span>`; } }
-    async function getCurrentPrice() { if (!activeWeb3) return null; try { const data = buildCallData('getCurrentPrice()'); const raw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data }); return fromWei(raw); } catch(e) { return null; } }
-    async function queryCurrentUser() { await updateAccountInfo(); }
-    async function queryTier() { if (!activeWeb3) await initRpc(); const addr = userAccount; if (!addr) return; try { const data = buildCallData('getCommunityTier(address)', addr); const raw = await activeWeb3.eth.call({ to: GOV_ADDR, data }); const tier = parseInt(raw); const names = ['无','第一','第二','第三','第四','第五','第六']; document.getElementById('resQuery').innerHTML = `🏆 社区等级: ${names[tier]||'未知'}`; } catch(e) { document.getElementById('resQuery').innerHTML = '<span class="r">失败</span>'; } }
-    async function queryRank() { if (!activeWeb3) await initRpc(); const addr = userAccount; if (!addr) return; try { const data = buildCallData('getUserRank(address)', addr); const raw = await activeWeb3.eth.call({ to: GOV_ADDR, data }); document.getElementById('resQuery').innerHTML = `📊 排名: #${parseInt(raw)}`; } catch(e) { document.getElementById('resQuery').innerHTML = '<span class="r">无排名</span>'; } }
-    async function queryBalance() { if (!activeWeb3) await initRpc(); const addr = userAccount; if (!addr) return; try { const mykData = buildCallData('balanceOf(address)', addr); const usdtData = buildCallData('balanceOf(address)', addr); const [myk, usdt] = await Promise.all([activeWeb3.eth.call({ to: MYK_ADDR, data: mykData }), activeWeb3.eth.call({ to: USDT_ADDR, data: usdtData })]); document.getElementById('resQuery').innerHTML = `💰 MYK: ${fromWei(myk).toFixed(4)}\n💵 USDT: ${fromWei(usdt).toFixed(2)}`; } catch(e) { document.getElementById('resQuery').innerHTML = '<span class="r">失败</span>'; } }
-    async function queryPrice() { if (!activeWeb3) await initRpc(); try { const data = buildCallData('getCurrentPrice()'); const raw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data }); document.getElementById('resQuery').innerHTML = `💵 价格: ${fromWei(raw).toFixed(8)} USDT`; } catch(e) { document.getElementById('resQuery').innerHTML = '<span class="r">失败</span>'; } }
-    function copyToClipboard(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); alert('已复制'); }
+    // ==================== 关联检验 ====================
+    async function callView(c,m,...p) { if(!activeWeb3)await initRpc(); try{ const data=buildCallData(m,...p); return await activeWeb3.eth.call({to:c,data}); }catch(e){return null;} }
+    async function decodeAddress(r) { if(!r||r==='0x')return '0x0000000000000000000000000000000000000000'; try{ return web3.eth.abi.decodeParameter('address',r); }catch(e){return r;} }
+    async function runOneKeyVerification() { if(!activeWeb3)await initRpc(); if(!activeWeb3){ document.getElementById('resVerification').innerHTML='<span class="r">RPC失败</span>'; return; } let html='<div style="font-weight:bold">🔍 关联检验</div>'; let all=true,checks=[]; const pairs=[ {n:"MYK.rewardPool",c:MYK_ADDR,m:'rewardPool()',e:REWARD_POOL_ADDR},{n:"MYK.gov",c:MYK_ADDR,m:'communityGovernance()',e:GOV_ADDR},{n:"RP.myk",c:REWARD_POOL_ADDR,m:'mykToken()',e:MYK_ADDR},{n:"RP.gov",c:REWARD_POOL_ADDR,m:'communityGovernance()',e:GOV_ADDR},{n:"RP.fm",c:REWARD_POOL_ADDR,m:'fundManager()',e:FUND_MANAGER_ADDR},{n:"GV.myk",c:GOV_ADDR,m:'mykToken()',e:MYK_ADDR},{n:"GV.rp",c:GOV_ADDR,m:'rewardPool()',e:REWARD_POOL_ADDR},{n:"GV.fm",c:GOV_ADDR,m:'fundManager()',e:FUND_MANAGER_ADDR},{n:"FM.myk",c:FUND_MANAGER_ADDR,m:'myk()',e:MYK_ADDR},{n:"FM.gov",c:FUND_MANAGER_ADDR,m:'communityGovernance()',e:GOV_ADDR} ]; for(const p of pairs){ let v=await callView(p.c,p.m); v=await decodeAddress(v); let pass=v.toLowerCase()===p.e.toLowerCase(); html+=`<div class="check-item"><span>${p.n}</span><span class="${pass?'check-pass':'check-fail'}">${pass?'✅':'❌'} ${v.slice(0,10)}...</span></div>`; all=all&&pass; checks.push(pass); } let pc=checks.filter(v=>v===true).length; html+=`<div style="margin-top:8px">📊 ${pc}/10 通过</div>`; if(all){ html+=`<div class="check-pass">🎉 全部通过！</div>`; for(const i of testPhases[0].items) setStatus('deploy',i.id,'pass'); } else html+=`<div class="check-fail">⚠️ 请执行一键设置</div>`; document.getElementById('resVerification').innerHTML=html; }
+    async function runOneKeySetup() { if(!userAccount){alert('连接钱包');return;} document.getElementById('resVerification').innerHTML='⏳ 设置中...'; const steps=[{n:"MYK.setRP",to:MYK_ADDR,m:'setRewardPool(address)',p:REWARD_POOL_ADDR},{n:"MYK.setGV",to:MYK_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR},{n:"RP.setMYK",to:REWARD_POOL_ADDR,m:'setMykToken(address)',p:MYK_ADDR},{n:"RP.setGV",to:REWARD_POOL_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR},{n:"RP.setFM",to:REWARD_POOL_ADDR,m:'setFundManager(address)',p:FUND_MANAGER_ADDR},{n:"GV.setMYK",to:GOV_ADDR,m:'setMykToken(address)',p:MYK_ADDR},{n:"GV.setRP",to:GOV_ADDR,m:'setRewardPool(address)',p:REWARD_POOL_ADDR},{n:"GV.setFM",to:GOV_ADDR,m:'setFundManager(address)',p:FUND_MANAGER_ADDR},{n:"FM.setMYK",to:FUND_MANAGER_ADDR,m:'setMyk(address)',p:MYK_ADDR},{n:"FM.setGV",to:FUND_MANAGER_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR} ]; for(let i=0;i<steps.length;i++){ try{ const data=buildCallData(steps[i].m,steps[i].p); await sendTransaction(steps[i].to,data); document.getElementById('resVerification').innerHTML=`✅ ${i+1}/10 ${steps[i].n}`; }catch(e){ document.getElementById('resVerification').innerHTML=`<span class="r">❌ ${steps[i].n} 失败</span>`; return; } } document.getElementById('resVerification').innerHTML=`<span class="g">🎉 设置完成！</span>`; setTimeout(()=>runOneKeyVerification(),2000); }
+
+    // ==================== Web3基础 ====================
+    const $=id=>document.getElementById(id);
+    const truncAddr=a=>a?`${a.slice(0,6)}...${a.slice(-4)}`:'null';
+    const toWei=v=>web3.utils.toWei(v.toString(),'ether');
+    const fromWei=w=>parseFloat(web3.utils.fromWei(w,'ether'));
+    const encodeSig=s=>web3.eth.abi.encodeFunctionSignature(s);
+    const encodeAddr=a=>web3.eth.abi.encodeParameter('address',a).slice(2);
+    const encodeUint=n=>web3.eth.abi.encodeParameter('uint256',n).slice(2);
+    const buildCallData=(sig,...p)=>{ let s=encodeSig(sig); let e=''; for(let pp of p){ if(typeof pp==='string' && pp.startsWith('0x') && pp.length===42) e+=encodeAddr(pp); else e+=encodeUint(pp.toString()); } return '0x'+s.slice(2)+e; };
+    async function sendTransaction(to,data,val='0'){ if(!userAccount)throw new Error('未连接'); return await window.ethereum.request({method:'eth_sendTransaction',params:[{from:userAccount,to,data,value:val}]}); }
+    async function initRpc(){ const rpcs=["https://bsc-dataseed1.binance.org/","https://bsc-dataseed2.binance.org/"]; for(const rpc of rpcs){ try{ const tw=new Web3(rpc); await tw.eth.getBlockNumber(); activeWeb3=tw; return true; }catch(e){} } return false; }
+    async function advanceTime(days){ const local=(chainId===31337||chainId===1337); if(!local){ document.getElementById('resTime').innerHTML='<span class="r">仅Hardhat支持</span>'; return; } try{ const sec=days*5; await web3.currentProvider.send({method:'evm_increaseTime',params:[sec],jsonrpc:'2.0',id:1}); await web3.currentProvider.send({method:'evm_mine',params:[],jsonrpc:'2.0',id:2}); document.getElementById('resTime').innerHTML=`⏩ ${days}天 (${sec}秒)`; }catch(e){ document.getElementById('resTime').innerHTML=`<span class="r">失败: ${e.message}</span>`; } }
+    async function executeQuickAction(){ if(!userAccount){alert('连接钱包');return;} const a=document.getElementById('quickAction').value; const p=document.getElementById('quickParam').value.trim(); if(!a){alert('选择操作');return;} try{ let to='',data=''; switch(a){ case'activate':data=buildCallData('activateWithUSDT(address)',p||userAccount);to=REWARD_POOL_ADDR;break; case'bind':if(!p){alert('需要上级地址');return;}data=buildCallData('directBind(address)',p);to=REWARD_POOL_ADDR;break; case'claimDaily':data=buildCallData('claimDailyReward(uint256,uint256,bytes32[],bytes32)',0,0);to=REWARD_POOL_ADDR;break; case'upgradeUSDT':data=buildCallData('upgradeWithUSDT(uint256)',toWei(p||'100'));to=GOV_ADDR;break; case'burnTier':data=buildCallData('burnForTier(uint256)',toWei(p||'1000'));to=GOV_ADDR;break; case'renew':data=buildCallData('renewCommunity(uint256)',toWei(p||'10'));to=GOV_ADDR;break; default:alert('未知');return; } const tx=await sendTransaction(to,data); document.getElementById('resQuickAction').innerHTML=`✅ ${tx.slice(0,10)}...`; }catch(e){ document.getElementById('resQuickAction').innerHTML=`<span class="r">❌ ${e.message.slice(0,100)}</span>`; } }
+    async function getCurrentPrice(){ if(!activeWeb3)return null; try{ const data=buildCallData('getCurrentPrice()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function queryCurrentUser(){ await updateAccountInfo(); }
+    async function queryTier(){ if(!activeWeb3)await initRpc(); const addr=userAccount; if(!addr)return; try{ const data=buildCallData('getCommunityTier(address)',addr); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); const t=parseInt(raw); const n=['无','一','二','三','四','五','六']; document.getElementById('resQuery').innerHTML=`🏆 社区${n[t]||'未知'}`; }catch(e){ document.getElementById('resQuery').innerHTML='<span class="r">失败</span>'; } }
+    async function queryRank(){ if(!activeWeb3)await initRpc(); const addr=userAccount; if(!addr)return; try{ const data=buildCallData('getUserRank(address)',addr); const raw=await activeWeb3.eth.call({to:GOV_ADDR,data}); document.getElementById('resQuery').innerHTML=`📊 排名: #${parseInt(raw)}`; }catch(e){ document.getElementById('resQuery').innerHTML='<span class="r">无</span>'; } }
+    async function queryBalance(){ if(!activeWeb3)await initRpc(); const addr=userAccount; if(!addr)return; try{ const mykData=buildCallData('balanceOf(address)',addr); const usdtData=buildCallData('balanceOf(address)',addr); const [myk,usdt]=await Promise.all([activeWeb3.eth.call({to:MYK_ADDR,data:mykData}),activeWeb3.eth.call({to:USDT_ADDR,data:usdtData})]); document.getElementById('resQuery').innerHTML=`💰 MYK: ${fromWei(myk).toFixed(4)}\n💵 USDT: ${fromWei(usdt).toFixed(2)}`; }catch(e){ document.getElementById('resQuery').innerHTML='<span class="r">失败</span>'; } }
+    async function queryPrice(){ if(!activeWeb3)await initRpc(); try{ const data=buildCallData('getCurrentPrice()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); document.getElementById('resQuery').innerHTML=`💵 ${fromWei(raw).toFixed(8)} USDT`; }catch(e){ document.getElementById('resQuery').innerHTML='<span class="r">失败</span>'; } }
+    function copyToClipboard(id){ navigator.clipboard.writeText(document.getElementById(id).innerText); alert('已复制'); }
 
     // 初始化
-    window.addEventListener('load', async () => {
-        if (!window.ethereum) { document.getElementById('netStatus').innerHTML = '<span class="r">❌ 安装 MetaMask</span>'; return; }
-        web3 = new Web3(window.ethereum);
+    window.addEventListener('load',async()=>{
+        if(!window.ethereum){ document.getElementById('netStatus').innerHTML='<span class="r">❌ 安装MetaMask</span>'; return; }
+        web3=new Web3(window.ethereum);
         await initRpc();
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            userAccount = accounts[0];
-            testAccounts = accounts.slice(0, 3);
-            while (testAccounts.length < 3) testAccounts.push('');
-            chainId = await web3.eth.getChainId();
-            document.getElementById('netStatus').innerHTML = chainId === 56 ? '✅ BSC Mainnet' : (chainId === 31337 ? '✅ Hardhat' : `⚠️ ${chainId}`);
+        try{
+            const accs=await window.ethereum.request({method:'eth_requestAccounts'});
+            userAccount=accs[0];
+            testAccounts=accs.slice(0,3);
+            while(testAccounts.length<3)testAccounts.push('');
+            chainId=await web3.eth.getChainId();
+            document.getElementById('netStatus').innerHTML=chainId===56?'✅ BSC':(chainId===31337?'✅ Hardhat':`⚠️ ${chainId}`);
             updateAccountDisplay();
             updateAccountInfo();
             refreshAllBalances();
             initTestResults();
             checkAllowance();
-        } catch(e) { document.getElementById('netStatus').innerHTML = '<span class="r">连接失败</span>'; }
-        window.ethereum.on('accountsChanged', (accs) => { userAccount = accs[0]; testAccounts[0] = accs[0]; updateAccountDisplay(); updateAccountInfo(); });
+        }catch(e){ document.getElementById('netStatus').innerHTML='<span class="r">连接失败</span>'; }
+        window.ethereum.on('accountsChanged',(accs)=>{ userAccount=accs[0]; testAccounts[0]=accs[0]; updateAccountDisplay(); updateAccountInfo(); });
     });
 </script>
 </body>
