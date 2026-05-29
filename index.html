@@ -101,7 +101,7 @@
         <div class="res" id="resAccountInfo">📋 当前账户信息将显示在此处</div>
     </div>
 
-    <!-- 合约余额管理（修复充值功能） -->
+    <!-- 合约余额管理 -->
     <div class="card">
         <div class="card-title">💰 合约余额管理 <span class="badge badge-write">充值</span></div>
         <div class="stats-grid">
@@ -122,7 +122,7 @@
         <div class="res" id="resRecharge">💡 充值说明：点击「授权并充值」会先完成授权，再充值到活动奖金池</div>
     </div>
 
-    <!-- 用户上级奖励到账状态（新增） -->
+    <!-- 用户上级奖励到账状态 -->
     <div class="card">
         <div class="card-title">🎁 上级奖励到账状态 <span class="badge badge-reward">链上查询</span></div>
         <div class="row">
@@ -188,13 +188,15 @@
         <div class="res" id="resQuery">📡 点击查询</div>
     </div>
 
-    <!-- 合约地址 -->
+    <!-- 合约地址（最新配置） -->
     <div class="card">
-        <div class="card-title">📋 合约地址</div>
-        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xEeB2c41F41319A77Dcaa869AA1b6697EAEfc5cD8</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x0A50cF6D697933cb26d39E115f26D087cb3b7760</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button></div>
+        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
+        <div class="addr-row"><span class="addr-label">MYK Token:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0x7F9283da106d448A4f4fEd2b15838526C6946c51</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x0A50cF6D697933cb26d39E115f26D087cb3b7760</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Router:</span><span class="addr-value" id="displayRouterAddr">0x10ED43C718714eb63d5aA57B78B54704E256024E</span><button class="copy-btn" onclick="copyToClipboard('displayRouterAddr')">复制</button><span class="g">✓</span></div>
     </div>
 
     <!-- 测试清单容器 -->
@@ -202,16 +204,17 @@
 </div>
 
 <script>
-    // ==================== 合约地址 ====================
+    // ==================== 最新合约地址 ====================
     let web3, userAccount, chainId;
     let activeWeb3 = null;
     let currentAccountIndex = 0;
     let testAccounts = [];
 
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0xEeB2c41F41319A77Dcaa869AA1b6697EAEfc5cD8';
+    let REWARD_POOL_ADDR = '0x7F9283da106d448A4f4fEd2b15838526C6946c51';
     let GOV_ADDR = '0x0A50cF6D697933cb26d39E115f26D087cb3b7760';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
+    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
     // ==================== 测试清单数据 ====================
@@ -289,12 +292,12 @@
     function setTestStatus(phaseId, itemId, status, note) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; if (note) testResults[key].note = note; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total = 0, passed = 0, failed = 0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total > 0 ? Math.round((passed / total) * 100) : 0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed = 0, phaseTotal = 0; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; if (testResults[key]) { phaseTotal++; if (testResults[key].status === "pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; const result = testResults[key] || { status: "pending" }; const statusIcon = result.status === "pass" ? "✅" : (result.status === "fail" ? "❌" : "⏳"); html += `<tr><td style="width:45px;">${item.id}</td><td style="width:100px;">${item.name}</td><td style="width:100px;font-size:9px;color:#8b949e;">${item.desc}</td><td style="width:40px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass','')">通过</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail','')">失败</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed = 0, phaseTotal = 0; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; if (testResults[key]) { phaseTotal++; if (testResults[key].status === "pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; const result = testResults[key] || { status: "pending" }; const statusIcon = result.status === "pass" ? "✅" : (result.status === "fail" ? "❌" : "⏳"); html += `<tr><td style="width:45px;">${item.id}</td><td style="width:100px;">${item.name}</td><td style="width:100px;font-size:9px;color:#8b949e;">${item.desc}</td><td style="width:40px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass','')">通过</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail','')">失败</button></td></tr>`; } html += `</tbody></td></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK 测试报告\n时间: " + new Date().toLocaleString() + "\n"; let total = 0, passed = 0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; } report += `通过率: ${passed}/${total} (${Math.round(passed/total*100)}%)\n\n`; for (const phase of testPhases) { report += `\n${phase.name}\n`; for (const item of phase.items) { const key = `${phase.id}_${item.id}`; const status = testResults[key]?.status === "pass" ? "✅" : (testResults[key]?.status === "fail" ? "❌" : "⏳"); report += `${status} ${item.id} ${item.name}\n`; } } const blob = new Blob([report], { type: "text/plain" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests() { if (confirm("确定重置所有测试？")) { for (const k in testResults) testResults[k] = { status: "pending", note: "" }; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed() { for (const k in testResults) testResults[k] = { status: "pass", note: "" }; saveToStorage(); updateStats(); renderTestTable(); }
 
-    // ==================== 充值功能（修复版） ====================
+    // ==================== 充值功能 ====================
     async function checkAllowance() {
         if (!userAccount) { alert('请连接钱包'); return; }
         if (!activeWeb3) await initRpc();
@@ -313,7 +316,7 @@
         if (!userAccount) { alert('请连接钱包'); return; }
         const amount = parseFloat(document.getElementById('rechargeAmount').value);
         if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
-        const amountWei = toWei(amount * 2); // 授权双倍额度
+        const amountWei = toWei(amount * 2);
         try {
             document.getElementById('resRecharge').innerHTML = '⏳ 正在授权 MYK 给 RewardPool...';
             const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, amountWei);
@@ -329,7 +332,6 @@
         if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
         const amountWei = toWei(amount);
         try {
-            // 步骤1: 授权
             document.getElementById('resRecharge').innerHTML = '⏳ 步骤1/3: 检查授权...';
             const allowanceData = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
             const allowanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: allowanceData });
@@ -340,7 +342,6 @@
                 await sendTransaction(MYK_ADDR, approveData);
                 await new Promise(r => setTimeout(r, 2000));
             }
-            // 步骤2: 查询 MYK 余额
             document.getElementById('resRecharge').innerHTML = '⏳ 步骤2/3: 检查 MYK 余额...';
             const balanceData = buildCallData('balanceOf(address)', userAccount);
             const balanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: balanceData });
@@ -349,7 +350,6 @@
                 document.getElementById('resRecharge').innerHTML = `<span class="r">❌ MYK 余额不足！当前余额: ${mykBalance.toFixed(4)} MYK，需要: ${amount} MYK</span>`;
                 return;
             }
-            // 步骤3: 充值到活动奖金池
             document.getElementById('resRecharge').innerHTML = '⏳ 步骤3/3: 充值到活动奖金池...';
             const depositData = buildCallData('depositActivityPool(uint256)', amountWei);
             const tx = await sendTransaction(REWARD_POOL_ADDR, depositData);
@@ -358,7 +358,7 @@
         } catch(e) { document.getElementById('resRecharge').innerHTML = `<span class="r">❌ 充值失败: ${e.message.slice(0,150)}</span>`; }
     }
 
-    // ==================== 用户奖励查询（新增） ====================
+    // ==================== 用户奖励查询 ====================
     async function queryUserRewards() {
         let addr = document.getElementById('rewardUserAddr').value.trim();
         if (!addr) addr = userAccount;
@@ -367,35 +367,21 @@
         let html = `📋 用户 ${addr.slice(0,10)}... 奖励记录\n`;
         html += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
         try {
-            // 查询用户基本信息
             const userData = buildCallData('users(address)', addr);
             const userRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: userData });
             const userInfo = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], userRaw);
             const roles = ['无','PRIMARY','MIDDLE','COMMUNITY'];
             html += `👤 用户状态: ${roles[userInfo[7]]} | 激活: ${userInfo[8]?'✅':'❌'} | 邀请: ${userInfo[1]}人\n`;
-            
-            // 查询排名和社区等级
             const rankData = buildCallData('getUserRank(address)', addr);
             const rankRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: rankData });
             const rank = parseInt(rankRaw);
             html += `📊 全球排名: #${rank || '无'}\n`;
-            
-            // 查询上级社区
             const fcData = buildCallData('getFirstCommunity(address)', addr);
             let fc = '0x0';
             try { fc = web3.eth.abi.decodeParameter('address', await activeWeb3.eth.call({ to: GOV_ADDR, data: fcData })); } catch(e) {}
             if (fc !== '0x0000000000000000000000000000000000000000') {
                 html += `🎯 上级社区: ${fc.slice(0,10)}...\n`;
-                // 查询上级社区业绩
-                const perfData = buildCallData('getFirstCommunityPerformance(address)', fc);
-                try {
-                    const perfRaw = await activeWeb3.eth.call({ to: GOV_ADDR, data: perfData });
-                    const perf = fromWei(perfRaw);
-                    html += `📈 上级社区业绩: ${perf.toFixed(2)} USDT\n`;
-                } catch(e) {}
             }
-            
-            // 查询分红池可领取
             html += "\n💧 分红池收益:\n";
             for (let tier = 3; tier <= 6; tier++) {
                 try {
@@ -405,18 +391,6 @@
                     if (claimable > 0) html += `  🏆 社区${tier}: ${claimable.toFixed(4)} MYK (可领取)\n`;
                 } catch(e) {}
             }
-            
-            // 查询每日奖励信息
-            html += "\n📅 每日奖励信息:\n";
-            try {
-                const bonusData = buildCallData('dailyBonusInfo(address)', addr);
-                const bonusRaw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: bonusData });
-                const bonusInfo = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256','uint256','uint256','uint256'], bonusRaw);
-                html += `  本金: ${fromWei(bonusInfo[0]).toFixed(2)} USDT\n`;
-                html += `  已领取: ${fromWei(bonusInfo[1]).toFixed(2)} USDT\n`;
-                html += `  下次可领: ${bonusInfo[4] > 0 ? new Date(Number(bonusInfo[4])*1000).toLocaleString() : '未开始'}\n`;
-            } catch(e) {}
-            
             document.getElementById('resRewards').innerHTML = html;
         } catch(e) { document.getElementById('resRewards').innerHTML = `<span class="r">查询失败: ${e.message.slice(0,100)}</span>`; }
     }
@@ -429,17 +403,14 @@
         let html = `📊 用户 ${addr.slice(0,10)}... 上级奖励详情\n`;
         html += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
         try {
-            // 获取上级社区链
             let fc = '0x0';
             const fcData = buildCallData('getFirstCommunity(address)', addr);
             try { fc = web3.eth.abi.decodeParameter('address', await activeWeb3.eth.call({ to: GOV_ADDR, data: fcData })); } catch(e) {}
-            
             if (fc === '0x0000000000000000000000000000000000000000') {
                 html += '<span class="r">该用户没有上级社区</span>';
                 document.getElementById('resRewards').innerHTML = html;
                 return;
             }
-            
             let cur = fc;
             const tierNames = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
             for (let i = 0; i < 6; i++) {
@@ -479,7 +450,6 @@
             } catch(e) { html += `🏆 社区${tier}: 查询失败\n`; }
         }
         html += `\n📊 总计可领取: ${totalClaimable.toFixed(4)} MYK\n`;
-        html += `💡 提示: 分红池奖励需由管理员调用 manualDistributeDividends 和 processDistributionBatch 后发放\n`;
         document.getElementById('resRewards').innerHTML = html;
     }
 
