@@ -4,277 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MYK 测试面板 | 最终版</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background: #0a0c10;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, sans-serif;
-            padding: 10px;
-            color: #e6edf3;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 100%;
-            width: 100%;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 14px;
-            padding: 0 4px;
-        }
-        .header h1 {
-            font-size: 1.4rem;
-            background: linear-gradient(135deg, #f0883e, #ffb347);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-        .sub {
-            font-size: 9px;
-            color: #8b949e;
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-        .card {
-            background: #161b22;
-            border: 1px solid #2d333b;
-            border-radius: 18px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-        .card-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #58a6ff;
-            border-left: 3px solid #f0883e;
-            padding-left: 8px;
-        }
-        .badge {
-            font-size: 7px;
-            padding: 2px 6px;
-            border-radius: 16px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #0a0c10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; padding: 10px; color: #e6edf3; min-height: 100vh; }
+        .container { max-width: 100%; width: 100%; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 14px; }
+        .header h1 { font-size: 1.35rem; background: linear-gradient(135deg, #f0883e, #ffb347); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .sub { font-size: 9px; color: #8b949e; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+        .card { background: #161b22; border: 1px solid #2d333b; border-radius: 18px; padding: 12px; margin-bottom: 10px; }
+        .card-title { font-size: 0.75rem; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; color: #58a6ff; border-left: 3px solid #f0883e; padding-left: 8px; }
+        .badge { font-size: 7px; padding: 2px 6px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
         .badge-read { background: #1f6feb20; color: #79c0ff; border: 0.5px solid #1f6feb; }
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
         .badge-time { background: #d2992220; color: #e3b341; border: 0.5px solid #d29922; }
         .badge-config { background: #58a6ff20; color: #58a6ff; border: 0.5px solid #58a6ff; }
         .badge-test { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
         .badge-reward { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 14px;
-            color: #f0f6fc;
-            font-size: 13px;
-            margin-bottom: 8px;
-            -webkit-appearance: none;
-        }
-        input:focus, select:focus {
-            border-color: #f0883e;
-            outline: none;
-        }
-        button {
-            background: #21262d;
-            border: 1px solid #3c444e;
-            padding: 8px 12px;
-            border-radius: 40px;
-            font-weight: 500;
-            font-size: 12px;
-            color: #c9d1d9;
-            cursor: pointer;
-            margin: 2px;
-            transition: all 0.15s;
-            touch-action: manipulation;
-        }
-        button:active {
-            transform: scale(0.97);
-            background: #2d333b;
-        }
+        input, select { width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 14px; color: #f0f6fc; font-size: 13px; margin-bottom: 8px; -webkit-appearance: none; }
+        input:focus, select:focus { border-color: #f0883e; outline: none; }
+        button { background: #21262d; border: 1px solid #3c444e; padding: 8px 12px; border-radius: 40px; font-weight: 500; font-size: 12px; color: #c9d1d9; cursor: pointer; margin: 2px; transition: all 0.15s; touch-action: manipulation; }
+        button:active { transform: scale(0.97); background: #2d333b; }
         button.primary { background: #238636; border-color: #2ea043; color: white; }
         button.warning { background: #9e6a03; border-color: #d29922; }
         button.pool { background: #1f6feb; border-color: #388bfd; }
         button.reward { background: #f0883e20; border-color: #f0883e; color: #f0883e; }
-        .row {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .row button {
-            flex: 1;
-            min-width: calc(33% - 6px);
-            text-align: center;
-        }
-        .res {
-            background: #0a0c10;
-            border-radius: 14px;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 10px;
-            font-family: 'SF Mono', 'JetBrains Mono', monospace;
-            border: 1px solid #2d333b;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 350px;
-            overflow-y: auto;
-            line-height: 1.4;
-        }
-        .addr-row {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 6px;
-            flex-wrap: wrap;
-        }
-        .addr-label {
-            width: 85px;
-            color: #8b949e;
-            font-size: 10px;
-        }
-        .addr-value {
-            flex: 1;
-            font-family: monospace;
-            color: #79c0ff;
-            word-break: break-all;
-            font-size: 9px;
-            background: #0d1117;
-            padding: 4px 6px;
-            border-radius: 8px;
-        }
-        .copy-btn {
-            padding: 3px 8px;
-            font-size: 9px;
-            margin: 0;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-bottom: 8px;
-        }
-        .stat-card {
-            background: #0d1117;
-            border-radius: 12px;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffdf6e;
-        }
-        .stat-label {
-            font-size: 8px;
-            color: #8b949e;
-            margin-top: 2px;
-        }
-        .progress-bar {
-            height: 4px;
-            background: #2d333b;
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 6px 0;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #7ee787;
-            border-radius: 2px;
-            transition: width 0.3s;
-        }
-        .phase-header {
-            background: #1f6feb20;
-            padding: 8px 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            border-radius: 14px 14px 0 0;
-            margin-top: 6px;
-            font-size: 11px;
-        }
-        .test-table {
-            width: 100%;
-            font-size: 9px;
-            border-collapse: collapse;
-        }
-        .test-table td {
-            padding: 5px 4px;
-            border-bottom: 0.5px solid #2d333b;
-        }
-        .pass-btn, .fail-btn {
-            padding: 3px 6px;
-            font-size: 8px;
-            border-radius: 12px;
-            margin: 0 1px;
-            border: none;
-        }
+        .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+        .row button { flex: 1; min-width: calc(33% - 6px); text-align: center; }
+        .res { background: #0a0c10; border-radius: 14px; padding: 10px; margin-top: 10px; font-size: 10px; font-family: 'SF Mono', monospace; border: 1px solid #2d333b; white-space: pre-wrap; word-break: break-word; max-height: 350px; overflow-y: auto; line-height: 1.4; }
+        .addr-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+        .addr-label { width: 85px; color: #8b949e; font-size: 10px; }
+        .addr-value { flex: 1; font-family: monospace; color: #79c0ff; word-break: break-all; font-size: 9px; background: #0d1117; padding: 4px 6px; border-radius: 8px; }
+        .copy-btn { padding: 3px 8px; font-size: 9px; margin: 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+        .stat-card { background: #0d1117; border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #ffdf6e; }
+        .stat-label { font-size: 8px; color: #8b949e; margin-top: 2px; }
+        .progress-bar { height: 4px; background: #2d333b; border-radius: 2px; overflow: hidden; margin: 6px 0; }
+        .progress-fill { height: 100%; background: #7ee787; border-radius: 2px; transition: width 0.3s; }
+        .phase-header { background: #1f6feb20; padding: 8px 10px; cursor: pointer; display: flex; justify-content: space-between; border-radius: 14px 14px 0 0; margin-top: 6px; font-size: 11px; }
+        .test-table { width: 100%; font-size: 9px; border-collapse: collapse; }
+        .test-table td { padding: 5px 4px; border-bottom: 0.5px solid #2d333b; }
+        .pass-btn, .fail-btn { padding: 3px 6px; font-size: 8px; border-radius: 12px; margin: 0 1px; border: none; }
         .pass-btn { background: #23863620; color: #7ee787; }
         .fail-btn { background: #da363320; color: #ff7b72; }
-        .check-item, .balance-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 0.5px solid #2d333b;
-            font-size: 10px;
-        }
+        .check-item, .balance-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 0.5px solid #2d333b; font-size: 10px; }
         .check-pass { color: #7ee787; }
         .check-fail { color: #ff7b72; }
         .g { color: #7ee787; }
         .r { color: #ff7b72; }
         .y { color: #ffdf6e; }
         .b { color: #79c0ff; }
-        .account-tab {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #2d333b;
-        }
-        .account-btn {
-            padding: 5px 10px;
-            border-radius: 25px;
-            font-size: 10px;
-            background: #21262d;
-            border: none;
-        }
-        .account-btn.active {
-            background: #1f6feb;
-            color: white;
-        }
-        .approve-warning {
-            background: #da363320;
-            padding: 6px;
-            border-radius: 10px;
-            margin-bottom: 6px;
-            font-size: 9px;
-        }
-        .safe-bottom {
-            margin-bottom: env(safe-area-inset-bottom, 0);
-            padding-bottom: env(safe-area-inset-bottom, 0);
-        }
+        .account-tab { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #2d333b; }
+        .account-btn { padding: 5px 10px; border-radius: 25px; font-size: 10px; background: #21262d; border: none; }
+        .account-btn.active { background: #1f6feb; color: white; }
+        .approve-warning { background: #da363320; padding: 6px; border-radius: 10px; margin-bottom: 6px; font-size: 9px; }
+        .safe-bottom { margin-bottom: env(safe-area-inset-bottom, 0); padding-bottom: env(safe-area-inset-bottom, 0); }
         .res::-webkit-scrollbar { width: 3px; }
         .res::-webkit-scrollbar-track { background: #1a1f2e; border-radius: 3px; }
         .res::-webkit-scrollbar-thumb { background: #3c444e; border-radius: 3px; }
@@ -407,11 +193,10 @@
     <div class="card">
         <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
         <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xE3002FAf072F4594B933c2a60e31520825bB028a</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0x5Cb0dc5dCdE9BA185DeC4b3670DAaBF961646EDA</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button><span class="g">✓</span></div>
         <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button><span class="g">✓</span></div>
         <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button><span class="g">✓</span></div>
         <div class="addr-row"><span class="addr-label">Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button><span class="g">✓</span></div>
-        <div class="addr-row"><span class="addr-label">Router:</span><span class="addr-value" id="displayRouterAddr">0x10ED43C718714eb63d5aA57B78B54704E256024E</span><button class="copy-btn" onclick="copyToClipboard('displayRouterAddr')">复制</button><span class="g">✓</span></div>
     </div>
 
     <!-- 测试清单容器 -->
@@ -426,9 +211,10 @@
     let testAccounts = [];
 
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0xE3002FAf072F4594B933c2a60e31520825bB028a';
+    let REWARD_POOL_ADDR = '0x5Cb0dc5dCdE9BA185DeC4b3670DAaBF961646EDA';
     let GOV_ADDR = '0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
+    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
     // ==================== 测试数据 ====================
@@ -505,12 +291,12 @@
     function setStatus(pId, iId, s) { const k = `${pId}_${iId}`; if (testResults[k]) { testResults[k].status = s; saveStorage(); updateStats(); renderTests(); } }
     function updateStats() { let t=0,pass=0,fail=0; for(const k in testResults){t++;if(testResults[k].status==="pass")pass++;else if(testResults[k].status==="fail")fail++;} document.getElementById("statPassed").innerHTML=pass; document.getElementById("statFailed").innerHTML=fail; document.getElementById("statTotal").innerHTML=t; const p=t>0?Math.round(pass/t*100):0; document.getElementById("progressFill").style.width=`${p}%`; document.getElementById("testProgress").innerHTML=`📊 ${p}% (${pass}/${t})`; }
     function togglePhase(id) { const el = document.getElementById(`phase-${id}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
-    function renderTests() { const c = document.getElementById("testContainer"); if (!c) return; let html = ''; for (const p of testPhases) { let pp=0,pt=0; for (const i of p.items) { const k=`${p.id}_${i.id}`; if(testResults[k]){pt++;if(testResults[k].status==="pass")pp++;} } html += `<div><div class="phase-header" onclick="togglePhase('${p.id}')"><span>${p.name}</span><div><span class="g">${pp}</span>/<span>${pt}</span> ▼</div></div><div id="phase-${p.id}" style="display:block;"><table class="test-table"><tbody>`; for (const i of p.items) { const k=`${p.id}_${i.id}`; const r=testResults[k]||{status:"pending"}; const icon=r.status==="pass"?"✅":(r.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${i.id}</td><td style="width:80px;">${i.name}</td><td style="width:40px;">${icon}</td><td><button class="pass-btn" onclick="setStatus('${p.id}','${i.id}','pass')">通过</button><button class="fail-btn" onclick="setStatus('${p.id}','${i.id}','fail')">失败</button></td></tr>`; } html += `</tbody></table></div></div>`; } c.innerHTML = html; }
+    function renderTests() { const c = document.getElementById("testContainer"); if (!c) return; let html = ''; for (const p of testPhases) { let pp=0,pt=0; for (const i of p.items) { const k=`${p.id}_${i.id}`; if(testResults[k]){pt++;if(testResults[k].status==="pass")pp++;} } html += `<div><div class="phase-header" onclick="togglePhase('${p.id}')"><span>${p.name}</span><div><span class="g">${pp}</span>/<span>${pt}</span> ▼</div></div><div id="phase-${p.id}" style="display:block;"><table class="test-table"><tbody>`; for (const i of p.items) { const k=`${p.id}_${i.id}`; const r=testResults[k]||{status:"pending"}; const icon=r.status==="pass"?"✅":(r.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${i.id}</td><td style="width:80px;">${i.name}</td><td style="width:30px;">${icon}</td><td style="width:70px;"><button class="pass-btn" onclick="setStatus('${p.id}','${i.id}','pass')">通过</button><button class="fail-btn" onclick="setStatus('${p.id}','${i.id}','fail')">失败</button></td></tr>`; } html += `</tbody></table></div></div>`; } c.innerHTML = html; }
     function exportTestReport() { let r = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let t=0,pass=0; for(const k in testResults){t++;if(testResults[k].status==="pass")pass++;} r+=`通过:${pass}/${t} (${Math.round(pass/t*100)}%)\n\n`; for(const p of testPhases){ r+=`\n${p.name}\n`; for(const i of p.items){ const k=`${p.id}_${i.id}`; const s=testResults[k]?.status==="pass"?"✅":(testResults[k]?.status==="fail"?"❌":"⏳"); r+=`${s} ${i.id} ${i.name}\n`; } } const b=new Blob([r],{type:"text/plain"}); const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(u); }
     function resetAllTests() { if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveStorage(); updateStats(); renderTests(); } }
     function markAllPassed() { for(const k in testResults) testResults[k]={status:"pass",note:""}; saveStorage(); updateStats(); renderTests(); }
 
-    // ==================== 充值 ====================
+    // ==================== 充值功能 ====================
     async function checkAllowance() { if(!userAccount){alert('请连接钱包');return;} if(!activeWeb3)await initRpc(); try{ const data=buildCallData('allowance(address,address)',userAccount,REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); const allow=fromWei(raw); document.getElementById('approveStatus').innerHTML=`🔓 授权: ${allow.toFixed(4)} MYK`; }catch(e){ document.getElementById('approveStatus').innerHTML=`<span class="r">查询失败</span>`; } }
     async function approveMYK() { if(!userAccount){alert('请连接钱包');return;} const amt=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amt)||amt<=0){alert('输入有效数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const data=buildCallData('approve(address,uint256)',REWARD_POOL_ADDR,toWei(amt*2)); await sendTransaction(MYK_ADDR,data); document.getElementById('resRecharge').innerHTML=`✅ 授权成功 ${amt*2} MYK`; setTimeout(()=>checkAllowance(),2000); }catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">授权失败: ${e.message.slice(0,100)}</span>`; } }
     async function approveAndRechargeActivityPool() { if(!userAccount){alert('请连接钱包');return;} const amt=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amt)||amt<=0){alert('输入有效数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 检查授权...'; const allowData=buildCallData('allowance(address,address)',userAccount,REWARD_POOL_ADDR); const allowRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:allowData}); const curAllow=fromWei(allowRaw); if(curAllow<amt){ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const appData=buildCallData('approve(address,uint256)',REWARD_POOL_ADDR,toWei(amt*2)); await sendTransaction(MYK_ADDR,appData); await new Promise(r=>setTimeout(r,2000)); } document.getElementById('resRecharge').innerHTML='⏳ 充值中...'; const depData=buildCallData('depositActivityPool(uint256)',toWei(amt)); const tx=await sendTransaction(REWARD_POOL_ADDR,depData); document.getElementById('resRecharge').innerHTML=`<span class="g">✅ 充值 ${amt} MYK 成功<br>${tx.slice(0,10)}...</span>`; setTimeout(()=>{refreshAllBalances();checkAllowance();},3000); }catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">❌ 失败: ${e.message.slice(0,100)}</span>`; } }
@@ -541,6 +327,7 @@
     async function runOneKeySetup() { if(!userAccount){alert('连接钱包');return;} document.getElementById('resVerification').innerHTML='⏳ 设置中...'; const steps=[{n:"MYK.setRP",to:MYK_ADDR,m:'setRewardPool(address)',p:REWARD_POOL_ADDR},{n:"MYK.setGV",to:MYK_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR},{n:"RP.setMYK",to:REWARD_POOL_ADDR,m:'setMykToken(address)',p:MYK_ADDR},{n:"RP.setGV",to:REWARD_POOL_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR},{n:"RP.setFM",to:REWARD_POOL_ADDR,m:'setFundManager(address)',p:FUND_MANAGER_ADDR},{n:"GV.setMYK",to:GOV_ADDR,m:'setMykToken(address)',p:MYK_ADDR},{n:"GV.setRP",to:GOV_ADDR,m:'setRewardPool(address)',p:REWARD_POOL_ADDR},{n:"GV.setFM",to:GOV_ADDR,m:'setFundManager(address)',p:FUND_MANAGER_ADDR},{n:"FM.setMYK",to:FUND_MANAGER_ADDR,m:'setMyk(address)',p:MYK_ADDR},{n:"FM.setGV",to:FUND_MANAGER_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR} ]; for(let i=0;i<steps.length;i++){ try{ const data=buildCallData(steps[i].m,steps[i].p); await sendTransaction(steps[i].to,data); document.getElementById('resVerification').innerHTML=`✅ ${i+1}/10 ${steps[i].n}`; }catch(e){ document.getElementById('resVerification').innerHTML=`<span class="r">❌ ${steps[i].n} 失败</span>`; return; } } document.getElementById('resVerification').innerHTML=`<span class="g">🎉 设置完成！</span>`; setTimeout(()=>runOneKeyVerification(),2000); }
 
     // ==================== Web3基础 ====================
+    const $=id=>document.getElementById(id);
     const toWei=v=>web3.utils.toWei(v.toString(),'ether');
     const fromWei=w=>parseFloat(web3.utils.fromWei(w,'ether'));
     const encodeSig=s=>web3.eth.abi.encodeFunctionSignature(s);
