@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MYK 测试面板 | 移动端适配</title>
+    <title>MYK 测试面板 | 时间加速版</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -14,333 +13,69 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-
         body {
             background: #0a0c10;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, Helvetica, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
             padding: 12px;
             color: #e6edf3;
             min-height: 100vh;
         }
-
-        .container {
-            max-width: 100%;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        /* 头部样式 */
-        .header {
-            text-align: center;
-            margin-bottom: 16px;
-            padding: 0 4px;
-        }
-        .header h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #f0883e, #ffb347);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: -0.3px;
-        }
-        .sub {
-            font-size: 10px;
-            color: #8b949e;
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 6px;
-        }
-
-        /* 卡片样式 - 移动端优化 */
-        .card {
-            background: #161b22;
-            border: 1px solid #2d333b;
-            border-radius: 20px;
-            padding: 14px;
-            margin-bottom: 12px;
-            transition: all 0.2s;
-        }
-        .card-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #58a6ff;
-            border-left: 3px solid #f0883e;
-            padding-left: 10px;
-        }
-
-        /* 徽章样式 */
-        .badge {
-            font-size: 8px;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        .container { max-width: 100%; width: 100%; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 16px; }
+        .header h1 { font-size: 1.5rem; background: linear-gradient(135deg, #f0883e, #ffb347); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .sub { font-size: 10px; color: #8b949e; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+        .card { background: #161b22; border: 1px solid #2d333b; border-radius: 20px; padding: 14px; margin-bottom: 12px; }
+        .card-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #58a6ff; border-left: 3px solid #f0883e; padding-left: 10px; }
+        .badge { font-size: 8px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
         .badge-read { background: #1f6feb20; color: #79c0ff; border: 0.5px solid #1f6feb; }
         .badge-write { background: #da363320; color: #f97583; border: 0.5px solid #da3633; }
         .badge-time { background: #d2992220; color: #e3b341; border: 0.5px solid #d29922; }
         .badge-pool { background: #d2992220; color: #ffdf6e; border: 0.5px solid #d29922; }
         .badge-admin { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
-        .badge-test { background: #58a6ff20; color: #58a6ff; border: 0.5px solid #58a6ff; }
         .badge-critical { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
-
-        /* 输入框和按钮 - 移动端触摸优化 */
+        .badge-config { background: #58a6ff20; color: #58a6ff; border: 0.5px solid #58a6ff; }
         input, select {
-            width: 100%;
-            padding: 12px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 14px;
-            color: #f0f6fc;
-            font-size: 14px;
-            margin-bottom: 8px;
-            -webkit-appearance: none;
-            appearance: none;
+            width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 14px;
+            color: #f0f6fc; font-size: 14px; margin-bottom: 8px; -webkit-appearance: none;
         }
-        input:focus, select:focus {
-            border-color: #f0883e;
-            outline: none;
-        }
+        input:focus, select:focus { border-color: #f0883e; outline: none; }
         button {
-            background: #21262d;
-            border: 1px solid #3c444e;
-            padding: 10px 14px;
-            border-radius: 40px;
-            font-weight: 500;
-            font-size: 13px;
-            color: #c9d1d9;
-            cursor: pointer;
-            margin: 2px;
-            transition: all 0.15s;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            white-space: nowrap;
+            background: #21262d; border: 1px solid #3c444e; padding: 10px 14px; border-radius: 40px;
+            font-weight: 500; font-size: 13px; color: #c9d1d9; cursor: pointer; margin: 2px;
+            transition: all 0.15s; touch-action: manipulation;
         }
-        button:active {
-            transform: scale(0.97);
-            background: #2d333b;
-        }
-        button.primary {
-            background: #238636;
-            border-color: #2ea043;
-            color: white;
-        }
-        button.warning {
-            background: #9e6a03;
-            border-color: #d29922;
-        }
-        button.pool {
-            background: #1f6feb;
-            border-color: #388bfd;
-        }
-        button.admin {
-            background: #7ee78720;
-            border-color: #7ee787;
-            color: #7ee787;
-        }
-        button.critical {
-            background: #f0883e20;
-            border-color: #f0883e;
-            color: #f0883e;
-        }
-
-        /* 布局组件 */
-        .row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .row button {
-            flex: 1;
-            min-width: calc(33% - 8px);
-            text-align: center;
-            justify-content: center;
-        }
-        .two-cols {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .two-cols > div {
-            flex: 1;
-            min-width: calc(50% - 4px);
-        }
-
-        /* 结果区域 */
+        button:active { transform: scale(0.97); background: #2d333b; }
+        button.primary { background: #238636; border-color: #2ea043; color: white; }
+        button.warning { background: #9e6a03; border-color: #d29922; }
+        button.pool { background: #1f6feb; border-color: #388bfd; }
+        button.admin { background: #7ee78720; border-color: #7ee787; color: #7ee787; }
+        button.critical { background: #f0883e20; border-color: #f0883e; color: #f0883e; }
+        .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+        .row button { flex: 1; min-width: calc(33% - 8px); text-align: center; justify-content: center; }
         .res {
-            background: #0a0c10;
-            border-radius: 16px;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 11px;
-            font-family: 'SF Mono', 'JetBrains Mono', monospace;
-            border: 1px solid #2d333b;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 300px;
-            overflow-y: auto;
-            line-height: 1.45;
+            background: #0a0c10; border-radius: 16px; padding: 12px; margin-top: 12px; font-size: 11px;
+            font-family: 'SF Mono', monospace; border: 1px solid #2d333b; white-space: pre-wrap;
+            word-break: break-word; max-height: 300px; overflow-y: auto; line-height: 1.45;
         }
-
-        /* 地址行 */
-        .addr-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .addr-label {
-            width: 90px;
-            color: #8b949e;
-            font-size: 11px;
-        }
-        .addr-value {
-            flex: 1;
-            font-family: monospace;
-            color: #79c0ff;
-            word-break: break-all;
-            font-size: 10px;
-            background: #0d1117;
-            padding: 6px 8px;
-            border-radius: 10px;
-        }
-        .copy-btn {
-            padding: 4px 10px;
-            font-size: 10px;
-            margin: 0;
-        }
-
-        /* 进度条 */
-        .progress-bar {
-            height: 6px;
-            background: #2d333b;
-            border-radius: 3px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #7ee787;
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
-
-        /* 统计卡片 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .stat-card {
-            background: #0d1117;
-            border-radius: 14px;
-            padding: 10px;
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffdf6e;
-        }
-        .stat-label {
-            font-size: 9px;
-            color: #8b949e;
-            margin-top: 4px;
-        }
-
-        /* 测试阶段折叠面板 */
-        .test-phase {
-            margin-bottom: 12px;
-            border: 1px solid #2d333b;
-            border-radius: 16px;
-            overflow: hidden;
-        }
-        .phase-header {
-            background: #1f6feb20;
-            padding: 12px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            font-size: 13px;
-            touch-action: manipulation;
-        }
-        .phase-header:active {
-            background: #1f6feb30;
-        }
-        .phase-stats {
-            font-size: 11px;
-            display: flex;
-            gap: 10px;
-        }
-        .test-table {
-            width: 100%;
-            font-size: 10px;
-            border-collapse: collapse;
-        }
-        .test-table th, .test-table td {
-            padding: 8px 6px;
-            text-align: left;
-            border-bottom: 0.5px solid #2d333b;
-        }
-        .test-table th {
-            background: #0d1117;
-            color: #8b949e;
-            font-weight: 500;
-            font-size: 9px;
-        }
-        .test-note-input {
-            width: 100%;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 4px 6px;
-            font-size: 9px;
-            color: #c9d1d9;
-        }
-        .pass-btn, .fail-btn {
-            padding: 4px 8px;
-            font-size: 9px;
-            margin: 0 2px;
-        }
-        .pass-btn { background: #23863620; border-color: #238636; color: #7ee787; }
-        .fail-btn { background: #da363320; border-color: #da3633; color: #ff7b72; }
-
-        /* 颜色工具 */
+        .addr-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        .addr-label { width: 90px; color: #8b949e; font-size: 11px; }
+        .addr-value { flex: 1; font-family: monospace; color: #79c0ff; word-break: break-all; font-size: 10px; background: #0d1117; padding: 6px 8px; border-radius: 10px; }
+        .copy-btn { padding: 4px 10px; font-size: 10px; margin: 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        .stat-card { background: #0d1117; border-radius: 14px; padding: 10px; text-align: center; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #ffdf6e; }
+        .stat-label { font-size: 9px; color: #8b949e; margin-top: 4px; }
+        .progress-bar { height: 6px; background: #2d333b; border-radius: 3px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { height: 100%; background: #7ee787; border-radius: 3px; transition: width 0.3s; }
+        .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; font-size: 9px; }
+        .config-item { background: #0d1117; padding: 6px 8px; border-radius: 10px; display: flex; justify-content: space-between; }
+        .config-name { color: #8b949e; }
+        .config-value { color: #7ee787; font-family: monospace; }
         .g { color: #7ee787; }
         .r { color: #ff7b72; }
         .y { color: #ffdf6e; }
         .b { color: #79c0ff; }
-
-        /* 隐藏滚动条但保留功能 */
-        .res::-webkit-scrollbar {
-            width: 4px;
-        }
-        .res::-webkit-scrollbar-track {
-            background: #1a1f2e;
-            border-radius: 4px;
-        }
-        .res::-webkit-scrollbar-thumb {
-            background: #3c444e;
-            border-radius: 4px;
-        }
-
-        /* 底部安全区适配 */
-        .safe-bottom {
-            margin-bottom: env(safe-area-inset-bottom, 0);
-            padding-bottom: env(safe-area-inset-bottom, 0);
-        }
+        .safe-bottom { margin-bottom: env(safe-area-inset-bottom, 0); padding-bottom: env(safe-area-inset-bottom, 0); }
     </style>
 </head>
 <body>
@@ -349,9 +84,23 @@
         <h1>🧪 MYK 测试面板</h1>
         <div class="sub">
             <span id="netStatus">🔌 连接中...</span>
-            <span>| 5分钟 = 1天</span>
+            <span>| 时间加速版</span>
             <span id="testProgress">📊 0%</span>
         </div>
+    </div>
+
+    <!-- 时间加速配置说明 -->
+    <div class="card">
+        <div class="card-title">⚡ 时间加速配置 <span class="badge badge-config">已修改</span></div>
+        <div class="config-grid">
+            <div class="config-item"><span class="config-name">MIN_UPDATE_INTERVAL</span><span class="config-value">5秒</span></div>
+            <div class="config-item"><span class="config-name">PRICE_STALE_THRESHOLD</span><span class="config-value">5分钟</span></div>
+            <div class="config-item"><span class="config-name">WEEK_DURATION</span><span class="config-value">35分钟</span></div>
+            <div class="config-item"><span class="config-name">BONUS_DURATION</span><span class="config-value">450分钟</span></div>
+            <div class="config-item"><span class="config-name">batchInterval</span><span class="config-value">5分钟</span></div>
+            <div class="config-item"><span class="config-name">lpLockDuration</span><span class="config-value">1825分钟</span></div>
+        </div>
+        <div class="res" id="resTimeNote">⏱️ 时间映射：5分钟 = 7天 | 450分钟 = 90天 | 1825分钟 = 365天</div>
     </div>
 
     <!-- 测试进度总览 -->
@@ -370,20 +119,20 @@
         </div>
     </div>
 
-    <!-- 时间控制 -->
+    <!-- 时间控制（按加速后的实际时间） -->
     <div class="card">
-        <div class="card-title">⏱️ 时间控制 <span class="badge badge-time">Hardhat</span></div>
+        <div class="card-title">⏱️ 时间控制 <span class="badge badge-time">加速后</span></div>
         <div class="row">
-            <button class="warning" onclick="advanceTime(1)">+1天</button>
-            <button class="warning" onclick="advanceTime(7)">+7天</button>
-            <button class="warning" onclick="advanceTime(30)">+30天</button>
+            <button class="warning" onclick="advanceTime(1)">+1天 (5秒)</button>
+            <button class="warning" onclick="advanceTime(7)">+7天 (35秒)</button>
+            <button class="warning" onclick="advanceTime(30)">+30天 (150秒)</button>
         </div>
         <div class="row">
-            <button class="warning" onclick="advanceTime(90)">+90天</button>
-            <button class="warning" onclick="advanceTime(180)">+180天</button>
-            <button class="warning" onclick="advanceTime(365)">+365天</button>
+            <button class="warning" onclick="advanceTime(90)">+90天 (450秒)</button>
+            <button class="warning" onclick="advanceTime(180)">+180天 (900秒)</button>
+            <button class="warning" onclick="advanceTime(365)">+365天 (1825秒)</button>
         </div>
-        <div class="res" id="resTime">🕒 点击快进时间</div>
+        <div class="res" id="resTime">🕒 点击快进时间（合约常量已修改为加速版）</div>
     </div>
 
     <!-- 快速操作 -->
@@ -393,10 +142,12 @@
             <option value="">-- 选择操作 --</option>
             <option value="activate">activateWithUSDT (激活)</option>
             <option value="bind">directBind (绑定上级)</option>
-            <option value="claimDaily">claimDailyReward (领取奖励)</option>
+            <option value="claimDaily">claimDailyReward (领取持币奖励)</option>
             <option value="upgradeUSDT">upgradeWithUSDT (USDT升级)</option>
             <option value="burnTier">burnForTier (销毁升级)</option>
             <option value="renew">renewCommunity (续费)</option>
+            <option value="distributeWeekly">distributeWeeklyRewards (周排行发放)</option>
+            <option value="manualDistribute">manualDistributeDividends (手动分红)</option>
         </select>
         <input type="text" id="quickParam" placeholder="参数 (地址/金额)" style="margin-top: 6px;">
         <button class="primary" onclick="executeQuickAction()" style="width: 100%; margin-top: 6px;">▶ 执行</button>
@@ -417,13 +168,14 @@
         <div class="res" id="resQuery">📡 点击查询</div>
     </div>
 
-    <!-- 合约地址 -->
+    <!-- 合约地址（最新配置） -->
     <div class="card">
-        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终</span></div>
-        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xAfDDd2d4985453f327f69c914e7421F79bFEE1B7</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x72486EF88DbF2317F3A756C50Afc6B41e703A9C7</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xD6fADfc666767f337BD38B7d72B422cB295eca56</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button></div>
+        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
+        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xEeB2c41F41319A77Dcaa869AA1b6697EAEfc5cD8</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x0A50cF6D697933cb26d39E115f26D087cb3b7760</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button><span class="g">✓</span></div>
     </div>
 
     <!-- 测试流程容器 -->
@@ -431,14 +183,15 @@
 </div>
 
 <script>
-    // ==================== 测试数据 ====================
+    // ==================== 最新合约地址 ====================
     let web3, userAccount, chainId;
     let activeWeb3 = null;
 
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0xAfDDd2d4985453f327f69c914e7421F79bFEE1B7';
-    let GOV_ADDR = '0x72486EF88DbF2317F3A756C50Afc6B41e703A9C7';
-    let FUND_MANAGER_ADDR = '0xD6fADfc666767f337BD38B7d72B422cB295eca56';
+    let REWARD_POOL_ADDR = '0xEeB2c41F41319A77Dcaa869AA1b6697EAEfc5cD8';
+    let GOV_ADDR = '0x0A50cF6D697933cb26d39E115f26D087cb3b7760';
+    let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
+    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
     const EXPECTED_CHAIN_ID = 56;
 
@@ -447,9 +200,9 @@
     const testPhases = [
         { id: "deploy", name: "阶段一：部署与关联", items: [
             { id: "1.1", name: "部署 MYK", desc: "总供应 2100万", note: "" },
-            { id: "1.2", name: "部署 RewardPool", desc: "constructor(admin)", note: "" },
+            { id: "1.2", name: "部署 RewardPool", desc: "时间常量已修改", note: "" },
             { id: "1.3", name: "部署 Governance", desc: "constructor()", note: "" },
-            { id: "1.4", name: "部署 FundManager", desc: "constructor(USDT, Router, admin)", note: "" },
+            { id: "1.4", name: "部署 FundManager", desc: "时间常量已修改", note: "" },
             { id: "1.5", name: "MYK.setRewardPool", desc: "设置 RP", note: "" },
             { id: "1.6", name: "MYK.setGovernance", desc: "设置 GV", note: "" },
             { id: "1.7", name: "RP.setMykToken", desc: "设置 MYK", note: "" },
@@ -477,13 +230,13 @@
             { id: "4.4", name: "升级 THIRD", desc: "200 USDT", note: "" }
         ] },
         { id: "daily16", name: "阶段五：每日 1.6% 奖励", items: [
-            { id: "5.1", name: "第 1 天领取", desc: "5分钟后", note: "" },
-            { id: "5.2", name: "累积 3 天领取", desc: "15分钟后", note: "" },
-            { id: "5.3", name: "90 天到期", desc: "7.5小时后", note: "" }
+            { id: "5.1", name: "第 1 天领取", desc: "5秒后", note: "" },
+            { id: "5.2", name: "累积 3 天领取", desc: "15秒后", note: "" },
+            { id: "5.3", name: "90 天到期", desc: "450秒后", note: "" }
         ] },
         { id: "weekly", name: "阶段六：周排行", items: [
             { id: "6.1", name: "触发业绩累计", desc: "激活产生业绩", note: "" },
-            { id: "6.2", name: "发放周排行", desc: "35分钟后", note: "" },
+            { id: "6.2", name: "发放周排行", desc: "35秒后", note: "" },
             { id: "6.3", name: "业绩清零", desc: "新周期", note: "" }
         ] },
         { id: "dividend", name: "阶段七：分红池", items: [
@@ -493,7 +246,7 @@
         ] }
     ];
 
-    // 初始化
+    // 初始化测试数据
     function initTestResults() {
         for (const phase of testPhases) {
             for (const item of phase.items) {
@@ -508,7 +261,7 @@
 
     function loadFromStorage() {
         try {
-            const saved = localStorage.getItem("myk_test_mobile");
+            const saved = localStorage.getItem("myk_test_mobile_v2");
             if (saved) {
                 const parsed = JSON.parse(saved);
                 for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k];
@@ -517,7 +270,7 @@
     }
 
     function saveToStorage() {
-        localStorage.setItem("myk_test_mobile", JSON.stringify(testResults));
+        localStorage.setItem("myk_test_mobile_v2", JSON.stringify(testResults));
     }
 
     function setTestStatus(phaseId, itemId, status, note = "") {
@@ -566,23 +319,23 @@
             }
             html += `
             <div class="test-phase">
-                <div class="phase-header" onclick="togglePhase('${phase.id}')">
+                <div class="phase-header" onclick="togglePhase('${phase.id}')" style="background:#1f6feb20;padding:12px;cursor:pointer;display:flex;justify-content:space-between;border-radius:16px 16px 0 0;">
                     <span>${phase.name}</span>
-                    <div class="phase-stats"><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span><span>▼</span></div>
+                    <div class="phase-stats"><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span><span> ▼</span></div>
                 </div>
-                <div id="phase-${phase.id}" style="display: block;">
-                    <table class="test-table"><thead><tr><th>编号</th><th>项目</th><th>状态</th><th>操作</th></tr></thead><tbody>`;
+                <div id="phase-${phase.id}" style="display:block;padding:8px;">
+                    <table style="width:100%;font-size:10px;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:6px;">编号</th><th style="text-align:left;padding:6px;">项目</th><th style="text-align:left;padding:6px;">状态</th><th style="text-align:left;padding:6px;">操作</th></tr></thead><tbody>`;
             for (const item of phase.items) {
                 const key = `${phase.id}_${item.id}`;
                 const result = testResults[key] || { status: "pending" };
                 const statusIcon = result.status === "pass" ? "✅" : (result.status === "fail" ? "❌" : "⏳");
                 html += `<tr>
-                    <td style="width: 45px;">${item.id}</td>
-                    <td style="width: 100px;">${item.name}</td>
-                    <td style="width: 50px;">${statusIcon}</td>
-                    <td>
-                        <button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass','')">通过</button>
-                        <button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail','')">失败</button>
+                    <td style="padding:6px;width:45px;">${item.id}</td>
+                    <td style="padding:6px;width:100px;">${item.name}</td>
+                    <td style="padding:6px;width:45px;">${statusIcon}</td>
+                    <td style="padding:6px;">
+                        <button class="pass-btn" style="background:#23863620;border-color:#238636;color:#7ee787;padding:4px 8px;border-radius:16px;margin:0 2px;" onclick="setTestStatus('${phase.id}','${item.id}','pass','')">通过</button>
+                        <button class="fail-btn" style="background:#da363320;border-color:#da3633;color:#ff7b72;padding:4px 8px;border-radius:16px;margin:0 2px;" onclick="setTestStatus('${phase.id}','${item.id}','fail','')">失败</button>
                     </td>
                 </tr>`;
             }
@@ -595,10 +348,7 @@
         let report = "MYK 测试报告\n";
         report += `时间: ${new Date().toLocaleString()}\n`;
         let total = 0, passed = 0;
-        for (const k in testResults) {
-            total++;
-            if (testResults[k].status === "pass") passed++;
-        }
+        for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; }
         report += `通过率: ${passed}/${total} (${Math.round(passed/total*100)}%)\n\n`;
         for (const phase of testPhases) {
             report += `\n${phase.name}\n`;
@@ -665,13 +415,15 @@
         return false;
     }
 
+    // 时间快进（合约常量已修改，1天 = 5秒）
     async function advanceTime(days) {
         const isLocal = (chainId === 31337 || chainId === 1337);
-        if (!isLocal) { logRes('resTime', '<span class="r">❌ 仅 Hardhat 支持</span>'); return; }
+        if (!isLocal) { logRes('resTime', '<span class="r">❌ 时间控制仅限 Hardhat 本地网络</span>'); return; }
         try {
-            await web3.currentProvider.send({ method: 'evm_increaseTime', params: [days * 60], jsonrpc: '2.0', id: 1 });
+            const seconds = days * 5; // 1天 = 5秒
+            await web3.currentProvider.send({ method: 'evm_increaseTime', params: [seconds], jsonrpc: '2.0', id: 1 });
             await web3.currentProvider.send({ method: 'evm_mine', params: [], jsonrpc: '2.0', id: 2 });
-            logRes('resTime', `⏩ 已快进 ${days} 天 (${days*60}秒)`);
+            logRes('resTime', `⏩ 已快进 ${days} 天 (${seconds}秒)\n合约配置: 1天 = 5秒`);
         } catch(e) { logRes('resTime', `<span class="r">失败: ${e.message}</span>`); }
     }
 
@@ -679,6 +431,7 @@
         if (!userAccount) { alert('请连接钱包'); return; }
         const action = $('quickAction').value;
         const param = $('quickParam').value.trim();
+        if (!action) { alert('请选择操作'); return; }
         try {
             let to = '', data = '';
             switch(action) {
@@ -688,14 +441,15 @@
                 case 'upgradeUSDT': data = buildCallData('upgradeWithUSDT(uint256)', toWei(param || '100')); to = GOV_ADDR; break;
                 case 'burnTier': data = buildCallData('burnForTier(uint256)', toWei(param || '1000')); to = GOV_ADDR; break;
                 case 'renew': data = buildCallData('renewCommunity(uint256)', toWei(param || '10')); to = GOV_ADDR; break;
-                default: alert('请选择操作'); return;
+                case 'distributeWeekly': data = buildCallData('distributeWeeklyRewards()'); to = GOV_ADDR; break;
+                case 'manualDistribute': data = buildCallData('manualDistributeDividends()'); to = GOV_ADDR; break;
+                default: alert('未知操作'); return;
             }
             const tx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAccount, to, data, value: '0' }] });
-            logRes('resQuickAction', `✅ 已发送: ${tx.slice(0,10)}...`);
+            logRes('resQuickAction', `✅ 已发送: ${tx.slice(0,10)}...\n${tx.slice(0,20)}...`);
         } catch(e) { logRes('resQuickAction', `<span class="r">❌ ${e.message.slice(0,100)}</span>`); }
     }
 
-    // 查询函数
     async function queryUser() {
         if (!activeWeb3) await initRpc();
         const addr = getQueryAddress();
