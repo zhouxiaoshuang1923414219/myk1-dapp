@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MYK 测试面板 | 手机优化版</title>
+    <title>MYK 测试面板 | 最终版</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * {
@@ -26,7 +26,6 @@
             width: 100%;
             margin: 0 auto;
         }
-        /* 头部 */
         .header {
             text-align: center;
             margin-bottom: 14px;
@@ -38,7 +37,6 @@
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            letter-spacing: -0.3px;
         }
         .sub {
             font-size: 9px;
@@ -49,14 +47,12 @@
             flex-wrap: wrap;
             margin-top: 4px;
         }
-        /* 卡片 - 移动端优化 */
         .card {
             background: #161b22;
             border: 1px solid #2d333b;
             border-radius: 18px;
             padding: 12px;
             margin-bottom: 10px;
-            transition: all 0.2s;
         }
         .card-title {
             font-size: 0.75rem;
@@ -69,7 +65,6 @@
             border-left: 3px solid #f0883e;
             padding-left: 8px;
         }
-        /* 徽章 */
         .badge {
             font-size: 7px;
             padding: 2px 6px;
@@ -83,7 +78,6 @@
         .badge-config { background: #58a6ff20; color: #58a6ff; border: 0.5px solid #58a6ff; }
         .badge-test { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
         .badge-reward { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
-        /* 输入框 */
         input, select {
             width: 100%;
             padding: 10px 12px;
@@ -99,7 +93,6 @@
             border-color: #f0883e;
             outline: none;
         }
-        /* 按钮 - 移动端触摸优化 */
         button {
             background: #21262d;
             border: 1px solid #3c444e;
@@ -121,7 +114,6 @@
         button.warning { background: #9e6a03; border-color: #d29922; }
         button.pool { background: #1f6feb; border-color: #388bfd; }
         button.reward { background: #f0883e20; border-color: #f0883e; color: #f0883e; }
-        /* 行布局 */
         .row {
             display: flex;
             gap: 6px;
@@ -133,9 +125,7 @@
             flex: 1;
             min-width: calc(33% - 6px);
             text-align: center;
-            justify-content: center;
         }
-        /* 结果区域 */
         .res {
             background: #0a0c10;
             border-radius: 14px;
@@ -150,7 +140,6 @@
             overflow-y: auto;
             line-height: 1.4;
         }
-        /* 地址行 */
         .addr-row {
             display: flex;
             align-items: center;
@@ -178,7 +167,6 @@
             font-size: 9px;
             margin: 0;
         }
-        /* 统计卡片 */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -202,7 +190,6 @@
             color: #8b949e;
             margin-top: 2px;
         }
-        /* 进度条 */
         .progress-bar {
             height: 4px;
             background: #2d333b;
@@ -216,7 +203,6 @@
             border-radius: 2px;
             transition: width 0.3s;
         }
-        /* 测试表格 - 移动端优化 */
         .phase-header {
             background: #1f6feb20;
             padding: 8px 10px;
@@ -245,8 +231,7 @@
         }
         .pass-btn { background: #23863620; color: #7ee787; }
         .fail-btn { background: #da363320; color: #ff7b72; }
-        /* 其他 */
-        .check-item, .balance-row, .reward-item {
+        .check-item, .balance-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -260,7 +245,6 @@
         .r { color: #ff7b72; }
         .y { color: #ffdf6e; }
         .b { color: #79c0ff; }
-        /* 账户标签 */
         .account-tab {
             display: flex;
             gap: 5px;
@@ -291,7 +275,6 @@
             margin-bottom: env(safe-area-inset-bottom, 0);
             padding-bottom: env(safe-area-inset-bottom, 0);
         }
-        /* 隐藏滚动条但保留功能 */
         .res::-webkit-scrollbar { width: 3px; }
         .res::-webkit-scrollbar-track { background: #1a1f2e; border-radius: 3px; }
         .res::-webkit-scrollbar-thumb { background: #3c444e; border-radius: 3px; }
@@ -301,7 +284,7 @@
 <div class="container safe-bottom">
     <div class="header">
         <h1>🧪 MYK 测试面板</h1>
-        <div class="sub"><span id="netStatus">🔌 连接中...</span><span>| 手机优化版</span><span id="testProgress">📊 0%</span></div>
+        <div class="sub"><span id="netStatus">🔌 连接中...</span><span>| 最终版</span><span id="testProgress">📊 0%</span></div>
     </div>
 
     <!-- 测试进度 -->
@@ -314,7 +297,7 @@
         </div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
         <div class="row">
-            <button class="primary" onclick="exportTestReport()">📄 导出报告</button>
+            <button class="primary" onclick="exportTestReport()">📄 导出</button>
             <button onclick="resetAllTests()">🔄 重置</button>
             <button onclick="markAllPassed()">✅ 全通</button>
         </div>
@@ -422,11 +405,13 @@
 
     <!-- 合约地址 -->
     <div class="card">
-        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终</span></div>
-        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xEBAB07aBD29114Fb4E548f91ce192b3EF8db38cF</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button></div>
+        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
+        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xE3002FAf072F4594B933c2a60e31520825bB028a</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button><span class="g">✓</span></div>
+        <div class="addr-row"><span class="addr-label">Router:</span><span class="addr-value" id="displayRouterAddr">0x10ED43C718714eb63d5aA57B78B54704E256024E</span><button class="copy-btn" onclick="copyToClipboard('displayRouterAddr')">复制</button><span class="g">✓</span></div>
     </div>
 
     <!-- 测试清单容器 -->
@@ -441,7 +426,7 @@
     let testAccounts = [];
 
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0xEBAB07aBD29114Fb4E548f91ce192b3EF8db38cF';
+    let REWARD_POOL_ADDR = '0xE3002FAf072F4594B933c2a60e31520825bB028a';
     let GOV_ADDR = '0x11a26B81d79d86A17AD98685dDB3CcbE349ed6C5';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
@@ -515,8 +500,8 @@
     ];
 
     function initTestResults() { for (const p of testPhases) for (const i of p.items) { const k = `${p.id}_${i.id}`; if (!testResults[k]) testResults[k] = { status: "pending", note: "" }; } loadStorage(); updateStats(); renderTests(); }
-    function loadStorage() { try { const s = localStorage.getItem("myk_test_mobile"); if (s) { const p = JSON.parse(s); for (const k in p) if (testResults[k]) testResults[k] = p[k]; } } catch(e) {} }
-    function saveStorage() { localStorage.setItem("myk_test_mobile", JSON.stringify(testResults)); }
+    function loadStorage() { try { const s = localStorage.getItem("myk_test_final"); if (s) { const p = JSON.parse(s); for (const k in p) if (testResults[k]) testResults[k] = p[k]; } } catch(e) {} }
+    function saveStorage() { localStorage.setItem("myk_test_final", JSON.stringify(testResults)); }
     function setStatus(pId, iId, s) { const k = `${pId}_${iId}`; if (testResults[k]) { testResults[k].status = s; saveStorage(); updateStats(); renderTests(); } }
     function updateStats() { let t=0,pass=0,fail=0; for(const k in testResults){t++;if(testResults[k].status==="pass")pass++;else if(testResults[k].status==="fail")fail++;} document.getElementById("statPassed").innerHTML=pass; document.getElementById("statFailed").innerHTML=fail; document.getElementById("statTotal").innerHTML=t; const p=t>0?Math.round(pass/t*100):0; document.getElementById("progressFill").style.width=`${p}%`; document.getElementById("testProgress").innerHTML=`📊 ${p}% (${pass}/${t})`; }
     function togglePhase(id) { const el = document.getElementById(`phase-${id}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
@@ -556,8 +541,6 @@
     async function runOneKeySetup() { if(!userAccount){alert('连接钱包');return;} document.getElementById('resVerification').innerHTML='⏳ 设置中...'; const steps=[{n:"MYK.setRP",to:MYK_ADDR,m:'setRewardPool(address)',p:REWARD_POOL_ADDR},{n:"MYK.setGV",to:MYK_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR},{n:"RP.setMYK",to:REWARD_POOL_ADDR,m:'setMykToken(address)',p:MYK_ADDR},{n:"RP.setGV",to:REWARD_POOL_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR},{n:"RP.setFM",to:REWARD_POOL_ADDR,m:'setFundManager(address)',p:FUND_MANAGER_ADDR},{n:"GV.setMYK",to:GOV_ADDR,m:'setMykToken(address)',p:MYK_ADDR},{n:"GV.setRP",to:GOV_ADDR,m:'setRewardPool(address)',p:REWARD_POOL_ADDR},{n:"GV.setFM",to:GOV_ADDR,m:'setFundManager(address)',p:FUND_MANAGER_ADDR},{n:"FM.setMYK",to:FUND_MANAGER_ADDR,m:'setMyk(address)',p:MYK_ADDR},{n:"FM.setGV",to:FUND_MANAGER_ADDR,m:'setCommunityGovernance(address)',p:GOV_ADDR} ]; for(let i=0;i<steps.length;i++){ try{ const data=buildCallData(steps[i].m,steps[i].p); await sendTransaction(steps[i].to,data); document.getElementById('resVerification').innerHTML=`✅ ${i+1}/10 ${steps[i].n}`; }catch(e){ document.getElementById('resVerification').innerHTML=`<span class="r">❌ ${steps[i].n} 失败</span>`; return; } } document.getElementById('resVerification').innerHTML=`<span class="g">🎉 设置完成！</span>`; setTimeout(()=>runOneKeyVerification(),2000); }
 
     // ==================== Web3基础 ====================
-    const $=id=>document.getElementById(id);
-    const truncAddr=a=>a?`${a.slice(0,6)}...${a.slice(-4)}`:'null';
     const toWei=v=>web3.utils.toWei(v.toString(),'ether');
     const fromWei=w=>parseFloat(web3.utils.fromWei(w,'ether'));
     const encodeSig=s=>web3.eth.abi.encodeFunctionSignature(s);
