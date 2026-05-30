@@ -36,6 +36,7 @@
         .addr-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
         .addr-label { width: 85px; color: #8b949e; font-size: 10px; }
         .addr-value { flex: 1; font-family: monospace; color: #79c0ff; word-break: break-all; font-size: 9px; background: #0d1117; padding: 5px 6px; border-radius: 8px; }
+        .addr-value-warning { background: #da363330; color: #ff7b72; }
         .copy-btn { padding: 3px 8px; font-size: 9px; margin: 0; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
         .stat-card { background: #0d1117; border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; }
@@ -59,11 +60,11 @@
         .account-tab { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #2d333b; }
         .account-btn { padding: 5px 10px; border-radius: 30px; font-size: 10px; background: #21262d; border: none; }
         .account-btn.active { background: #1f6feb; color: white; }
-        .balance-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px; border-bottom: 0.5px solid #2d333b; }
         .safe-bottom { margin-bottom: env(safe-area-inset-bottom, 0); padding-bottom: env(safe-area-inset-bottom, 0); }
         .approve-warning { background: #da363320; padding: 6px; border-radius: 10px; margin-bottom: 6px; font-size: 9px; }
         .two-cols { display: flex; gap: 6px; flex-wrap: wrap; }
         .two-cols > div { flex: 1; min-width: calc(50% - 3px); }
+        .pair-config { background: #1f6feb20; border-radius: 10px; padding: 8px; margin-bottom: 8px; }
         @media (max-width: 480px) {
             .row button { font-size: 10px; padding: 6px 4px; }
             .test-table td { padding: 4px 2px; }
@@ -92,6 +93,33 @@
             <button onclick="resetAllTests()">🔄 重置</button>
             <button onclick="markAllPassed()">✅ 全通</button>
         </div>
+    </div>
+
+    <!-- Pair 地址配置（新增补填功能） -->
+    <div class="card">
+        <div class="card-title">🔗 Pair 地址配置 <span class="badge badge-config">可补填</span></div>
+        <div class="pair-config">
+            <div class="addr-row">
+                <span class="addr-label">期望 Pair:</span>
+                <span class="addr-value" id="expectedPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
+                <button class="copy-btn" onclick="copyToClipboard('expectedPairAddr')">复制</button>
+            </div>
+            <div class="addr-row" id="currentPairRow">
+                <span class="addr-label">当前链上:</span>
+                <span class="addr-value" id="currentPairValue">查询中...</span>
+                <button class="copy-btn" onclick="copyToClipboard('currentPairValue')">复制</button>
+            </div>
+            <div class="row">
+                <input type="text" id="manualPairInput" placeholder="手动输入 Pair 地址" value="0x471D5AC981d728f1D214ffcF6E73d6f24562c16D" style="flex:2">
+                <button class="primary" onclick="setPairManually()">✏️ 补填/设置 Pair</button>
+            </div>
+            <div class="row">
+                <button onclick="checkPairStatus()">🔍 检查 Pair 状态</button>
+                <button onclick="getCurrentPair()">📡 重新查询链上 Pair</button>
+                <button onclick="useExpectedPair()">📋 使用期望地址</button>
+            </div>
+        </div>
+        <div class="res" id="resPairStatus">💡 Pair 地址用于价格查询，如链上为空请手动补填</div>
     </div>
 
     <!-- 多账户管理 -->
@@ -219,7 +247,78 @@
     let REWARD_POOL_ADDR = '0xA779603FaF3A32406f63683d1EE6408DA1eDeB51';
     let GOV_ADDR = '0x10dA093AC13De9FCbe5bF670888F2A90840CaC1F';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
+    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
+    let CURRENT_PAIR_ADDR = null;  // 当前链上读取的 Pair 地址
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
+
+    // ==================== Pair 地址管理（修复版） ====================
+    async function getCurrentPair() {
+        if (!activeWeb3) await initRpc();
+        if (!activeWeb3) { 
+            document.getElementById('currentPairValue').innerHTML = '<span class="r">RPC未连接</span>';
+            return null;
+        }
+        try {
+            const pairData = buildCallData('pair()');
+            const raw = await activeWeb3.eth.call({ to: REWARD_POOL_ADDR, data: pairData });
+            const pairAddr = web3.eth.abi.decodeParameter('address', raw);
+            CURRENT_PAIR_ADDR = pairAddr;
+            const pairElement = document.getElementById('currentPairValue');
+            if (pairAddr === '0x0000000000000000000000000000000000000000') {
+                pairElement.innerHTML = '<span class="r">⚠️ 未设置 (0x00...)</span>';
+                pairElement.classList.add('addr-value-warning');
+            } else {
+                pairElement.innerHTML = pairAddr;
+                pairElement.classList.remove('addr-value-warning');
+            }
+            return pairAddr;
+        } catch(e) {
+            document.getElementById('currentPairValue').innerHTML = '<span class="r">查询失败</span>';
+            return null;
+        }
+    }
+
+    async function checkPairStatus() {
+        const chainPair = await getCurrentPair();
+        const expectedPair = LP_PAIR_ADDR;
+        let html = '🔍 Pair 地址状态检查\n';
+        html += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        html += `期望地址: ${expectedPair}\n`;
+        html += `链上地址: ${chainPair || '查询失败'}\n`;
+        if (!chainPair || chainPair === '0x0000000000000000000000000000000000000000') {
+            html += '\n<span class="r">⚠️ 链上 Pair 地址未设置！</span>\n';
+            html += '<span class="y">💡 请通过「补填/设置 Pair」按钮手动设置</span>\n';
+        } else if (chainPair.toLowerCase() === expectedPair.toLowerCase()) {
+            html += '\n<span class="g">✅ Pair 地址配置正确！</span>\n';
+        } else {
+            html += '\n<span class="r">⚠️ Pair 地址不匹配！</span>\n';
+            html += '<span class="y">💡 请检查或手动补填正确地址</span>\n';
+        }
+        document.getElementById('resPairStatus').innerHTML = html;
+    }
+
+    async function setPairManually() {
+        if (!userAccount) { alert('请先连接钱包'); return; }
+        const manualPair = document.getElementById('manualPairInput').value.trim();
+        if (!manualPair || !manualPair.startsWith('0x') || manualPair.length !== 42) {
+            alert('请输入有效的合约地址（0x开头的42位字符）');
+            return;
+        }
+        try {
+            document.getElementById('resPairStatus').innerHTML = '⏳ 正在设置 Pair 地址...';
+            const setPairData = buildCallData('setPair(address)', manualPair);
+            const tx = await sendTransaction(REWARD_POOL_ADDR, setPairData);
+            document.getElementById('resPairStatus').innerHTML = `✅ Pair 地址设置成功！\n地址: ${manualPair}\n交易: ${tx.slice(0,10)}...`;
+            setTimeout(() => getCurrentPair(), 3000);
+        } catch(e) {
+            document.getElementById('resPairStatus').innerHTML = `<span class="r">❌ 设置失败: ${e.message.slice(0,100)}</span>`;
+        }
+    }
+
+    function useExpectedPair() {
+        document.getElementById('manualPairInput').value = LP_PAIR_ADDR;
+        alert('已填入期望地址，点击「补填/设置 Pair」即可提交');
+    }
 
     // ==================== 测试清单数据 ====================
     let testResults = {};
@@ -299,8 +398,8 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v3"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v3", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v4"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v4", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
@@ -366,6 +465,7 @@
             chainId=await web3.eth.getChainId();
             document.getElementById('netStatus').innerHTML=chainId===56?'✅ BSC主网':(chainId===31337?'✅ Hardhat':`⚠️ ${chainId}`);
             updateAccountDisplay(); updateAccountInfo(); refreshAllBalances(); initTestResults(); checkAllowance();
+            await getCurrentPair();
         }catch(e){ document.getElementById('netStatus').innerHTML='<span class="r">连接失败</span>'; }
         window.ethereum.on('accountsChanged',(accs)=>{ userAccount=accs[0]; testAccounts[0]=accs[0]; updateAccountDisplay(); updateAccountInfo(); });
     });
