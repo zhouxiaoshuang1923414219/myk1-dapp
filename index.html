@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <!-- Pair 地址配置和修复 -->
+    <!-- Pair 地址配置 -->
     <div class="card">
         <div class="card-title">🔗 Pair 地址配置 <span class="badge badge-config">可补填修复</span></div>
         <div class="pair-config">
@@ -237,7 +237,7 @@
     <div class="card">
         <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
         <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0x74B150702449035500Ef05624c0Ee09a11d7b880</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
+        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0x27CBb1169AeC0ebE19E2DF66F2412bFf663466d2</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
         <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0x1425258956CE26baF9FA85Aa4D00f048bdeB5221</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button></div>
         <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button></div>
         <div class="addr-row"><span class="addr-label">期望 Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button></div>
@@ -255,7 +255,7 @@
     let testAccounts = [];
 
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0x74B150702449035500Ef05624c0Ee09a11d7b880';
+    let REWARD_POOL_ADDR = '0x27CBb1169AeC0ebE19E2DF66F2412bFf663466d2';
     let GOV_ADDR = '0x1425258956CE26baF9FA85Aa4D00f048bdeB5221';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
@@ -310,31 +310,31 @@
 
     async function checkAllPairs() {
         await refreshAllPairs();
-        const rpPairText = document.getElementById('rpPairValue').innerHTML;
-        const gvPairText = document.getElementById('gvPairValue').innerHTML;
-        const fmPairText = document.getElementById('fmPairValue').innerHTML;
+        const rpPair = document.getElementById('rpPairValue').innerHTML;
+        const gvPair = document.getElementById('gvPairValue').innerHTML;
+        const fmPair = document.getElementById('fmPairValue').innerHTML;
         
         let html = '🔍 Pair 地址状态检查\n';
         html += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         html += `期望地址: ${LP_PAIR_ADDR}\n\n`;
-        html += `RP.pair(): ${rpPairText}\n`;
-        html += `GV.pair(): ${gvPairText}\n`;
-        html += `FM.pair(): ${fmPairText}\n\n`;
+        html += `RP.pair(): ${rpPair}\n`;
+        html += `GV.pair(): ${gvPair}\n`;
+        html += `FM.pair(): ${fmPair}\n\n`;
         
         let allOk = true;
-        if (rpPairText.includes('未设置') || (!rpPairText.includes('0x471D') && rpPairText !== LP_PAIR_ADDR)) {
+        if (rpPair.includes('未设置') || (rpPair !== LP_PAIR_ADDR && !rpPair.includes('0x471D'))) {
             html += '<span class="r">❌ RP.pair 未正确设置</span>\n';
             allOk = false;
         } else {
             html += '<span class="g">✅ RP.pair 配置正确</span>\n';
         }
-        if (gvPairText.includes('未设置') || (!gvPairText.includes('0x471D') && gvPairText !== LP_PAIR_ADDR)) {
+        if (gvPair.includes('未设置') || (gvPair !== LP_PAIR_ADDR && !gvPair.includes('0x471D'))) {
             html += '<span class="r">❌ GV.pair 未正确设置</span>\n';
             allOk = false;
         } else {
             html += '<span class="g">✅ GV.pair 配置正确</span>\n';
         }
-        if (fmPairText.includes('未设置') || (!fmPairText.includes('0x471D') && fmPairText !== LP_PAIR_ADDR)) {
+        if (fmPair.includes('未设置') || (fmPair !== LP_PAIR_ADDR && !fmPair.includes('0x471D'))) {
             html += '<span class="r">❌ FM.pair 未正确设置</span>\n';
             allOk = false;
         } else {
@@ -584,7 +584,7 @@
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
     function scrollToPhase() { document.getElementById('testContainer')?.scrollIntoView({ behavior: 'smooth' }); }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<td><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td style="width:60px;"><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let total=0,passed=0; for(const k in testResults){total++; if(testResults[k].status==="pass") passed++;} report+=`通过率:${passed}/${total}(${Math.round(passed/total*100)}%)\n\n`; for(const phase of testPhases){ report+=`\n${phase.name}\n`; for(const item of phase.items){ const key=`${phase.id}_${item.id}`; const status=testResults[key]?.status==="pass"?"✅":(testResults[key]?.status==="fail"?"❌":"⏳"); report+=`${status} ${item.id} ${item.name}\n`; } } const blob=new Blob([report],{type:"text/plain"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests(){ if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
