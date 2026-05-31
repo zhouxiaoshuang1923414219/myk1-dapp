@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MYK 测试面板 | 13项关联检验</title>
+    <title>MYK 测试面板 | 可编辑合约地址</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -22,6 +22,7 @@
         .badge-config { background: #58a6ff20; color: #58a6ff; border: 0.5px solid #58a6ff; }
         .badge-test { background: #7ee78720; color: #7ee787; border: 0.5px solid #7ee787; }
         .badge-reward { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; }
+        .badge-edit { background: #d2992220; color: #ffdf6e; border: 0.5px solid #d29922; }
         input, select { width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 14px; color: #f0f6fc; font-size: 13px; margin-bottom: 6px; -webkit-appearance: none; }
         input:focus, select:focus { border-color: #f0883e; outline: none; }
         button { background: #21262d; border: 1px solid #3c444e; padding: 8px 12px; border-radius: 40px; font-weight: 500; font-size: 12px; color: #c9d1d9; cursor: pointer; margin: 2px; transition: all 0.15s; touch-action: manipulation; }
@@ -32,10 +33,13 @@
         .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
         .row button { flex: 1; min-width: calc(33% - 6px); text-align: center; font-size: 11px; padding: 8px 6px; }
         .res { background: #0a0c10; border-radius: 14px; padding: 10px; margin-top: 10px; font-size: 10px; font-family: 'SF Mono', monospace; border: 1px solid #2d333b; white-space: pre-wrap; word-break: break-word; max-height: 500px; overflow-y: auto; line-height: 1.4; }
-        .addr-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+        .addr-row { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
         .addr-label { width: 85px; color: #8b949e; font-size: 10px; }
         .addr-value { flex: 1; font-family: monospace; color: #79c0ff; word-break: break-all; font-size: 9px; background: #0d1117; padding: 5px 6px; border-radius: 8px; }
+        .addr-input { flex: 2; font-family: monospace; font-size: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 5px 6px; color: #f0f6fc; }
         .copy-btn { padding: 3px 8px; font-size: 9px; margin: 0; }
+        .edit-btn { padding: 3px 8px; font-size: 9px; margin: 0; background: #d2992220; border-color: #d29922; color: #ffdf6e; }
+        .save-btn { padding: 3px 8px; font-size: 9px; margin: 0; background: #23863620; border-color: #238636; color: #7ee787; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
         .stat-card { background: #0d1117; border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; }
         .stat-card:active { background: #1f6feb20; }
@@ -67,6 +71,7 @@
             .row button { font-size: 10px; padding: 6px 4px; }
             .test-table td { padding: 4px 2px; }
             .addr-label { width: 70px; }
+            .addr-input { font-size: 8px; }
         }
     </style>
 </head>
@@ -131,6 +136,49 @@
             </div>
         </div>
         <div class="res" id="resPairStatus">💡 点击「检查所有 Pair 状态」查看三个合约的 Pair 配置</div>
+    </div>
+
+    <!-- 可编辑合约地址（新增功能） -->
+    <div class="card">
+        <div class="card-title">📝 合约地址编辑 <span class="badge badge-edit">可修改</span></div>
+        <div id="editableAddresses">
+            <div class="addr-row" id="rowMyk">
+                <span class="addr-label">MYK:</span>
+                <span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span>
+                <button class="edit-btn" onclick="editAddress('myk')">✏️ 编辑</button>
+                <button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button>
+            </div>
+            <div class="addr-row" id="rowRp">
+                <span class="addr-label">RewardPool:</span>
+                <span class="addr-value" id="displayRpAddr">0x3c5e26d01B67478762b493D156973D281C89A3b2</span>
+                <button class="edit-btn" onclick="editAddress('rp')">✏️ 编辑</button>
+                <button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button>
+            </div>
+            <div class="addr-row" id="rowGv">
+                <span class="addr-label">Governance:</span>
+                <span class="addr-value" id="displayGvAddr">0xc69876249A452aB538f2d1A8fea0be8d39b41047</span>
+                <button class="edit-btn" onclick="editAddress('gv')">✏️ 编辑</button>
+                <button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button>
+            </div>
+            <div class="addr-row" id="rowFm">
+                <span class="addr-label">FundManager:</span>
+                <span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span>
+                <button class="edit-btn" onclick="editAddress('fm')">✏️ 编辑</button>
+                <button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button>
+            </div>
+            <div class="addr-row" id="rowPair">
+                <span class="addr-label">期望 Pair:</span>
+                <span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span>
+                <button class="edit-btn" onclick="editAddress('pair')">✏️ 编辑</button>
+                <button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button>
+            </div>
+        </div>
+        <div class="row">
+            <button class="primary" onclick="saveAllAddresses()">💾 保存所有地址</button>
+            <button onclick="resetToDefault()">🔄 重置默认地址</button>
+            <button onclick="reloadAddresses()">📡 重新加载地址</button>
+        </div>
+        <div class="res" id="resAddressEdit">💡 点击「编辑」按钮修改合约地址，修改后点击「保存所有地址」生效</div>
     </div>
 
     <!-- 多账户管理 -->
@@ -233,52 +281,186 @@
         <div class="res" id="resQuery">📡 点击查询</div>
     </div>
 
-    <!-- 合约地址 -->
-    <div class="card">
-        <div class="card-title">📋 合约地址 <span class="badge badge-read">最终确认</span></div>
-        <div class="addr-row"><span class="addr-label">MYK:</span><span class="addr-value" id="displayMykAddr">0x04f41F35c4A3859310249971e7A82A468607CBDB</span><button class="copy-btn" onclick="copyToClipboard('displayMykAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">RewardPool:</span><span class="addr-value" id="displayRpAddr">0xf0ed64C2596414c40aB9E96b30b9A203E3df6210</span><button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">Governance:</span><span class="addr-value" id="displayGvAddr">0xc69876249A452aB538f2d1A8fea0be8d39b41047</span><button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">FundManager:</span><span class="addr-value" id="displayFmAddr">0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f</span><button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button></div>
-        <div class="addr-row"><span class="addr-label">期望 Pair:</span><span class="addr-value" id="displayPairAddr">0x471D5AC981d728f1D214ffcF6E73d6f24562c16D</span><button class="copy-btn" onclick="copyToClipboard('displayPairAddr')">复制</button></div>
-    </div>
-
     <!-- 测试清单容器 -->
     <div id="testContainer"></div>
 </div>
 
 <script>
-    // ==================== 最新合约地址 ====================
+    // ==================== 可编辑合约地址 ====================
+    let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
+    let REWARD_POOL_ADDR = '0x3c5e26d01B67478762b493D156973D281C89A3b2';
+    let GOV_ADDR = '0xc69876249A452aB538f2d1A8fea0be8d39b41047';
+    let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
+    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
+    
+    // 默认地址备份
+    const DEFAULT_ADDRS = {
+        myk: '0x04f41F35c4A3859310249971e7A82A468607CBDB',
+        rp: '0x3c5e26d01B67478762b493D156973D281C89A3b2',
+        gv: '0xc69876249A452aB538f2d1A8fea0be8d39b41047',
+        fm: '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f',
+        pair: '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D'
+    };
+
+    function editAddress(type) {
+        const displaySpan = document.getElementById(`display${type.toUpperCase()}Addr`);
+        const row = document.getElementById(`row${type.charAt(0).toUpperCase() + type.slice(1)}`);
+        const currentValue = displaySpan.innerText;
+        
+        // 创建输入框
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'addr-input';
+        input.value = currentValue;
+        input.style.flex = '2';
+        
+        // 创建保存按钮
+        const saveBtn = document.createElement('button');
+        saveBtn.innerText = '💾 保存';
+        saveBtn.className = 'save-btn';
+        saveBtn.onclick = () => {
+            const newValue = input.value.trim();
+            if (newValue && newValue.startsWith('0x') && newValue.length === 42) {
+                displaySpan.innerText = newValue;
+                displaySpan.className = 'addr-value';
+                // 更新全局变量
+                updateGlobalAddress(type, newValue);
+                row.innerHTML = `<span class="addr-label">${getLabelName(type)}:</span>
+                                <span class="addr-value" id="display${type.toUpperCase()}Addr">${newValue}</span>
+                                <button class="edit-btn" onclick="editAddress('${type}')">✏️ 编辑</button>
+                                <button class="copy-btn" onclick="copyToClipboard('display${type.toUpperCase()}Addr')">复制</button>`;
+                document.getElementById('resAddressEdit').innerHTML = `✅ ${getLabelName(type)} 地址已更新为: ${newValue.slice(0,10)}...`;
+            } else {
+                alert('请输入有效的合约地址（0x开头的42位字符）');
+            }
+        };
+        
+        // 创建取消按钮
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerText = '取消';
+        cancelBtn.className = 'copy-btn';
+        cancelBtn.onclick = () => {
+            row.innerHTML = `<span class="addr-label">${getLabelName(type)}:</span>
+                            <span class="addr-value" id="display${type.toUpperCase()}Addr">${currentValue}</span>
+                            <button class="edit-btn" onclick="editAddress('${type}')">✏️ 编辑</button>
+                            <button class="copy-btn" onclick="copyToClipboard('display${type.toUpperCase()}Addr')">复制</button>`;
+        };
+        
+        row.innerHTML = `<span class="addr-label">${getLabelName(type)}:</span>`;
+        row.appendChild(input);
+        row.appendChild(saveBtn);
+        row.appendChild(cancelBtn);
+    }
+    
+    function getLabelName(type) {
+        const names = { myk: 'MYK', rp: 'RewardPool', gv: 'Governance', fm: 'FundManager', pair: '期望 Pair' };
+        return names[type] || type;
+    }
+    
+    function updateGlobalAddress(type, newAddr) {
+        switch(type) {
+            case 'myk': MYK_ADDR = newAddr; break;
+            case 'rp': REWARD_POOL_ADDR = newAddr; break;
+            case 'gv': GOV_ADDR = newAddr; break;
+            case 'fm': FUND_MANAGER_ADDR = newAddr; break;
+            case 'pair': LP_PAIR_ADDR = newAddr; break;
+        }
+        // 保存到 localStorage
+        saveAddressesToStorage();
+        // 刷新 Pair 显示和关联检验
+        setTimeout(() => { refreshAllPairs(); runFullVerification(); }, 500);
+    }
+    
+    function saveAllAddresses() {
+        saveAddressesToStorage();
+        document.getElementById('resAddressEdit').innerHTML = '✅ 所有地址已保存到本地存储！';
+        refreshAllPairs();
+        runFullVerification();
+    }
+    
+    function saveAddressesToStorage() {
+        const addresses = {
+            myk: MYK_ADDR,
+            rp: REWARD_POOL_ADDR,
+            gv: GOV_ADDR,
+            fm: FUND_MANAGER_ADDR,
+            pair: LP_PAIR_ADDR
+        };
+        localStorage.setItem('myk_custom_addresses', JSON.stringify(addresses));
+    }
+    
+    function loadAddressesFromStorage() {
+        const saved = localStorage.getItem('myk_custom_addresses');
+        if (saved) {
+            try {
+                const addrs = JSON.parse(saved);
+                if (addrs.myk) MYK_ADDR = addrs.myk;
+                if (addrs.rp) REWARD_POOL_ADDR = addrs.rp;
+                if (addrs.gv) GOV_ADDR = addrs.gv;
+                if (addrs.fm) FUND_MANAGER_ADDR = addrs.fm;
+                if (addrs.pair) LP_PAIR_ADDR = addrs.pair;
+                updateDisplayAddresses();
+                document.getElementById('resAddressEdit').innerHTML = '✅ 已加载保存的合约地址';
+            } catch(e) {}
+        } else {
+            updateDisplayAddresses();
+        }
+    }
+    
+    function updateDisplayAddresses() {
+        document.getElementById('displayMykAddr').innerText = MYK_ADDR;
+        document.getElementById('displayRpAddr').innerText = REWARD_POOL_ADDR;
+        document.getElementById('displayGvAddr').innerText = GOV_ADDR;
+        document.getElementById('displayFmAddr').innerText = FUND_MANAGER_ADDR;
+        document.getElementById('displayPairAddr').innerText = LP_PAIR_ADDR;
+        document.getElementById('expectedPairAddr').innerText = LP_PAIR_ADDR;
+        document.getElementById('manualPairInput').value = LP_PAIR_ADDR;
+    }
+    
+    function resetToDefault() {
+        if (confirm('确定重置所有合约地址为默认值吗？')) {
+            MYK_ADDR = DEFAULT_ADDRS.myk;
+            REWARD_POOL_ADDR = DEFAULT_ADDRS.rp;
+            GOV_ADDR = DEFAULT_ADDRS.gv;
+            FUND_MANAGER_ADDR = DEFAULT_ADDRS.fm;
+            LP_PAIR_ADDR = DEFAULT_ADDRS.pair;
+            updateDisplayAddresses();
+            saveAddressesToStorage();
+            document.getElementById('resAddressEdit').innerHTML = '✅ 已重置为默认地址';
+            refreshAllPairs();
+            runFullVerification();
+        }
+    }
+    
+    function reloadAddresses() {
+        loadAddressesFromStorage();
+        document.getElementById('resAddressEdit').innerHTML = '✅ 已重新加载地址';
+        refreshAllPairs();
+        runFullVerification();
+    }
+
+    // ==================== 其他全局变量 ====================
     let web3, userAccount, chainId;
     let activeWeb3 = null;
     let currentAccountIndex = 0;
     let testAccounts = [];
-
-    let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0xf0ed64C2596414c40aB9E96b30b9A203E3df6210';
-    let GOV_ADDR = '0xc69876249A452aB538f2d1A8fea0be8d39b41047';
-    let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
-    let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
     // ==================== Pair 地址管理 ====================
-    async function getPairAddress(contract, name) {
+    async function getPairAddress(contract) {
         if (!activeWeb3) await initRpc();
         if (!activeWeb3) return null;
         try {
             const pairData = buildCallData('pair()');
             const raw = await activeWeb3.eth.call({ to: contract, data: pairData });
-            const pairAddr = web3.eth.abi.decodeParameter('address', raw);
-            return pairAddr;
-        } catch(e) {
-            return null;
-        }
+            return web3.eth.abi.decodeParameter('address', raw);
+        } catch(e) { return null; }
     }
 
     async function refreshAllPairs() {
-        const rpPair = await getPairAddress(REWARD_POOL_ADDR, 'RP');
-        const gvPair = await getPairAddress(GOV_ADDR, 'GV');
-        const fmPair = await getPairAddress(FUND_MANAGER_ADDR, 'FM');
+        const rpPair = await getPairAddress(REWARD_POOL_ADDR);
+        const gvPair = await getPairAddress(GOV_ADDR);
+        const fmPair = await getPairAddress(FUND_MANAGER_ADDR);
         
         const rpElement = document.getElementById('rpPairValue');
         const gvElement = document.getElementById('gvPairValue');
@@ -286,66 +468,29 @@
         
         if (rpPair && rpPair !== '0x0000000000000000000000000000000000000000') {
             rpElement.innerHTML = rpPair;
-            rpElement.classList.remove('addr-value-warning');
         } else {
             rpElement.innerHTML = '<span class="r">⚠️ 未设置</span>';
         }
-        
         if (gvPair && gvPair !== '0x0000000000000000000000000000000000000000') {
             gvElement.innerHTML = gvPair;
-            gvElement.classList.remove('addr-value-warning');
         } else {
             gvElement.innerHTML = '<span class="r">⚠️ 未设置</span>';
         }
-        
         if (fmPair && fmPair !== '0x0000000000000000000000000000000000000000') {
             fmElement.innerHTML = fmPair;
-            fmElement.classList.remove('addr-value-warning');
         } else {
             fmElement.innerHTML = '<span class="r">⚠️ 未设置</span>';
         }
-        
-        return { rpPair, gvPair, fmPair };
     }
 
     async function checkAllPairs() {
         await refreshAllPairs();
-        const rpPairText = document.getElementById('rpPairValue').innerHTML;
-        const gvPairText = document.getElementById('gvPairValue').innerHTML;
-        const fmPairText = document.getElementById('fmPairValue').innerHTML;
-        
         let html = '🔍 Pair 地址状态检查\n';
         html += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         html += `期望地址: ${LP_PAIR_ADDR}\n\n`;
-        html += `RP.pair(): ${rpPairText}\n`;
-        html += `GV.pair(): ${gvPairText}\n`;
-        html += `FM.pair(): ${fmPairText}\n\n`;
-        
-        let allOk = true;
-        if (rpPairText.includes('未设置') || (!rpPairText.includes('0x471D') && rpPairText !== LP_PAIR_ADDR)) {
-            html += '<span class="r">❌ RP.pair 未正确设置</span>\n';
-            allOk = false;
-        } else {
-            html += '<span class="g">✅ RP.pair 配置正确</span>\n';
-        }
-        if (gvPairText.includes('未设置') || (!gvPairText.includes('0x471D') && gvPairText !== LP_PAIR_ADDR)) {
-            html += '<span class="r">❌ GV.pair 未正确设置</span>\n';
-            allOk = false;
-        } else {
-            html += '<span class="g">✅ GV.pair 配置正确</span>\n';
-        }
-        if (fmPairText.includes('未设置') || (!fmPairText.includes('0x471D') && fmPairText !== LP_PAIR_ADDR)) {
-            html += '<span class="r">❌ FM.pair 未正确设置</span>\n';
-            allOk = false;
-        } else {
-            html += '<span class="g">✅ FM.pair 配置正确</span>\n';
-        }
-        
-        if (allOk) {
-            html += '\n<span class="g">🎉 所有 Pair 地址配置正确！</span>';
-        } else {
-            html += '\n<span class="y">💡 请使用「一键设置所有 Pair」修复</span>';
-        }
+        html += `RP.pair(): ${document.getElementById('rpPairValue').innerHTML}\n`;
+        html += `GV.pair(): ${document.getElementById('gvPairValue').innerHTML}\n`;
+        html += `FM.pair(): ${document.getElementById('fmPairValue').innerHTML}\n`;
         document.getElementById('resPairStatus').innerHTML = html;
     }
 
@@ -353,7 +498,7 @@
         if (!userAccount) { alert('请先连接钱包'); return; }
         const manualPair = document.getElementById('manualPairInput').value.trim();
         if (!manualPair || !manualPair.startsWith('0x') || manualPair.length !== 42) {
-            alert('请输入有效的合约地址（0x开头的42位字符）');
+            alert('请输入有效的合约地址');
             return;
         }
         let targetContract;
@@ -366,7 +511,7 @@
             document.getElementById('resPairStatus').innerHTML = `⏳ 正在设置 ${contractType}.pair...`;
             const setPairData = buildCallData('setPair(address)', manualPair);
             const tx = await sendTransaction(targetContract, setPairData);
-            document.getElementById('resPairStatus').innerHTML = `✅ ${contractType}.pair 设置成功！\n地址: ${manualPair}\n交易: ${tx.slice(0,10)}...`;
+            document.getElementById('resPairStatus').innerHTML = `✅ ${contractType}.pair 设置成功！\n交易: ${tx.slice(0,10)}...`;
             setTimeout(() => refreshAllPairs(), 3000);
         } catch(e) {
             document.getElementById('resPairStatus').innerHTML = `<span class="r">❌ 设置失败: ${e.message.slice(0,100)}</span>`;
@@ -393,7 +538,7 @@
                 document.getElementById('resPairStatus').innerHTML = `✅ [${i+1}/3] ${contracts[i].name}.pair 设置成功`;
                 await new Promise(r => setTimeout(r, 1000));
             } catch(e) {
-                document.getElementById('resPairStatus').innerHTML = `<span class="r">❌ ${contracts[i].name} 设置失败: ${e.message.slice(0,80)}</span>`;
+                document.getElementById('resPairStatus').innerHTML = `<span class="r">❌ ${contracts[i].name} 设置失败</span>`;
                 return;
             }
         }
@@ -403,7 +548,7 @@
 
     function useExpectedPair() {
         document.getElementById('manualPairInput').value = LP_PAIR_ADDR;
-        alert('已填入期望地址，点击「一键设置所有 Pair」即可提交');
+        alert('已填入期望地址');
     }
 
     // ==================== 13项关联检验 ====================
@@ -461,11 +606,8 @@
         if (allPass) {
             html += `<div class="check-pass" style="margin-top:8px;">🎉 所有13项关联验证通过！</div>`;
             for (const item of testPhases[0].items) setTestStatus('deploy', item.id, 'pass');
-        } else if (passedCount >= 10) {
-            html += `<div class="check-warning" style="margin-top:8px;">⚠️ 大部分通过，请检查失败的 Pair 地址配置</div>`;
-            html += `<div class="y" style="margin-top:4px;">💡 请使用上方的「一键设置所有 Pair」修复 Pair 地址</div>`;
         } else {
-            html += `<div class="check-fail" style="margin-top:8px;">❌ 多项验证失败，请执行「一键设置」</div>`;
+            html += `<div class="check-warning" style="margin-top:8px;">⚠️ 部分验证失败，请检查配置</div>`;
         }
         html += `</div>`;
         document.getElementById('resVerification').innerHTML = html;
@@ -496,7 +638,7 @@
                 return;
             }
         }
-        document.getElementById('resVerification').innerHTML = `<span class="g">🎉 10项关联设置完成！请手动设置 Pair 地址</span>`;
+        document.getElementById('resVerification').innerHTML = `<span class="g">🎉 10项关联设置完成！</span>`;
         setTimeout(() => runFullVerification(), 2000);
     }
 
@@ -578,8 +720,8 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v7"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v7", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v8"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v8", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
@@ -590,7 +732,7 @@
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
 
     // ==================== 其他功能 ====================
-    async function checkAllowance() { if(!userAccount){alert('请连接钱包');return;} if(!activeWeb3) await initRpc(); try{ const data=buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); const allowance=fromWei(raw); document.getElementById('approveStatus').innerHTML=`🔓 授权额度:${allowance.toFixed(4)} MYK`; if(allowance<(parseFloat(document.getElementById('rechargeAmount').value)||0)) document.getElementById('approveStatus').innerHTML+=' ⚠️额度不足'; } catch(e){ document.getElementById('approveStatus').innerHTML=`<span class="r">查询失败</span>`; } }
+    async function checkAllowance() { if(!userAccount){alert('请连接钱包');return;} if(!activeWeb3) await initRpc(); try{ const data=buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); const allowance=fromWei(raw); document.getElementById('approveStatus').innerHTML=`🔓 授权额度:${allowance.toFixed(4)} MYK`; } catch(e){ document.getElementById('approveStatus').innerHTML=`<span class="r">查询失败</span>`; } }
     async function approveMYK() { if(!userAccount){alert('请连接钱包');return;} const amount=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amount)||amount<=0){alert('请输入数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const approveData=buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(amount*2)); await sendTransaction(MYK_ADDR, approveData); document.getElementById('resRecharge').innerHTML=`✅ 授权成功`; setTimeout(()=>checkAllowance(),2000); } catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">失败:${e.message.slice(0,80)}</span>`; } }
     async function approveAndRechargeActivityPool() { if(!userAccount){alert('请连接钱包');return;} const amount=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amount)||amount<=0){alert('请输入数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 检查授权...'; const allowanceData=buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR); const allowanceRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:allowanceData}); if(fromWei(allowanceRaw)<amount){ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const approveData=buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(amount*2)); await sendTransaction(MYK_ADDR, approveData); await new Promise(r=>setTimeout(r,2000)); } document.getElementById('resRecharge').innerHTML='⏳ 充值中...'; const depositData=buildCallData('depositActivityPool(uint256)', toWei(amount)); const tx=await sendTransaction(REWARD_POOL_ADDR, depositData); document.getElementById('resRecharge').innerHTML=`<span class="g">✅ 充值成功！${amount} MYK</span>`; setTimeout(()=>refreshAllBalances(),2000); } catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">失败:${e.message.slice(0,100)}</span>`; } }
     async function getContractBalance() { if(!activeWeb3) return null; try{ const data=buildCallData('balanceOf(address)', REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
@@ -598,10 +740,10 @@
     async function getActivityPoolPaid() { if(!activeWeb3) return null; try{ const data=buildCallData('activityPoolTotalPaid()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
     async function refreshAllBalances() { if(!activeWeb3) await initRpc(); const total=await getContractBalance(); const pool=await getActivityPoolBalance(); const paid=await getActivityPoolPaid(); if(total!==null) document.getElementById('contractTotalBalance').innerHTML=total.toFixed(2); if(pool!==null) document.getElementById('activityPoolBalance').innerHTML=pool.toFixed(2); if(paid!==null) document.getElementById('activityPoolPaid').innerHTML=paid.toFixed(2); }
     async function getActivityPoolInfo() { const pool=await getActivityPoolBalance(); const paid=await getActivityPoolPaid(); const price=await getCurrentPrice(); if(pool!==null){ const rewardPer=price?(2/price).toFixed(4):'--'; document.getElementById('resRecharge').innerHTML=`📋 奖金池: ${pool.toFixed(2)} MYK | 发放:${paid?.toFixed(2)||'--'} | 每激活:${rewardPer} MYK`; } }
-    async function queryUserRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📋 用户${addr.slice(0,8)}...奖励\n`; try{ const userData=buildCallData('users(address)',addr); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; html+=`状态:${roles[userInfo[7]]} | 激活:${userInfo[8]?'✅':'❌'} | 邀请:${userInfo[1]}\n`; const rankData=buildCallData('getUserRank(address)',addr); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); html+=`排名:#${parseInt(rankRaw)||'无'}\n`; html+=`\n💧 分红池可领取:\n`; for(let t=3;t<=6;t++){ try{ const claimData=buildCallData('getClaimableDividend(address,uint8)',addr,t); const claimRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:claimData}); const claimable=fromWei(claimRaw); if(claimable>0) html+=`  社区${t}: ${claimable.toFixed(4)} MYK ✅\n`; }catch(e){} } document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">查询失败</span>`; } }
+    async function queryUserRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📋 用户${addr.slice(0,8)}...奖励\n`; try{ const userData=buildCallData('users(address)',addr); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; html+=`状态:${roles[userInfo[7]]} | 激活:${userInfo[8]?'✅':'❌'} | 邀请:${userInfo[1]}\n`; const rankData=buildCallData('getUserRank(address)',addr); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); html+=`排名:#${parseInt(rankRaw)||'无'}\n`; document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">查询失败</span>`; } }
     async function queryUpRewardsDetail() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📊 上级社区链\n`; try{ const fcData=buildCallData('getFirstCommunity(address)',addr); let fc='0x0'; try{ fc=web3.eth.abi.decodeParameter('address',await activeWeb3.eth.call({to:GOV_ADDR,data:fcData})); }catch(e){} if(fc==='0x0000000000000000000000000000000000000000'){ html+='<span class="r">无上级社区</span>'; document.getElementById('resRewards').innerHTML=html; return; } let cur=fc; for(let i=0;i<6;i++){ if(cur==='0x0000000000000000000000000000000000000000'){ html+=`C${i+1}:空缺\n`; break; } try{ const mykData=buildCallData('balanceOf(address)',cur); const mykRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:mykData}); html+=`C${i+1}:${cur.slice(0,8)}... MYK:${fromWei(mykRaw).toFixed(2)}\n`; const nodeData=buildCallData('getCommunityNode(address)',cur); const nodeRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:nodeData}); const node=web3.eth.abi.decodeParameters(['address','address','bool'],nodeRaw); cur=node[1]; }catch(e){ html+=`C${i+1}:查询失败\n`; break; } } document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">失败</span>`; } }
-    async function queryDividendRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`💧 分红池收益\n`; let total=0; for(let t=3;t<=6;t++){ try{ const claimData=buildCallData('getClaimableDividend(address,uint8)',addr,t); const claimRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:claimData}); const claimable=fromWei(claimRaw); total+=claimable; html+=`社区${t}: ${claimable.toFixed(4)} MYK ${claimable>0?'✅':'⏳'}\n`; }catch(e){ html+=`社区${t}:查询失败\n`; } } html+=`\n总计: ${total.toFixed(4)} MYK`; document.getElementById('resRewards').innerHTML=html; }
-    async function initAccounts() { if(!window.ethereum) return; const accounts=await window.ethereum.request({method:'eth_accounts'}); if(accounts.length>0){ testAccounts=accounts.slice(0,Math.min(accounts.length,3)); while(testAccounts.length<3) testAccounts.push(''); } if(testAccounts.length===0&&userAccount) testAccounts=[userAccount,'','']; updateAccountDisplay(); }
+    async function queryDividendRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`💧 分红池收益\n`; let total=0; for(let t=3;t<=6;t++){ try{ const claimData=buildCallData('getClaimableDividend(address,uint8)',addr,t); const claimRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:claimData}); const claimable=fromWei(claimRaw); total+=claimable; html+=`社区${t}: ${claimable.toFixed(4)} MYK\n`; }catch(e){ html+=`社区${t}:查询失败\n`; } } html+=`\n总计: ${total.toFixed(4)} MYK`; document.getElementById('resRewards').innerHTML=html; }
+    async function initAccounts() { if(!window.ethereum) return; const accounts=await window.ethereum.request({method:'eth_accounts'}); if(accounts.length>0){ testAccounts=accounts.slice(0,Math.min(accounts.length,3)); while(testAccounts.length<3) testAccounts.push(''); } updateAccountDisplay(); }
     function switchAccount(index){ currentAccountIndex=index; document.querySelectorAll('.account-btn').forEach((btn,i)=>{ btn.classList.toggle('active',i===index); }); document.getElementById('customAccountInput').style.display=index===3?'flex':'none'; if(index<3&&testAccounts[index]){ userAccount=testAccounts[index]; updateAccountInfo(); } if(index===3&&testAccounts[3]){ userAccount=testAccounts[3]; updateAccountInfo(); } }
     function setCustomAccount(){ const addr=document.getElementById('customAddress').value.trim(); if(addr&&addr.startsWith('0x')){ testAccounts[3]=addr; userAccount=addr; updateAccountInfo(); alert('已切换'); }else alert('无效地址'); }
     async function updateAccountInfo() { if(!userAccount||!activeWeb3) return; try{ const balanceData=buildCallData('balanceOf(address)',userAccount); const mykBal=await activeWeb3.eth.call({to:MYK_ADDR,data:balanceData}); const mykAmount=fromWei(mykBal); const userData=buildCallData('users(address)',userAccount); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; const rankData=buildCallData('getUserRank(address)',userAccount); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount.slice(0,10)}...\n💰 ${mykAmount.toFixed(2)} MYK | ${roles[userInfo[7]]} | 排名#${parseInt(rankRaw)||'无'} | 邀请${userInfo[1]}`; }catch(e){ document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount?.slice(0,10)}...\n<span class="r">查询失败</span>`; } }
@@ -630,6 +772,7 @@
             userAccount=accounts[0]; testAccounts=accounts.slice(0,3); while(testAccounts.length<3) testAccounts.push('');
             chainId=await web3.eth.getChainId();
             document.getElementById('netStatus').innerHTML=chainId===56?'✅ BSC主网':(chainId===31337?'✅ Hardhat':`⚠️ ${chainId}`);
+            loadAddressesFromStorage();
             updateAccountDisplay(); updateAccountInfo(); refreshAllBalances(); initTestResults(); checkAllowance();
             await refreshAllPairs();
         }catch(e){ document.getElementById('netStatus').innerHTML='<span class="r">连接失败</span>'; }
