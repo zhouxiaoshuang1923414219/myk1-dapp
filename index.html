@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MYK 测试面板 | 可编辑合约地址</title>
+    <title>MYK 测试面板 | 14项关联检验</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -79,7 +79,7 @@
 <div class="container safe-bottom">
     <div class="header">
         <h1>🧪 MYK 完整测试面板</h1>
-        <div class="sub"><span id="netStatus">🔌 连接中...</span><span>| 13项关联检验</span><span id="testProgress">📊 0%</span></div>
+        <div class="sub"><span id="netStatus">🔌 连接中...</span><span>| 14项关联检验</span><span id="testProgress">📊 0%</span></div>
     </div>
 
     <!-- 测试进度总览 -->
@@ -156,7 +156,7 @@
             </div>
             <div class="addr-row" id="rowGv">
                 <span class="addr-label">Governance:</span>
-                <span class="addr-value" id="displayGvAddr">0x982Ab18FAbb9A7a13b8cA5448B7071763EE5Acc1</span>
+                <span class="addr-value" id="displayGvAddr">0xAC5D70A2a8DED40265d465c9C82794f902FD1016</span>
                 <button class="edit-btn" onclick="editAddress('gv')">✏️ 编辑</button>
                 <button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button>
             </div>
@@ -229,14 +229,14 @@
         <div class="res" id="resRewards">📋 点击查询用户奖励</div>
     </div>
 
-    <!-- 一键关联检验（13项） -->
+    <!-- 一键关联检验（14项） -->
     <div class="card">
-        <div class="card-title">🔗 关联检验 <span class="badge badge-config">13项</span></div>
+        <div class="card-title">🔗 关联检验 <span class="badge badge-config">14项</span></div>
         <div class="row">
-            <button class="primary" onclick="runFullVerification()">✅ 一键检验(13项)</button>
-            <button class="warning" onclick="runOneKeySetup()">⚡ 一键设置(10项)</button>
+            <button class="primary" onclick="runFullVerification()">✅ 一键检验(14项)</button>
+            <button class="warning" onclick="runOneKeySetup()">⚡ 一键设置(11项)</button>
         </div>
-        <div class="res" id="resVerification">💡 点击检验13项关联（含3个 Pair 地址）</div>
+        <div class="res" id="resVerification">💡 点击检验14项关联（含3个 Pair 地址 + FM↔RP 关联）</div>
     </div>
 
     <!-- 时间控制 -->
@@ -289,7 +289,7 @@
     // ==================== 可编辑合约地址 ====================
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
     let REWARD_POOL_ADDR = '0x2c1b1B9508c523dB20DB3360a3574DA2dD0fAB07';
-    let GOV_ADDR = '0x982Ab18FAbb9A7a13b8cA5448B7071763EE5Acc1';
+    let GOV_ADDR = '0xAC5D70A2a8DED40265d465c9C82794f902FD1016';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     
@@ -297,7 +297,7 @@
     const DEFAULT_ADDRS = {
         myk: '0x04f41F35c4A3859310249971e7A82A468607CBDB',
         rp: '0x2c1b1B9508c523dB20DB3360a3574DA2dD0fAB07',
-        gv: '0x982Ab18FAbb9A7a13b8cA5448B7071763EE5Acc1',
+        gv: '0xAC5D70A2a8DED40265d465c9C82794f902FD1016',
         fm: '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f',
         pair: '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D'
     };
@@ -541,7 +541,7 @@
         alert('已填入期望地址');
     }
 
-    // ==================== 13项关联检验 ====================
+    // ==================== 14项关联检验 ====================
     async function callView(contract, method, ...params) {
         if (!activeWeb3) await initRpc();
         try {
@@ -558,12 +558,13 @@
         if (!activeWeb3) await initRpc();
         if (!activeWeb3) { document.getElementById('resVerification').innerHTML = '<span class="r">❌ RPC失败</span>'; return; }
         
-        let html = '<div style="font-weight:bold;margin-bottom:10px;">🔍 13项关联检验</div>';
+        let html = '<div style="font-weight:bold;margin-bottom:10px;">🔍 14项关联检验</div>';
         let allPass = true;
         let passedCount = 0;
-        const totalChecks = 13;
+        const totalChecks = 14;
         
         const checks = [
+            // 原有13项
             { name: "MYK.rewardPool", contract: MYK_ADDR, method: 'rewardPool()', expected: REWARD_POOL_ADDR },
             { name: "MYK.communityGovernance", contract: MYK_ADDR, method: 'communityGovernance()', expected: GOV_ADDR },
             { name: "RP.mykToken", contract: REWARD_POOL_ADDR, method: 'mykToken()', expected: MYK_ADDR },
@@ -576,7 +577,9 @@
             { name: "FM.communityGovernance", contract: FUND_MANAGER_ADDR, method: 'communityGovernance()', expected: GOV_ADDR },
             { name: "RP.pair", contract: REWARD_POOL_ADDR, method: 'pair()', expected: LP_PAIR_ADDR },
             { name: "GV.pair", contract: GOV_ADDR, method: 'pair()', expected: LP_PAIR_ADDR },
-            { name: "FM.pair", contract: FUND_MANAGER_ADDR, method: 'pair()', expected: LP_PAIR_ADDR }
+            { name: "FM.pair", contract: FUND_MANAGER_ADDR, method: 'pair()', expected: LP_PAIR_ADDR },
+            // 新增第14项：FundManager ↔ RewardPool 双向关联验证
+            { name: "FM.rewardPool", contract: FUND_MANAGER_ADDR, method: 'rewardPool()', expected: REWARD_POOL_ADDR }
         ];
         
         for (const check of checks) {
@@ -594,7 +597,7 @@
         html += `<div class="check-item"><span>📊 检验结果</span><span>${passedCount}/${totalChecks} 通过</span></div>`;
         
         if (allPass) {
-            html += `<div class="check-pass" style="margin-top:8px;">🎉 所有13项关联验证通过！</div>`;
+            html += `<div class="check-pass" style="margin-top:8px;">🎉 所有14项关联验证通过！</div>`;
             for (const item of testPhases[0].items) setTestStatus('deploy', item.id, 'pass');
         } else {
             html += `<div class="check-warning" style="margin-top:8px;">⚠️ 部分验证失败，请检查配置</div>`;
@@ -616,19 +619,20 @@
             { name: "GV.setRewardPool", to: GOV_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR },
             { name: "GV.setFundManager", to: GOV_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR },
             { name: "FM.setMyk", to: FUND_MANAGER_ADDR, method: 'setMyk(address)', param: MYK_ADDR },
-            { name: "FM.setCommunityGovernance", to: FUND_MANAGER_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR }
+            { name: "FM.setCommunityGovernance", to: FUND_MANAGER_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR },
+            { name: "FM.setRewardPool", to: FUND_MANAGER_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR }  // 新增：FM 设置 RewardPool
         ];
         for (let i = 0; i < steps.length; i++) {
             try {
                 const data = buildCallData(steps[i].method, steps[i].param);
                 await sendTransaction(steps[i].to, data);
-                document.getElementById('resVerification').innerHTML = `✅ [${i+1}/10] ${steps[i].name}`;
+                document.getElementById('resVerification').innerHTML = `✅ [${i+1}/${steps.length}] ${steps[i].name}`;
             } catch(e) {
                 document.getElementById('resVerification').innerHTML = `<span class="r">❌ ${steps[i].name}失败</span>`;
                 return;
             }
         }
-        document.getElementById('resVerification').innerHTML = `<span class="g">🎉 10项关联设置完成！</span>`;
+        document.getElementById('resVerification').innerHTML = `<span class="g">🎉 ${steps.length}项关联设置完成！</span>`;
         setTimeout(() => runFullVerification(), 2000);
     }
 
@@ -645,7 +649,7 @@
             { id: "1.13", name: "GV.setPair", desc: "设置Pair" },{ id: "1.14", name: "FM.setMyk", desc: "设置MYK" },
             { id: "1.15", name: "FM.setRewardPool", desc: "设置RP" },{ id: "1.16", name: "FM.setGovernance", desc: "设置GV" },
             { id: "1.17", name: "FM.setPair", desc: "设置Pair" },{ id: "1.18", name: "RP.setPair", desc: "设置Pair" },
-            { id: "1.19", name: "关联核对", desc: "13/13通过" }
+            { id: "1.19", name: "关联核对", desc: "14/14通过" }
         ] },
         { id: "bind", name: "🔗 阶段二：激活与绑定 (6项)", items: [
             { id: "2.1", name: "首个用户激活", desc: "PRIMARY身份" },{ id: "2.2", name: "查询用户状态", desc: "isActive=true" },
@@ -710,13 +714,13 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v12"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v12", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v14"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v14", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
     function scrollToPhase() { document.getElementById('testContainer')?.scrollIntoView({ behavior: 'smooth' }); }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<td><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let total=0,passed=0; for(const k in testResults){total++; if(testResults[k].status==="pass") passed++;} report+=`通过率:${passed}/${total}(${Math.round(passed/total*100)}%)\n\n`; for(const phase of testPhases){ report+=`\n${phase.name}\n`; for(const item of phase.items){ const key=`${phase.id}_${item.id}`; const status=testResults[key]?.status==="pass"?"✅":(testResults[key]?.status==="fail"?"❌":"⏳"); report+=`${status} ${item.id} ${item.name}\n`; } } const blob=new Blob([report],{type:"text/plain"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests(){ if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
