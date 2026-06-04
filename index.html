@@ -150,13 +150,13 @@
             </div>
             <div class="addr-row" id="rowRp">
                 <span class="addr-label">RewardPool:</span>
-                <span class="addr-value" id="displayRpAddr">0x946989ef611bbDea07043B56946054775c70C4cf</span>
+                <span class="addr-value" id="displayRpAddr">0x95B0A093D570186cdf430274cA672DF0D9b6b8e9</span>
                 <button class="edit-btn" onclick="editAddress('rp')">✏️ 编辑</button>
                 <button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button>
             </div>
             <div class="addr-row" id="rowGv">
                 <span class="addr-label">Governance:</span>
-                <span class="addr-value" id="displayGvAddr">0xEe0641C24C4789085285D784b29D1203f75455fa</span>
+                <span class="addr-value" id="displayGvAddr">0xA5966E7B74c437293Bd0a0dd7E06b34573d96A0C</span>
                 <button class="edit-btn" onclick="editAddress('gv')">✏️ 编辑</button>
                 <button class="copy-btn" onclick="copyToClipboard('displayGvAddr')">复制</button>
             </div>
@@ -288,16 +288,16 @@
 <script>
     // ==================== 可编辑合约地址 ====================
     let MYK_ADDR = '0x04f41F35c4A3859310249971e7A82A468607CBDB';
-    let REWARD_POOL_ADDR = '0x946989ef611bbDea07043B56946054775c70C4cf';
-    let GOV_ADDR = '0xEe0641C24C4789085285D784b29D1203f75455fa';
+    let REWARD_POOL_ADDR = '0x95B0A093D570186cdf430274cA672DF0D9b6b8e9';
+    let GOV_ADDR = '0xA5966E7B74c437293Bd0a0dd7E06b34573d96A0C';
     let FUND_MANAGER_ADDR = '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f';
     let LP_PAIR_ADDR = '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D';
     
     // 默认地址备份
     const DEFAULT_ADDRS = {
         myk: '0x04f41F35c4A3859310249971e7A82A468607CBDB',
-        rp: '0x946989ef611bbDea07043B56946054775c70C4cf',
-        gv: '0xEe0641C24C4789085285D784b29D1203f75455fa',
+        rp: '0x95B0A093D570186cdf430274cA672DF0D9b6b8e9',
+        gv: '0xA5966E7B74c437293Bd0a0dd7E06b34573d96A0C',
         fm: '0xF9f6f51BD9B45e5fBC3c11B68a1C0F6EaAA9960f',
         pair: '0x471D5AC981d728f1D214ffcF6E73d6f24562c16D'
     };
@@ -712,8 +712,8 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v15"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v15", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v16"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v16", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
