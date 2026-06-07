@@ -194,7 +194,7 @@
         <div class="res" id="resAccountInfo">📋 当前账户信息</div>
     </div>
 
-    <!-- 合约余额管理 -->
+    <!-- 合约余额管理（修复版） -->
     <div class="card">
         <div class="card-title">💰 合约余额 <span class="badge badge-write">充值</span></div>
         <div class="stats-grid">
@@ -202,17 +202,17 @@
             <div class="stat-card" onclick="refreshAllBalances()"><div class="stat-value" id="activityPoolBalance">--</div><div class="stat-label">活动奖金池</div></div>
             <div class="stat-card" onclick="getActivityPoolInfo()"><div class="stat-value" id="activityPoolPaid">--</div><div class="stat-label">累计发放</div></div>
         </div>
-        <div class="approve-warning" id="approveStatus">⚠️ 充值前需授权 MYK 给 RewardPool</div>
+        <div class="approve-warning" id="approveStatus">⚠️ 充值前需要先授权 MYK 给 RewardPool</div>
         <div class="row">
             <input type="text" id="rechargeAmount" placeholder="MYK 数量" value="1000" style="flex:2">
             <button class="pool" onclick="approveAndRechargeActivityPool()">🎁 授权并充值</button>
         </div>
         <div class="row">
             <button onclick="approveMYK()">🔓 单独授权</button>
-            <button onclick="checkAllowance()">🔍 授权额度</button>
-            <button onclick="refreshAllBalances()">🔄 刷新</button>
+            <button onclick="checkAllowance()">🔍 查询授权额度</button>
+            <button onclick="refreshAllBalances()">🔄 刷新余额</button>
         </div>
-        <div class="res" id="resRecharge">💡 点击「授权并充值」完成授权+充值</div>
+        <div class="res" id="resRecharge">💡 点击「授权并充值」会自动完成授权+充值</div>
     </div>
 
     <!-- 用户奖励查询 -->
@@ -436,6 +436,27 @@
     let testAccounts = [];
     const USDT_ADDR = '0x55d398326f99059fF775485246999027B3197955';
 
+    // ==================== 等待交易确认辅助函数 ====================
+    async function waitForTransaction(txHash, timeout = 60000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+            const interval = setInterval(async () => {
+                try {
+                    const receipt = await web3.eth.getTransactionReceipt(txHash);
+                    if (receipt && receipt.blockNumber) {
+                        clearInterval(interval);
+                        resolve(receipt);
+                    } else if (Date.now() - startTime > timeout) {
+                        clearInterval(interval);
+                        reject(new Error('交易确认超时'));
+                    }
+                } catch (e) {
+                    // 继续等待
+                }
+            }, 2000);
+        });
+    }
+
     // ==================== Pair 地址管理 ====================
     async function getPairAddress(contract) {
         if (!activeWeb3) await initRpc();
@@ -540,6 +561,118 @@
         document.getElementById('manualPairInput').value = LP_PAIR_ADDR;
         alert('已填入期望地址');
     }
+
+    // ==================== 充值功能（修复版） ====================
+    async function checkAllowance() {
+        if (!userAccount) { alert('请连接钱包'); return; }
+        if (!activeWeb3) await initRpc();
+        try {
+            const data = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
+            const raw = await activeWeb3.eth.call({ to: MYK_ADDR, data: data });
+            const allowance = fromWei(raw);
+            const needAmount = parseFloat(document.getElementById('rechargeAmount').value) || 0;
+            document.getElementById('approveStatus').innerHTML = `🔓 当前授权额度: ${allowance.toFixed(4)} MYK`;
+            if (allowance < needAmount && needAmount > 0) {
+                document.getElementById('approveStatus').innerHTML += `\n⚠️ 授权额度不足 (需要 ${needAmount})，请点击「单独授权」或「授权并充值」`;
+            }
+        } catch(e) {
+            document.getElementById('approveStatus').innerHTML = `<span class="r">查询失败: ${e.message.slice(0,80)}</span>`;
+        }
+    }
+
+    async function approveMYK() {
+        if (!userAccount) { alert('请连接钱包'); return; }
+        const amount = parseFloat(document.getElementById('rechargeAmount').value);
+        if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
+        const amountWei = toWei(amount);
+        try {
+            document.getElementById('resRecharge').innerHTML = '⏳ 步骤 1/2: 正在授权 MYK 给 RewardPool...';
+            const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, amountWei);
+            const approveTx = await sendTransaction(MYK_ADDR, approveData);
+            document.getElementById('resRecharge').innerHTML = `⏳ 授权交易已发送: ${approveTx.slice(0,10)}... 等待确认...`;
+            
+            await waitForTransaction(approveTx);
+            
+            document.getElementById('resRecharge').innerHTML = `✅ 授权成功！已授权 ${amount} MYK 给 RewardPool`;
+            setTimeout(() => checkAllowance(), 2000);
+        } catch(e) {
+            document.getElementById('resRecharge').innerHTML = `<span class="r">❌ 授权失败: ${e.message.slice(0,100)}</span>`;
+        }
+    }
+
+    async function approveAndRechargeActivityPool() {
+        if (!userAccount) { alert('请连接钱包'); return; }
+        const amount = parseFloat(document.getElementById('rechargeAmount').value);
+        if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
+        const amountWei = toWei(amount);
+        
+        try {
+            document.getElementById('resRecharge').innerHTML = '⏳ 步骤 1/5: 检查授权额度...';
+            const allowanceData = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
+            const allowanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: allowanceData });
+            const currentAllowance = fromWei(allowanceRaw);
+            
+            if (currentAllowance < amount) {
+                document.getElementById('resRecharge').innerHTML = `⏳ 步骤 2/5: 授权额度不足 (当前 ${currentAllowance.toFixed(4)}，需要 ${amount})，正在授权...`;
+                const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, amountWei);
+                const approveTx = await sendTransaction(MYK_ADDR, approveData);
+                document.getElementById('resRecharge').innerHTML = `⏳ 步骤 2/5: 授权交易已发送，等待确认...`;
+                
+                await waitForTransaction(approveTx);
+                document.getElementById('resRecharge').innerHTML = `✅ 步骤 2/5: 授权成功！`;
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                document.getElementById('resRecharge').innerHTML = `✅ 步骤 2/5: 授权额度充足 (${currentAllowance.toFixed(4)} MYK)`;
+            }
+            
+            document.getElementById('resRecharge').innerHTML = '⏳ 步骤 3/5: 检查 MYK 余额...';
+            const balanceData = buildCallData('balanceOf(address)', userAccount);
+            const balanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: balanceData });
+            const mykBalance = fromWei(balanceRaw);
+            
+            if (mykBalance < amount) {
+                document.getElementById('resRecharge').innerHTML = `<span class="r">❌ MYK 余额不足！当前余额: ${mykBalance.toFixed(4)} MYK，需要: ${amount} MYK</span>`;
+                return;
+            }
+            document.getElementById('resRecharge').innerHTML = `✅ 步骤 3/5: MYK 余额充足 (${mykBalance.toFixed(4)} MYK)`;
+            
+            document.getElementById('resRecharge').innerHTML = '⏳ 步骤 4/5: 正在充值到活动奖金池...';
+            const depositData = buildCallData('depositActivityPool(uint256)', amountWei);
+            const depositTx = await sendTransaction(REWARD_POOL_ADDR, depositData);
+            document.getElementById('resRecharge').innerHTML = `⏳ 步骤 4/5: 充值交易已发送: ${depositTx.slice(0,10)}... 等待确认...`;
+            
+            await waitForTransaction(depositTx);
+            
+            document.getElementById('resRecharge').innerHTML = `<span class="g">✅ 充值成功！\n📥 存入数量: ${amount} MYK\n🔗 交易哈希: ${depositTx}</span>`;
+            
+            setTimeout(() => {
+                refreshAllBalances();
+                checkAllowance();
+            }, 2000);
+            
+        } catch(e) {
+            document.getElementById('resRecharge').innerHTML = `<span class="r">❌ 充值失败: ${e.message.slice(0,150)}</span>`;
+        }
+    }
+
+    // ==================== 余额查询 ====================
+    async function getContractBalance() { if(!activeWeb3) return null; try{ const data=buildCallData('balanceOf(address)', REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function getActivityPoolBalance() { if(!activeWeb3) return null; try{ const data=buildCallData('activityPool()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function getActivityPoolPaid() { if(!activeWeb3) return null; try{ const data=buildCallData('activityPoolTotalPaid()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
+    async function refreshAllBalances() { if(!activeWeb3) await initRpc(); const total=await getContractBalance(); const pool=await getActivityPoolBalance(); const paid=await getActivityPoolPaid(); if(total!==null) document.getElementById('contractTotalBalance').innerHTML=total.toFixed(2); if(pool!==null) document.getElementById('activityPoolBalance').innerHTML=pool.toFixed(2); if(paid!==null) document.getElementById('activityPoolPaid').innerHTML=paid.toFixed(2); }
+    async function getActivityPoolInfo() { const pool=await getActivityPoolBalance(); const paid=await getActivityPoolPaid(); const price=await getCurrentPrice(); if(pool!==null){ const rewardPer=price?(2/price).toFixed(4):'--'; document.getElementById('resRecharge').innerHTML=`📋 奖金池: ${pool.toFixed(2)} MYK | 发放:${paid?.toFixed(2)||'--'} | 每激活:${rewardPer} MYK`; } }
+
+    // ==================== 用户奖励查询 ====================
+    async function queryUserRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📋 用户${addr.slice(0,8)}...奖励\n`; try{ const userData=buildCallData('users(address)',addr); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; html+=`状态:${roles[userInfo[7]]} | 激活:${userInfo[8]?'✅':'❌'} | 邀请:${userInfo[1]}\n`; const rankData=buildCallData('getUserRank(address)',addr); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); html+=`排名:#${parseInt(rankRaw)||'无'}\n`; document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">查询失败</span>`; } }
+    async function queryUpRewardsDetail() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📊 上级社区链\n`; try{ const fcData=buildCallData('getFirstCommunity(address)',addr); let fc='0x0'; try{ fc=web3.eth.abi.decodeParameter('address',await activeWeb3.eth.call({to:GOV_ADDR,data:fcData})); }catch(e){} if(fc==='0x0000000000000000000000000000000000000000'){ html+='<span class="r">无上级社区</span>'; document.getElementById('resRewards').innerHTML=html; return; } let cur=fc; for(let i=0;i<6;i++){ if(cur==='0x0000000000000000000000000000000000000000'){ html+=`C${i+1}:空缺\n`; break; } try{ const mykData=buildCallData('balanceOf(address)',cur); const mykRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:mykData}); html+=`C${i+1}:${cur.slice(0,8)}... MYK:${fromWei(mykRaw).toFixed(2)}\n`; const nodeData=buildCallData('getCommunityNode(address)',cur); const nodeRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:nodeData}); const node=web3.eth.abi.decodeParameters(['address','address','bool'],nodeRaw); cur=node[1]; }catch(e){ html+=`C${i+1}:查询失败\n`; break; } } document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">失败</span>`; } }
+    async function queryDividendRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`💧 分红池收益\n`; let total=0; for(let t=3;t<=6;t++){ try{ const claimData=buildCallData('getClaimableDividend(address,uint8)',addr,t); const claimRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:claimData}); const claimable=fromWei(claimRaw); total+=claimable; html+=`社区${t}: ${claimable.toFixed(4)} MYK\n`; }catch(e){ html+=`社区${t}:查询失败\n`; } } html+=`\n总计: ${total.toFixed(4)} MYK`; document.getElementById('resRewards').innerHTML=html; }
+
+    // ==================== 多账户管理 ====================
+    async function initAccounts() { if(!window.ethereum) return; const accounts=await window.ethereum.request({method:'eth_accounts'}); if(accounts.length>0){ testAccounts=accounts.slice(0,Math.min(accounts.length,3)); while(testAccounts.length<3) testAccounts.push(''); } updateAccountDisplay(); }
+    function switchAccount(index){ currentAccountIndex=index; document.querySelectorAll('.account-btn').forEach((btn,i)=>{ btn.classList.toggle('active',i===index); }); document.getElementById('customAccountInput').style.display=index===3?'flex':'none'; if(index<3&&testAccounts[index]){ userAccount=testAccounts[index]; updateAccountInfo(); } if(index===3&&testAccounts[3]){ userAccount=testAccounts[3]; updateAccountInfo(); } }
+    function setCustomAccount(){ const addr=document.getElementById('customAddress').value.trim(); if(addr&&addr.startsWith('0x')){ testAccounts[3]=addr; userAccount=addr; updateAccountInfo(); alert('已切换'); }else alert('无效地址'); }
+    async function updateAccountInfo() { if(!userAccount||!activeWeb3) return; try{ const balanceData=buildCallData('balanceOf(address)',userAccount); const mykBal=await activeWeb3.eth.call({to:MYK_ADDR,data:balanceData}); const mykAmount=fromWei(mykBal); const userData=buildCallData('users(address)',userAccount); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; const rankData=buildCallData('getUserRank(address)',userAccount); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount.slice(0,10)}...\n💰 ${mykAmount.toFixed(2)} MYK | ${roles[userInfo[7]]} | 排名#${parseInt(rankRaw)||'无'} | 邀请${userInfo[1]}`; }catch(e){ document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount?.slice(0,10)}...\n<span class="r">查询失败</span>`; } }
+    function updateAccountDisplay() { const container=document.getElementById('accountTabs'); if(!container) return; container.innerHTML=`<button class="account-btn ${currentAccountIndex===0?'active':''}" onclick="switchAccount(0)">A</button><button class="account-btn ${currentAccountIndex===1?'active':''}" onclick="switchAccount(1)">B</button><button class="account-btn ${currentAccountIndex===2?'active':''}" onclick="switchAccount(2)">C</button><button class="account-btn ${currentAccountIndex===3?'active':''}" onclick="switchAccount(3)">➕</button>`; }
 
     // ==================== 14项关联检验 ====================
     async function callView(contract, method, ...params) {
@@ -712,34 +845,18 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v19"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v19", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v20"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v20", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
     function scrollToPhase() { document.getElementById('testContainer')?.scrollIntoView({ behavior: 'smooth' }); }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody><tr></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let total=0,passed=0; for(const k in testResults){total++; if(testResults[k].status==="pass") passed++;} report+=`通过率:${passed}/${total}(${Math.round(passed/total*100)}%)\n\n`; for(const phase of testPhases){ report+=`\n${phase.name}\n`; for(const item of phase.items){ const key=`${phase.id}_${item.id}`; const status=testResults[key]?.status==="pass"?"✅":(testResults[key]?.status==="fail"?"❌":"⏳"); report+=`${status} ${item.id} ${item.name}\n`; } } const blob=new Blob([report],{type:"text/plain"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests(){ if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
 
-    // ==================== 其他功能 ====================
-    async function checkAllowance() { if(!userAccount){alert('请连接钱包');return;} if(!activeWeb3) await initRpc(); try{ const data=buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); const allowance=fromWei(raw); document.getElementById('approveStatus').innerHTML=`🔓 授权额度:${allowance.toFixed(4)} MYK`; } catch(e){ document.getElementById('approveStatus').innerHTML=`<span class="r">查询失败</span>`; } }
-    async function approveMYK() { if(!userAccount){alert('请连接钱包');return;} const amount=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amount)||amount<=0){alert('请输入数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const approveData=buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(amount*2)); await sendTransaction(MYK_ADDR, approveData); document.getElementById('resRecharge').innerHTML=`✅ 授权成功`; setTimeout(()=>checkAllowance(),2000); } catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">失败:${e.message.slice(0,80)}</span>`; } }
-    async function approveAndRechargeActivityPool() { if(!userAccount){alert('请连接钱包');return;} const amount=parseFloat(document.getElementById('rechargeAmount').value); if(isNaN(amount)||amount<=0){alert('请输入数量');return;} try{ document.getElementById('resRecharge').innerHTML='⏳ 检查授权...'; const allowanceData=buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR); const allowanceRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:allowanceData}); if(fromWei(allowanceRaw)<amount){ document.getElementById('resRecharge').innerHTML='⏳ 授权中...'; const approveData=buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, toWei(amount*2)); await sendTransaction(MYK_ADDR, approveData); await new Promise(r=>setTimeout(r,2000)); } document.getElementById('resRecharge').innerHTML='⏳ 充值中...'; const depositData=buildCallData('depositActivityPool(uint256)', toWei(amount)); const tx=await sendTransaction(REWARD_POOL_ADDR, depositData); document.getElementById('resRecharge').innerHTML=`<span class="g">✅ 充值成功！${amount} MYK</span>`; setTimeout(()=>refreshAllBalances(),2000); } catch(e){ document.getElementById('resRecharge').innerHTML=`<span class="r">失败:${e.message.slice(0,100)}</span>`; } }
-    async function getContractBalance() { if(!activeWeb3) return null; try{ const data=buildCallData('balanceOf(address)', REWARD_POOL_ADDR); const raw=await activeWeb3.eth.call({to:MYK_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
-    async function getActivityPoolBalance() { if(!activeWeb3) return null; try{ const data=buildCallData('activityPool()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
-    async function getActivityPoolPaid() { if(!activeWeb3) return null; try{ const data=buildCallData('activityPoolTotalPaid()'); const raw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data}); return fromWei(raw); }catch(e){return null;} }
-    async function refreshAllBalances() { if(!activeWeb3) await initRpc(); const total=await getContractBalance(); const pool=await getActivityPoolBalance(); const paid=await getActivityPoolPaid(); if(total!==null) document.getElementById('contractTotalBalance').innerHTML=total.toFixed(2); if(pool!==null) document.getElementById('activityPoolBalance').innerHTML=pool.toFixed(2); if(paid!==null) document.getElementById('activityPoolPaid').innerHTML=paid.toFixed(2); }
-    async function getActivityPoolInfo() { const pool=await getActivityPoolBalance(); const paid=await getActivityPoolPaid(); const price=await getCurrentPrice(); if(pool!==null){ const rewardPer=price?(2/price).toFixed(4):'--'; document.getElementById('resRecharge').innerHTML=`📋 奖金池: ${pool.toFixed(2)} MYK | 发放:${paid?.toFixed(2)||'--'} | 每激活:${rewardPer} MYK`; } }
-    async function queryUserRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📋 用户${addr.slice(0,8)}...奖励\n`; try{ const userData=buildCallData('users(address)',addr); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; html+=`状态:${roles[userInfo[7]]} | 激活:${userInfo[8]?'✅':'❌'} | 邀请:${userInfo[1]}\n`; const rankData=buildCallData('getUserRank(address)',addr); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); html+=`排名:#${parseInt(rankRaw)||'无'}\n`; document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">查询失败</span>`; } }
-    async function queryUpRewardsDetail() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`📊 上级社区链\n`; try{ const fcData=buildCallData('getFirstCommunity(address)',addr); let fc='0x0'; try{ fc=web3.eth.abi.decodeParameter('address',await activeWeb3.eth.call({to:GOV_ADDR,data:fcData})); }catch(e){} if(fc==='0x0000000000000000000000000000000000000000'){ html+='<span class="r">无上级社区</span>'; document.getElementById('resRewards').innerHTML=html; return; } let cur=fc; for(let i=0;i<6;i++){ if(cur==='0x0000000000000000000000000000000000000000'){ html+=`C${i+1}:空缺\n`; break; } try{ const mykData=buildCallData('balanceOf(address)',cur); const mykRaw=await activeWeb3.eth.call({to:MYK_ADDR,data:mykData}); html+=`C${i+1}:${cur.slice(0,8)}... MYK:${fromWei(mykRaw).toFixed(2)}\n`; const nodeData=buildCallData('getCommunityNode(address)',cur); const nodeRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:nodeData}); const node=web3.eth.abi.decodeParameters(['address','address','bool'],nodeRaw); cur=node[1]; }catch(e){ html+=`C${i+1}:查询失败\n`; break; } } document.getElementById('resRewards').innerHTML=html; }catch(e){ document.getElementById('resRewards').innerHTML=`<span class="r">失败</span>`; } }
-    async function queryDividendRewards() { let addr=document.getElementById('rewardUserAddr').value.trim(); if(!addr) addr=userAccount; if(!addr){alert('请输入地址');return;} if(!activeWeb3) await initRpc(); let html=`💧 分红池收益\n`; let total=0; for(let t=3;t<=6;t++){ try{ const claimData=buildCallData('getClaimableDividend(address,uint8)',addr,t); const claimRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:claimData}); const claimable=fromWei(claimRaw); total+=claimable; html+=`社区${t}: ${claimable.toFixed(4)} MYK\n`; }catch(e){ html+=`社区${t}:查询失败\n`; } } html+=`\n总计: ${total.toFixed(4)} MYK`; document.getElementById('resRewards').innerHTML=html; }
-    async function initAccounts() { if(!window.ethereum) return; const accounts=await window.ethereum.request({method:'eth_accounts'}); if(accounts.length>0){ testAccounts=accounts.slice(0,Math.min(accounts.length,3)); while(testAccounts.length<3) testAccounts.push(''); } updateAccountDisplay(); }
-    function switchAccount(index){ currentAccountIndex=index; document.querySelectorAll('.account-btn').forEach((btn,i)=>{ btn.classList.toggle('active',i===index); }); document.getElementById('customAccountInput').style.display=index===3?'flex':'none'; if(index<3&&testAccounts[index]){ userAccount=testAccounts[index]; updateAccountInfo(); } if(index===3&&testAccounts[3]){ userAccount=testAccounts[3]; updateAccountInfo(); } }
-    function setCustomAccount(){ const addr=document.getElementById('customAddress').value.trim(); if(addr&&addr.startsWith('0x')){ testAccounts[3]=addr; userAccount=addr; updateAccountInfo(); alert('已切换'); }else alert('无效地址'); }
-    async function updateAccountInfo() { if(!userAccount||!activeWeb3) return; try{ const balanceData=buildCallData('balanceOf(address)',userAccount); const mykBal=await activeWeb3.eth.call({to:MYK_ADDR,data:balanceData}); const mykAmount=fromWei(mykBal); const userData=buildCallData('users(address)',userAccount); const userRaw=await activeWeb3.eth.call({to:REWARD_POOL_ADDR,data:userData}); const userInfo=web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'],userRaw); const roles=['无','PRIMARY','MIDDLE','COMMUNITY']; const rankData=buildCallData('getUserRank(address)',userAccount); const rankRaw=await activeWeb3.eth.call({to:GOV_ADDR,data:rankData}); document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount.slice(0,10)}...\n💰 ${mykAmount.toFixed(2)} MYK | ${roles[userInfo[7]]} | 排名#${parseInt(rankRaw)||'无'} | 邀请${userInfo[1]}`; }catch(e){ document.getElementById('resAccountInfo').innerHTML=`📋 ${userAccount?.slice(0,10)}...\n<span class="r">查询失败</span>`; } }
-    function updateAccountDisplay() { const container=document.getElementById('accountTabs'); if(!container) return; container.innerHTML=`<button class="account-btn ${currentAccountIndex===0?'active':''}" onclick="switchAccount(0)">A</button><button class="account-btn ${currentAccountIndex===1?'active':''}" onclick="switchAccount(1)">B</button><button class="account-btn ${currentAccountIndex===2?'active':''}" onclick="switchAccount(2)">C</button><button class="account-btn ${currentAccountIndex===3?'active':''}" onclick="switchAccount(3)">➕</button>`; }
+    // ==================== Web3 基础函数 ====================
     const toWei=(v)=>web3.utils.toWei(v.toString(),'ether'); const fromWei=(w)=>parseFloat(web3.utils.fromWei(w,'ether'));
     const encodeFunctionSig=(s)=>web3.eth.abi.encodeFunctionSignature(s); const encodeAddress=(a)=>web3.eth.abi.encodeParameter('address',a).slice(2); const encodeUint=(n)=>web3.eth.abi.encodeParameter('uint256',n).slice(2);
     const buildCallData=(sig,...params)=>{ let s=encodeFunctionSig(sig); let e=''; for(let p of params){ if(typeof p==='string' && p.startsWith('0x') && p.length===42) e+=encodeAddress(p); else e+=encodeUint(p.toString()); } return '0x'+s.slice(2)+e; };
