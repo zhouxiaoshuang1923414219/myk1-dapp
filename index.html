@@ -152,7 +152,7 @@
             </div>
             <div class="addr-row" id="rowRp">
                 <span class="addr-label">RewardPool:</span>
-                <span class="addr-value" id="displayRpAddr">0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643</span>
+                <span class="addr-value" id="displayRpAddr">0x9d468F0d3D730fffe19FB16E97b04bA5B753936e</span>
                 <button class="edit-btn" onclick="editAddress('rp')">✏️ 编辑</button>
                 <button class="copy-btn" onclick="copyToClipboard('displayRpAddr')">复制</button>
             </div>
@@ -308,7 +308,7 @@
 <script>
     // ==================== 可编辑合约地址 ====================
     let MYK_ADDR = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-    let REWARD_POOL_ADDR = '0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643';
+    let REWARD_POOL_ADDR = '0x9d468F0d3D730fffe19FB16E97b04bA5B753936e';
     let GOV_ADDR = '0x26010B7b6E873Dba7de3a79E67e0cE31433b4657';
     let FUND_MANAGER_ADDR = '0x97371aaF9CB8DcCa738c1f45ae368eF6e88B5A1a';
     let LP_PAIR_ADDR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
@@ -319,7 +319,7 @@
     // 默认地址备份
     const DEFAULT_ADDRS = {
         myk: '0xc23CfEeC6D188D627C85106f682D9eb38d94192a',
-        rp: '0xf56C22820D4Bb7E6Ad80C3A8a2b606a20b44c643',
+        rp: '0x9d468F0d3D730fffe19FB16E97b04bA5B753936e',
         gv: '0x26010B7b6E873Dba7de3a79E67e0cE31433b4657',
         fm: '0x97371aaF9CB8DcCa738c1f45ae368eF6e88B5A1a',
         pair: '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156'
@@ -912,13 +912,13 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v20"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v20", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v21"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v21", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
     function scrollToPhase() { document.getElementById('testContainer')?.scrollIntoView({ behavior: 'smooth' }); }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody><tr></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let total=0,passed=0; for(const k in testResults){total++; if(testResults[k].status==="pass") passed++;} report+=`通过率:${passed}/${total}(${Math.round(passed/total*100)}%)\n\n`; for(const phase of testPhases){ report+=`\n${phase.name}\n`; for(const item of phase.items){ const key=`${phase.id}_${item.id}`; const status=testResults[key]?.status==="pass"?"✅":(testResults[key]?.status==="fail"?"❌":"⏳"); report+=`${status} ${item.id} ${item.name}\n`; } } const blob=new Blob([report],{type:"text/plain"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests(){ if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
