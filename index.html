@@ -196,7 +196,7 @@
         <div class="res" id="resAccountInfo">📋 当前账户信息</div>
     </div>
 
-    <!-- 合约余额管理（修复版 - 授权金额与支付金额一致） -->
+    <!-- 合约余额管理 -->
     <div class="card">
         <div class="card-title">💰 合约余额管理 <span class="badge badge-write">充值</span></div>
         <div class="stats-grid">
@@ -219,8 +219,7 @@
             💡 充值说明：<br>
             • 「授权并充值」会先授权同等金额，再执行充值（两笔交易）<br>
             • 「仅授权」只授权不充值，授权金额 = 输入金额<br>
-            • 「仅充值」需先完成授权，充值金额 ≤ 授权金额<br>
-            • 每次充值的金额与授权金额保持一致，避免覆盖问题
+            • 「仅充值」需先完成授权，充值金额 ≤ 授权金额
         </div>
     </div>
 
@@ -254,9 +253,9 @@
         <div class="card-title">🔗 关联检验 <span class="badge badge-config">14项</span></div>
         <div class="row">
             <button class="primary" onclick="runFullVerification()">✅ 一键检验(14项)</button>
-            <button class="warning" onclick="runOneKeySetup()">⚡ 一键设置(11项)</button>
+            <button class="warning" onclick="runSmartSetup()">⚡ 智能一键设置(仅设置未关联的)</button>
         </div>
-        <div class="res" id="resVerification">💡 点击检验14项关联（含3个 Pair 地址 + FM↔RP 关联）</div>
+        <div class="res" id="resVerification">💡 点击检验14项关联，智能设置只会执行未正确关联的设置项</div>
     </div>
 
     <!-- 时间控制 -->
@@ -309,7 +308,7 @@
     // ==================== 可编辑合约地址 ====================
     let MYK_ADDR = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
     let REWARD_POOL_ADDR = '0x7b5b246718Bdb45c96141cBB5b6da2f15B12198B';
-    let GOV_ADDR = '';
+    let GOV_ADDR = '0x4Ee5EdB6625a183D04A1595b430C848A12b47CC9';
     let FUND_MANAGER_ADDR = '0x3a15A2947e116af89316B6f8b8BB54bf340A3d9f';
     let LP_PAIR_ADDR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
     
@@ -360,7 +359,7 @@
         updateTxHistoryDisplay();
         document.getElementById('resRecharge').innerHTML = '🗑️ 交易记录已清空';
         setTimeout(() => {
-            document.getElementById('resRecharge').innerHTML = '💡 充值说明：<br>• 「授权并充值」会先授权同等金额，再执行充值（两笔交易）<br>• 「仅授权」只授权不充值，授权金额 = 输入金额<br>• 「仅充值」需先完成授权，充值金额 ≤ 授权金额<br>• 每次充值的金额与授权金额保持一致，避免覆盖问题';
+            document.getElementById('resRecharge').innerHTML = '💡 充值说明：<br>• 「授权并充值」会先授权同等金额，再执行充值（两笔交易）<br>• 「仅授权」只授权不充值，授权金额 = 输入金额<br>• 「仅充值」需先完成授权，充值金额 ≤ 授权金额';
         }, 2000);
     }
 
@@ -491,9 +490,8 @@
         runFullVerification();
     }
 
-    // ==================== 充值功能（修复版 - 授权金额与支付金额一致） ====================
+    // ==================== 充值功能 ====================
     
-    // 查询授权额度
     async function checkAllowance() {
         if (!userAccount) { alert('请连接钱包'); return; }
         if (!activeWeb3) await initRpc();
@@ -512,7 +510,6 @@
         }
     }
     
-    // 仅授权（授权金额 = 输入金额）
     async function approveOnly() {
         if (!userAccount) { alert('请连接钱包'); return; }
         const amount = parseFloat(document.getElementById('rechargeAmount').value);
@@ -523,14 +520,13 @@
             const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, amountWei);
             const tx = await sendTransaction(MYK_ADDR, approveData);
             addTxRecord('授权', tx, amount, 'pending');
-            document.getElementById('resRecharge').innerHTML = `✅ 授权交易已发送！\n金额: ${amount} MYK\n哈希: ${tx.slice(0,10)}...\n等待确认后点击「仅充值」`;
-            // 等待确认后更新记录
+            document.getElementById('resRecharge').innerHTML = `✅ 授权交易已发送！\n金额: ${amount} MYK\n哈希: ${tx.slice(0,10)}...`;
             setTimeout(async () => {
                 try {
                     const receipt = await web3.eth.getTransactionReceipt(tx);
                     if (receipt && receipt.status) {
                         addTxRecord('授权', tx, amount, 'success');
-                        document.getElementById('resRecharge').innerHTML = `✅ 授权成功！\n金额: ${amount} MYK\n哈希: ${tx.slice(0,10)}...\n授权额度已更新，可点击「仅充值」`;
+                        document.getElementById('resRecharge').innerHTML = `✅ 授权成功！\n金额: ${amount} MYK\n哈希: ${tx.slice(0,10)}...`;
                         await checkAllowance();
                     }
                 } catch(e) {}
@@ -540,14 +536,12 @@
         }
     }
     
-    // 仅充值（使用已授权的额度）
     async function depositOnly() {
         if (!userAccount) { alert('请连接钱包'); return; }
         const amount = parseFloat(document.getElementById('rechargeAmount').value);
         if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
         const amountWei = toWei(amount);
         try {
-            // 先检查授权额度
             const allowanceData = buildCallData('allowance(address,address)', userAccount, REWARD_POOL_ADDR);
             const allowanceRaw = await activeWeb3.eth.call({ to: MYK_ADDR, data: allowanceData });
             const currentAllowance = fromWei(allowanceRaw);
@@ -576,25 +570,21 @@
         }
     }
     
-    // 授权并充值（一步完成，授权金额 = 充值金额）
     async function approveAndRecharge() {
         if (!userAccount) { alert('请连接钱包'); return; }
         const amount = parseFloat(document.getElementById('rechargeAmount').value);
         if (isNaN(amount) || amount <= 0) { alert('请输入有效的 MYK 数量'); return; }
         const amountWei = toWei(amount);
         try {
-            // 步骤1: 授权
             document.getElementById('resRecharge').innerHTML = `⏳ 步骤1/2: 正在授权 ${amount} MYK...`;
             const approveData = buildCallData('approve(address,uint256)', REWARD_POOL_ADDR, amountWei);
             const approveTx = await sendTransaction(MYK_ADDR, approveData);
             addTxRecord('授权', approveTx, amount, 'pending');
             document.getElementById('resRecharge').innerHTML = `✅ 授权交易已发送: ${approveTx.slice(0,10)}...\n⏳ 等待确认后自动充值...`;
             
-            // 等待授权确认
             await waitForTransaction(approveTx);
             addTxRecord('授权', approveTx, amount, 'success');
             
-            // 步骤2: 充值
             document.getElementById('resRecharge').innerHTML = `⏳ 步骤2/2: 正在充值 ${amount} MYK 到活动奖金池...`;
             const depositData = buildCallData('depositActivityPool(uint256)', amountWei);
             const depositTx = await sendTransaction(REWARD_POOL_ADDR, depositData);
@@ -604,7 +594,7 @@
             await waitForTransaction(depositTx);
             addTxRecord('充值', depositTx, amount, 'success');
             
-            document.getElementById('resRecharge').innerHTML = `<span class="g">🎉 授权并充值成功！\n金额: ${amount} MYK\n授权哈希: ${approveTx.slice(0,10)}...\n充值哈希: ${depositTx.slice(0,10)}...</span>`;
+            document.getElementById('resRecharge').innerHTML = `<span class="g">🎉 授权并充值成功！\n金额: ${amount} MYK</span>`;
             setTimeout(() => {
                 refreshAllBalances();
                 checkAllowance();
@@ -741,7 +731,7 @@
         alert('已填入期望地址');
     }
 
-    // ==================== 14项关联检验 ====================
+    // ==================== 14项关联检验 + 智能设置（跳过已关联的） ====================
     async function callView(contract, method, ...params) {
         if (!activeWeb3) await initRpc();
         try {
@@ -802,35 +792,70 @@
         }
         html += `</div>`;
         document.getElementById('resVerification').innerHTML = html;
+        
+        // 返回检查结果，供智能设置使用
+        return checks;
     }
 
-    async function runOneKeySetup() {
+    // 智能一键设置（只设置未正确关联的地址）
+    async function runSmartSetup() {
         if (!userAccount) { alert('请先连接钱包'); return; }
-        document.getElementById('resVerification').innerHTML = '⏳ 执行关联设置...';
-        const steps = [
-            { name: "MYK.setRewardPool", to: MYK_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR },
-            { name: "MYK.setCommunityGovernance", to: MYK_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR },
-            { name: "RP.setMykToken", to: REWARD_POOL_ADDR, method: 'setMykToken(address)', param: MYK_ADDR },
-            { name: "RP.setCommunityGovernance", to: REWARD_POOL_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR },
-            { name: "RP.setFundManager", to: REWARD_POOL_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR },
-            { name: "GV.setMykToken", to: GOV_ADDR, method: 'setMykToken(address)', param: MYK_ADDR },
-            { name: "GV.setRewardPool", to: GOV_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR },
-            { name: "GV.setFundManager", to: GOV_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR },
-            { name: "FM.setMyk", to: FUND_MANAGER_ADDR, method: 'setMyk(address)', param: MYK_ADDR },
-            { name: "FM.setCommunityGovernance", to: FUND_MANAGER_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR },
-            { name: "FM.setRewardPool", to: FUND_MANAGER_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR }
+        document.getElementById('resVerification').innerHTML = '⏳ 正在检查关联状态...';
+        
+        // 先执行检验，获取哪些项需要设置
+        if (!activeWeb3) await initRpc();
+        if (!activeWeb3) { document.getElementById('resVerification').innerHTML = '<span class="r">❌ RPC失败</span>'; return; }
+        
+        const checks = [
+            { name: "MYK.setRewardPool", to: MYK_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR, checkContract: MYK_ADDR, checkMethod: 'rewardPool()', expected: REWARD_POOL_ADDR },
+            { name: "MYK.setCommunityGovernance", to: MYK_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR, checkContract: MYK_ADDR, checkMethod: 'communityGovernance()', expected: GOV_ADDR },
+            { name: "RP.setMykToken", to: REWARD_POOL_ADDR, method: 'setMykToken(address)', param: MYK_ADDR, checkContract: REWARD_POOL_ADDR, checkMethod: 'mykToken()', expected: MYK_ADDR },
+            { name: "RP.setCommunityGovernance", to: REWARD_POOL_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR, checkContract: REWARD_POOL_ADDR, checkMethod: 'communityGovernance()', expected: GOV_ADDR },
+            { name: "RP.setFundManager", to: REWARD_POOL_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR, checkContract: REWARD_POOL_ADDR, checkMethod: 'fundManager()', expected: FUND_MANAGER_ADDR },
+            { name: "GV.setMykToken", to: GOV_ADDR, method: 'setMykToken(address)', param: MYK_ADDR, checkContract: GOV_ADDR, checkMethod: 'mykToken()', expected: MYK_ADDR },
+            { name: "GV.setRewardPool", to: GOV_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR, checkContract: GOV_ADDR, checkMethod: 'rewardPool()', expected: REWARD_POOL_ADDR },
+            { name: "GV.setFundManager", to: GOV_ADDR, method: 'setFundManager(address)', param: FUND_MANAGER_ADDR, checkContract: GOV_ADDR, checkMethod: 'fundManager()', expected: FUND_MANAGER_ADDR },
+            { name: "FM.setMyk", to: FUND_MANAGER_ADDR, method: 'setMyk(address)', param: MYK_ADDR, checkContract: FUND_MANAGER_ADDR, checkMethod: 'myk()', expected: MYK_ADDR },
+            { name: "FM.setCommunityGovernance", to: FUND_MANAGER_ADDR, method: 'setCommunityGovernance(address)', param: GOV_ADDR, checkContract: FUND_MANAGER_ADDR, checkMethod: 'communityGovernance()', expected: GOV_ADDR },
+            { name: "FM.setRewardPool", to: FUND_MANAGER_ADDR, method: 'setRewardPool(address)', param: REWARD_POOL_ADDR, checkContract: FUND_MANAGER_ADDR, checkMethod: 'rewardPool()', expected: REWARD_POOL_ADDR }
         ];
-        for (let i = 0; i < steps.length; i++) {
+        
+        // 检查哪些需要设置
+        const needSetup = [];
+        for (const step of checks) {
             try {
-                const data = buildCallData(steps[i].method, steps[i].param);
-                await sendTransaction(steps[i].to, data);
-                document.getElementById('resVerification').innerHTML = `✅ [${i+1}/${steps.length}] ${steps[i].name}`;
+                const val = await callView(step.checkContract, step.checkMethod);
+                const decoded = await decodeAddress(val);
+                const isCorrect = decoded.toLowerCase() === step.expected.toLowerCase();
+                if (!isCorrect) {
+                    needSetup.push(step);
+                }
             } catch(e) {
-                document.getElementById('resVerification').innerHTML = `<span class="r">❌ ${steps[i].name}失败</span>`;
+                needSetup.push(step);
+            }
+        }
+        
+        if (needSetup.length === 0) {
+            document.getElementById('resVerification').innerHTML = '<span class="g">🎉 所有关联配置已正确！无需执行任何设置交易。</span>';
+            return;
+        }
+        
+        document.getElementById('resVerification').innerHTML = `⏳ 发现 ${needSetup.length} 项需要设置，开始执行...`;
+        
+        for (let i = 0; i < needSetup.length; i++) {
+            const step = needSetup[i];
+            try {
+                const data = buildCallData(step.method, step.param);
+                await sendTransaction(step.to, data);
+                document.getElementById('resVerification').innerHTML = `✅ [${i+1}/${needSetup.length}] ${step.name} 设置成功`;
+                await new Promise(r => setTimeout(r, 1500));
+            } catch(e) {
+                document.getElementById('resVerification').innerHTML = `<span class="r">❌ ${step.name} 设置失败: ${e.message.slice(0,80)}</span>`;
                 return;
             }
         }
-        document.getElementById('resVerification').innerHTML = `<span class="g">🎉 ${steps.length}项关联设置完成！</span>`;
+        
+        document.getElementById('resVerification').innerHTML = `<span class="g">🎉 智能设置完成！已设置 ${needSetup.length} 项（跳过了已正确配置的项）</span>`;
         setTimeout(() => runFullVerification(), 2000);
     }
 
@@ -912,13 +937,13 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v22"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v22", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v23"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v23", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
     function scrollToPhase() { document.getElementById('testContainer')?.scrollIntoView({ behavior: 'smooth' }); }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}<tr><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td style="width:70px;"><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let total=0,passed=0; for(const k in testResults){total++; if(testResults[k].status==="pass") passed++;} report+=`通过率:${passed}/${total}(${Math.round(passed/total*100)}%)\n\n`; for(const phase of testPhases){ report+=`\n${phase.name}\n`; for(const item of phase.items){ const key=`${phase.id}_${item.id}`; const status=testResults[key]?.status==="pass"?"✅":(testResults[key]?.status==="fail"?"❌":"⏳"); report+=`${status} ${item.id} ${item.name}\n`; } } const blob=new Blob([report],{type:"text/plain"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests(){ if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
