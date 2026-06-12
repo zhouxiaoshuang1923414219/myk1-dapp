@@ -69,6 +69,7 @@
         .pair-config { background: #1f6feb20; border-radius: 10px; padding: 8px; margin-bottom: 8px; }
         .tx-history { max-height: 200px; overflow-y: auto; font-size: 9px; }
         .tx-item { padding: 4px 0; border-bottom: 0.5px solid #2d333b; font-family: monospace; }
+        .fm-badge { background: #f0883e20; color: #f0883e; border: 0.5px solid #f0883e; margin-left: 5px; }
         @media (max-width: 480px) {
             .row button { font-size: 10px; padding: 6px 4px; }
             .test-table td { padding: 4px 2px; }
@@ -164,7 +165,7 @@
             </div>
             <div class="addr-row" id="rowFm">
                 <span class="addr-label">FundManager:</span>
-                <span class="addr-value" id="displayFmAddr">0xe0CCC898BF7954865602e1ff77b2d7EDD6b9a4a8</span>
+                <span class="addr-value" id="displayFmAddr">0x55F83Ec2d9d7F44Bd53699Ac3fddd39B1ff3ce5e</span>
                 <button class="edit-btn" onclick="editAddress('fm')">✏️ 编辑</button>
                 <button class="copy-btn" onclick="copyToClipboard('displayFmAddr')">复制</button>
             </div>
@@ -272,7 +273,7 @@
 
     <!-- 快速操作（新增 executeBatchBuy） -->
     <div class="card">
-        <div class="card-title">⚡ 快速操作</div>
+        <div class="card-title">⚡ 快速操作 <span class="fm-badge" style="font-size:8px;padding:2px 6px;border-radius:20px;">FundManager</span></div>
         <select id="quickAction">
             <option value="">-- 选择 --</option>
             <option value="activate">activateWithUSDT (激活)</option>
@@ -281,7 +282,7 @@
             <option value="upgradeUSDT">upgradeWithUSDT (升级)</option>
             <option value="burnTier">burnForTier (销毁升级)</option>
             <option value="renew">renewCommunity (续费)</option>
-            <option value="executeBatchBuy">executeBatchBuy (执行批量买入) 🆕</option>
+            <option value="executeBatchBuy">executeBatchBuy (批量买入) 🆕</option>
         </select>
         <input type="text" id="quickParam" placeholder="参数（executeBatchBuy 无需参数）" style="margin-top: 4px;">
         <button class="primary" onclick="executeQuickAction()" style="width:100%; margin-top:6px;">▶ 执行</button>
@@ -310,7 +311,7 @@
     let MYK_ADDR = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
     let REWARD_POOL_ADDR = '0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2';
     let GOV_ADDR = '0x0B829905DF3D4e449200F5A5f58374d1C8DA690D';
-    let FUND_MANAGER_ADDR = '0xe0CCC898BF7954865602e1ff77b2d7EDD6b9a4a8';
+    let FUND_MANAGER_ADDR = '0x55F83Ec2d9d7F44Bd53699Ac3fddd39B1ff3ce5e';
     let LP_PAIR_ADDR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
     
     // 交易记录数组
@@ -321,7 +322,7 @@
         myk: '0xc23CfEeC6D188D627C85106f682D9eb38d94192a',
         rp: '0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2',
         gv: '0x0B829905DF3D4e449200F5A5f58374d1C8DA690D',
-        fm: '0xe0CCC898BF7954865602e1ff77b2d7EDD6b9a4a8',
+        fm: '0x55F83Ec2d9d7F44Bd53699Ac3fddd39B1ff3ce5e',
         pair: '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156'
     };
 
@@ -976,13 +977,13 @@
         }
         loadFromStorage(); updateStats(); renderTestTable();
     }
-    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v25"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
-    function saveToStorage() { localStorage.setItem("myk_test_final_v25", JSON.stringify(testResults)); }
+    function loadFromStorage() { try { const saved = localStorage.getItem("myk_test_final_v26"); if (saved) { const parsed = JSON.parse(saved); for (const k in parsed) if (testResults[k]) testResults[k] = parsed[k]; } } catch(e) {} }
+    function saveToStorage() { localStorage.setItem("myk_test_final_v26", JSON.stringify(testResults)); }
     function setTestStatus(phaseId, itemId, status) { const key = `${phaseId}_${itemId}`; if (testResults[key]) { testResults[key].status = status; saveToStorage(); updateStats(); renderTestTable(); } }
     function updateStats() { let total=0, passed=0, failed=0; for (const k in testResults) { total++; if (testResults[k].status === "pass") passed++; else if (testResults[k].status === "fail") failed++; } document.getElementById("statPassed").innerHTML = passed; document.getElementById("statFailed").innerHTML = failed; document.getElementById("statTotal").innerHTML = total; const percent = total>0?Math.round(passed/total*100):0; document.getElementById("progressFill").style.width = `${percent}%`; document.getElementById("testProgress").innerHTML = `📊 ${percent}% (${passed}/${total})`; }
     function togglePhase(phaseId) { const el = document.getElementById(`phase-${phaseId}`); if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }
     function scrollToPhase() { document.getElementById('testContainer')?.scrollIntoView({ behavior: 'smooth' }); }
-    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td style="width:70px;"><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></td></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
+    function renderTestTable() { const container = document.getElementById("testContainer"); if (!container) return; let html = ''; for (const phase of testPhases) { let phasePassed=0, phaseTotal=0; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; if(testResults[key]){ phaseTotal++; if(testResults[key].status==="pass") phasePassed++; } } html += `<div class="test-phase"><div class="phase-header" onclick="togglePhase('${phase.id}')"><span>${phase.name}</span><div><span class="g">${phasePassed}</span>/<span>${phaseTotal}</span> ▼</div></div><div id="phase-${phase.id}" style="display:block;"><table class="test-table"><tbody>`; for (const item of phase.items) { const key=`${phase.id}_${item.id}`; const result=testResults[key]||{status:"pending"}; const statusIcon=result.status==="pass"?"✅":(result.status==="fail"?"❌":"⏳"); html += `<tr><td style="width:40px;">${item.id}</td><td style="width:80px;">${item.name}</td><td style="width:80px;color:#8b949e;">${item.desc}</td><td style="width:35px;">${statusIcon}</td><td style="width:70px;"><button class="pass-btn" onclick="setTestStatus('${phase.id}','${item.id}','pass')">✅</button><button class="fail-btn" onclick="setTestStatus('${phase.id}','${item.id}','fail')">❌</button></tr>`; } html += `</tbody></table></div></div>`; } container.innerHTML = html; }
     function exportTestReport() { let report = "MYK测试报告\n时间:"+new Date().toLocaleString()+"\n"; let total=0,passed=0; for(const k in testResults){total++; if(testResults[k].status==="pass") passed++;} report+=`通过率:${passed}/${total}(${Math.round(passed/total*100)}%)\n\n`; for(const phase of testPhases){ report+=`\n${phase.name}\n`; for(const item of phase.items){ const key=`${phase.id}_${item.id}`; const status=testResults[key]?.status==="pass"?"✅":(testResults[key]?.status==="fail"?"❌":"⏳"); report+=`${status} ${item.id} ${item.name}\n`; } } const blob=new Blob([report],{type:"text/plain"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`MYK_test_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); }
     function resetAllTests(){ if(confirm("重置所有测试？")){ for(const k in testResults) testResults[k]={status:"pending",note:""}; saveToStorage(); updateStats(); renderTestTable(); } }
     function markAllPassed(){ for(const k in testResults) testResults[k]={status:"pass",note:""}; saveToStorage(); updateStats(); renderTestTable(); }
@@ -1120,8 +1121,21 @@
                 default:alert('未知操作');return; 
             } 
             const tx=await sendTransaction(to,data); 
-            document.getElementById('resQuickAction').innerHTML=`✅ 已发送 ${tx.slice(0,10)}...`; 
-            setTimeout(()=>updateAccountInfo(),3000); 
+            addTxRecord('批量买入', tx, '', 'pending');
+            document.getElementById('resQuickAction').innerHTML=`✅ 批量买入交易已发送！\n合约: FundManager\n哈希: ${tx.slice(0,10)}...\n等待确认中...`;
+            setTimeout(async () => {
+                try {
+                    const receipt = await web3.eth.getTransactionReceipt(tx);
+                    if (receipt && receipt.status) {
+                        addTxRecord('批量买入', tx, '', 'success');
+                        document.getElementById('resQuickAction').innerHTML = `<span class="g">✅ executeBatchBuy 执行成功！</span>\n哈希: ${tx}\n请刷新余额查看变化。`;
+                        await refreshAllBalances();
+                    } else if (receipt && !receipt.status) {
+                        addTxRecord('批量买入', tx, '', 'fail');
+                        document.getElementById('resQuickAction').innerHTML = `<span class="r">❌ 交易执行失败，请检查合约状态</span>`;
+                    }
+                } catch(e) {}
+            }, 5000);
         }catch(e){ 
             document.getElementById('resQuickAction').innerHTML=`<span class="r">❌ ${e.message.slice(0,80)}</span>`; 
         } 
